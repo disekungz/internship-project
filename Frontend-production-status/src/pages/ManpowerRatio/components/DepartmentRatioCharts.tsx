@@ -86,12 +86,12 @@ class ChartErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBounda
   render() {
     if (this.state.hasError) {
       return (
-        <section className="rounded-3xl bg-white p-5 shadow-sm border border-red-200">
-          <div className="flex flex-col items-center justify-center p-6 text-center text-slate-500">
+        <section className="rounded-3xl bg-base-100 p-5 shadow-sm border border-red-500/30">
+          <div className="flex flex-col items-center justify-center p-6 text-center text-base-content/60">
             <span className="text-sm font-bold text-red-600 mb-1">
               {this.props.fallbackTitle || "Chart Unavailable"}
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-base-content/50">
               {this.state.error?.message || "An unexpected error occurred while rendering this chart."}
             </span>
           </div>

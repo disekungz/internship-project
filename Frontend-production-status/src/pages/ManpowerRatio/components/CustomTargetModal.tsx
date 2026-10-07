@@ -144,7 +144,7 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-4 animate-in fade-in duration-200"
       onWheel={(e) => e.stopPropagation()}
     >
-      <div className="w-full max-w-2xl max-h-[92vh] rounded-3xl bg-white shadow-2xl border border-slate-100 overflow-hidden flex flex-col transition-all">
+      <div className="w-full max-w-2xl max-h-[92vh] rounded-3xl bg-base-100 shadow-2xl border border-base-300 overflow-hidden flex flex-col transition-all">
         {/* 🌟 Modern Header */}
         <div className="relative px-5 py-3.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white flex items-center justify-between shadow-sm shrink-0">
           <div className="flex items-center gap-3">
@@ -186,7 +186,7 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
               onClick={() => setShowGuide((prev) => !prev)}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer border ${
                 showGuide
-                  ? 'bg-amber-400 text-slate-900 border-amber-300 shadow'
+                  ? 'bg-amber-400 text-base-content border-amber-300 shadow'
                   : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
               }`}
               title={isTh ? 'คู่มือการใช้งาน' : 'User Guide'}
@@ -219,22 +219,22 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
 
         {/* 📖 Inline User Guide Panel (เมื่อกดเปิดคู่มือ) */}
         {showGuide && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-3.5 sm:p-4 border-b border-amber-200 text-slate-800 animate-in slide-in-from-top-2 duration-150 shrink-0">
+          <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 p-3.5 sm:p-4 border-b border-amber-500/30 text-base-content animate-in slide-in-from-top-2 duration-150 shrink-0">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1.5 w-full">
-                <div className="flex items-center gap-2 font-black text-amber-950 text-sm sm:text-base">
+                <div className="flex items-center gap-2 font-black text-base-content text-sm sm:text-base">
                   <Info className="h-4 w-4 text-amber-600 shrink-0" />
                   <span>{isTh ? '📖 วิธีใช้งานง่าย ๆ ใน 3 ขั้นตอน:' : '📖 Simple 3-Step Guide:'}</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-                  <div className="bg-white p-2.5 rounded-xl border border-amber-200 shadow-2xs">
-                    <span className="inline-block px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-900 font-black text-xs mb-1">
+                  <div className="bg-base-100 p-2.5 rounded-xl border border-amber-500/30 shadow-2xs">
+                    <span className="inline-block px-1.5 py-0.5 rounded-md bg-blue-500/15 text-blue-500 font-black text-xs mb-1">
                       {isTh ? 'ขั้นตอน 1' : 'Step 1'}
                     </span>
-                    <p className="font-black text-slate-900 text-xs sm:text-sm">
+                    <p className="font-black text-base-content text-xs sm:text-sm">
                       {isTh ? (kind === 'ot' ? 'เลือกเส้นเป้าหมาย' : 'เป้าหมายการลา') : (kind === 'ot' ? 'Select Target Line' : 'Leave Target')}
                     </p>
-                    <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-snug">
+                    <p className="text-[11px] sm:text-xs text-base-content/70 mt-0.5 leading-snug">
                       {kind === 'ot'
                         ? isTh
                           ? 'เลือกระหว่าง Target OT รายวัน (สีน้ำเงิน) หรือ OT สะสม (สีแดง)'
@@ -244,14 +244,14 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
                           : 'Set Leave Ratio Target (Dashed Target line)'}
                     </p>
                   </div>
-                  <div className="bg-white p-2.5 rounded-xl border border-amber-200 shadow-2xs">
-                    <span className="inline-block px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-900 font-black text-xs mb-1">
+                  <div className="bg-base-100 p-2.5 rounded-xl border border-amber-500/30 shadow-2xs">
+                    <span className="inline-block px-1.5 py-0.5 rounded-md bg-blue-500/15 text-blue-500 font-black text-xs mb-1">
                       {isTh ? 'ขั้นตอน 2' : 'Step 2'}
                     </span>
-                    <p className="font-black text-slate-900 text-xs sm:text-sm">
+                    <p className="font-black text-base-content text-xs sm:text-sm">
                       {isTh ? 'ระบุวันและ % เป้าหมาย' : 'Set Range & Target'}
                     </p>
-                    <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-snug">
+                    <p className="text-[11px] sm:text-xs text-base-content/70 mt-0.5 leading-snug">
                       {kind === 'ot'
                         ? isTh
                           ? 'กดปุ่มเลือกด่วน (เช่น 1–19 หรือ 20–30) หรือพิมพ์วันที่และ %'
@@ -261,14 +261,14 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
                           : 'Specify day range and accepted % (e.g. 4% or 3.5%)'}
                     </p>
                   </div>
-                  <div className="bg-white p-2.5 rounded-xl border border-amber-200 shadow-2xs">
-                    <span className="inline-block px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-black text-xs mb-1">
+                  <div className="bg-base-100 p-2.5 rounded-xl border border-amber-500/30 shadow-2xs">
+                    <span className="inline-block px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500 font-black text-xs mb-1">
                       {isTh ? 'ขั้นตอน 3' : 'Step 3'}
                     </span>
-                    <p className="font-black text-slate-900 text-xs sm:text-sm">
+                    <p className="font-black text-base-content text-xs sm:text-sm">
                       {isTh ? 'กด "บันทึกช่วงนี้"' : 'Click Save'}
                     </p>
-                    <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-snug">
+                    <p className="text-[11px] sm:text-xs text-base-content/70 mt-0.5 leading-snug">
                       {isTh
                         ? 'เส้นกราฟจะปรับเป็นขั้นบันไดตามวันที่กำหนดทันที'
                         : 'Chart step line will update immediately on save'}
@@ -279,7 +279,7 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
               <button
                 type="button"
                 onClick={() => setShowGuide(false)}
-                className="text-amber-800 hover:text-amber-950 p-1 rounded-lg hover:bg-amber-200/50 transition cursor-pointer shrink-0"
+                className="text-amber-500 hover:text-base-content p-1 rounded-lg hover:bg-amber-500/20 transition cursor-pointer shrink-0"
                 title={isTh ? 'ปิดคำแนะนำ' : 'Close Guide'}
               >
                 <X className="h-4 w-4" />
@@ -289,16 +289,16 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
         )}
 
         {/* 📝 Content Body (Scroll ได้เฉพาะด้านในตัวเนื้อหาถ้าหน้าจอเตี้ย โดย Header และปุ่มเสร็จสิ้นจะตรึงอยู่เสมอ ไม่หลุดขอบจอ) */}
-        <div className="p-4 sm:p-5 space-y-4 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden bg-slate-50/50">
+        <div className="p-4 sm:p-5 space-y-4 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden bg-base-200/50">
           {/* Card: New Target Form */}
           <form
             onSubmit={handleSave}
-            className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs space-y-4"
+            className="rounded-2xl border border-base-300/90 bg-base-100 p-4 sm:p-5 shadow-xs space-y-4"
           >
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-base-300">
               <div className="flex items-center gap-2">
-                <span className="flex h-3 w-3 rounded-full bg-blue-600 ring-4 ring-blue-100" />
-                <span className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                <span className="flex h-3 w-3 rounded-full bg-blue-600 ring-4 ring-blue-500/20" />
+                <span className="text-sm sm:text-base font-black text-base-content tracking-tight">
                   {isTh
                     ? `เพิ่มช่วงวันใหม่ (${kind === 'ot' ? 'กำหนดเป้า OT' : 'กำหนดเป้า Leave'})`
                     : `Add New Range (${kind === 'ot' ? 'OT Target' : 'Leave Target'})`}
@@ -306,25 +306,25 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
               </div>
               {/* Quick Presets */}
               <div className="flex items-center gap-2 text-xs sm:text-sm font-bold">
-                <span className="text-slate-400 font-semibold">{isTh ? 'กดเลือกด่วน:' : 'Quick Presets:'}</span>
+                <span className="text-base-content/50 font-semibold">{isTh ? 'กดเลือกด่วน:' : 'Quick Presets:'}</span>
                 <button
                   type="button"
                   onClick={() => applyPreset(1, 19, kind === 'ot' ? '60' : '4')}
-                  className="rounded-xl bg-slate-100 hover:bg-blue-100 hover:text-blue-700 px-3 py-1.5 text-slate-800 font-black transition cursor-pointer text-xs sm:text-sm"
+                  className="rounded-xl bg-base-200 hover:bg-blue-500/15 hover:text-blue-700 px-3 py-1.5 text-base-content font-black transition cursor-pointer text-xs sm:text-sm"
                 >
                   1–19
                 </button>
                 <button
                   type="button"
                   onClick={() => applyPreset(20, daysInMonth, kind === 'ot' ? '30' : '4')}
-                  className="rounded-xl bg-slate-100 hover:bg-blue-100 hover:text-blue-700 px-3 py-1.5 text-slate-800 font-black transition cursor-pointer text-xs sm:text-sm"
+                  className="rounded-xl bg-base-200 hover:bg-blue-500/15 hover:text-blue-700 px-3 py-1.5 text-base-content font-black transition cursor-pointer text-xs sm:text-sm"
                 >
                   20–{daysInMonth}
                 </button>
                 <button
                   type="button"
                   onClick={() => applyPreset(1, daysInMonth)}
-                  className="rounded-xl bg-slate-100 hover:bg-blue-100 hover:text-blue-700 px-3 py-1.5 text-slate-800 font-black transition cursor-pointer text-xs sm:text-sm"
+                  className="rounded-xl bg-base-200 hover:bg-blue-500/15 hover:text-blue-700 px-3 py-1.5 text-base-content font-black transition cursor-pointer text-xs sm:text-sm"
                 >
                   {isTh ? 'ทั้งเดือน' : 'Full Month'}
                 </button>
@@ -334,17 +334,17 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
             {/* Target Type Selector */}
             {kind === 'ot' && (
               <div>
-                <label className="block text-xs sm:text-sm font-black uppercase text-slate-700 mb-2">
+                <label className="block text-xs sm:text-sm font-black uppercase text-base-content/80 mb-2">
                   {isTh ? '1. เลือกเส้นเป้าหมายที่ต้องการปรับ' : '1. Select Target Line to Configure'}
                 </label>
-                <div className="grid grid-cols-2 gap-2.5 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/80">
+                <div className="grid grid-cols-2 gap-2.5 p-1.5 bg-base-200/90 rounded-2xl border border-base-300/80">
                   <button
                     type="button"
                     onClick={() => setTargetType('ot_daily')}
                     className={`flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
                       targetType === 'ot_daily'
                         ? 'bg-blue-600 text-white shadow'
-                        : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                        : 'text-base-content/80 hover:text-base-content hover:bg-white/70'
                     }`}
                   >
                     <span className="h-3 w-3 rounded-full bg-white shadow-xs shrink-0" />
@@ -356,7 +356,7 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
                     className={`flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
                       targetType === 'ot_acc'
                         ? 'bg-red-600 text-white shadow'
-                        : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                        : 'text-base-content/80 hover:text-base-content hover:bg-white/70'
                     }`}
                   >
                     <span className="h-3 w-3 rounded-full bg-white shadow-xs shrink-0" />
@@ -370,35 +370,35 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
               {/* ช่วงวัน */}
               <div className="sm:col-span-7 space-y-1.5">
-                <label className="block text-xs sm:text-sm font-black uppercase text-slate-700">
+                <label className="block text-xs sm:text-sm font-black uppercase text-base-content/80">
                   {isTh ? `2. ช่วงวันที่ (1 ถึง ${daysInMonth})` : `2. Date Range (1 to ${daysInMonth})`}
                 </label>
-                <div className="flex items-center gap-2 bg-slate-50 rounded-2xl border border-slate-200 p-2">
-                  <span className="text-xs sm:text-sm font-black text-slate-500 pl-2">{isTh ? 'วัน' : 'Day'}</span>
+                <div className="flex items-center gap-2 bg-base-200 rounded-2xl border border-base-300 p-2">
+                  <span className="text-xs sm:text-sm font-black text-base-content/60 pl-2">{isTh ? 'วัน' : 'Day'}</span>
                   <input
                     type="number"
                     min={1}
                     max={daysInMonth}
                     value={dayFrom}
                     onChange={(e) => setDayFrom(parseInt(e.target.value, 10) || 1)}
-                    className="w-full text-center rounded-xl bg-white border border-slate-200 py-1.5 text-base sm:text-lg font-black text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="w-full text-center rounded-xl bg-base-100 border border-base-300 py-1.5 text-base sm:text-lg font-black text-base-content outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   />
-                  <ChevronRight className="h-5 w-5 text-slate-400 shrink-0" />
-                  <span className="text-xs sm:text-sm font-black text-slate-500">{isTh ? 'ถึง' : 'To'}</span>
+                  <ChevronRight className="h-5 w-5 text-base-content/50 shrink-0" />
+                  <span className="text-xs sm:text-sm font-black text-base-content/60">{isTh ? 'ถึง' : 'To'}</span>
                   <input
                     type="number"
                     min={dayFrom}
                     max={daysInMonth}
                     value={dayTo}
                     onChange={(e) => setDayTo(parseInt(e.target.value, 10) || dayFrom)}
-                    className="w-full text-center rounded-xl bg-white border border-slate-200 py-1.5 text-base sm:text-lg font-black text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="w-full text-center rounded-xl bg-base-100 border border-base-300 py-1.5 text-base sm:text-lg font-black text-base-content outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
               </div>
 
               {/* ค่า Target % */}
               <div className="sm:col-span-5 space-y-1.5">
-                <label className="block text-xs sm:text-sm font-black uppercase text-slate-700">
+                <label className="block text-xs sm:text-sm font-black uppercase text-base-content/80">
                   {isTh ? '3. ค่าเป้าหมาย (%)' : '3. Target Value (%)'}
                 </label>
                 <div className="relative">
@@ -411,9 +411,9 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
                     placeholder={isTh ? 'เช่น 60' : 'e.g. 60'}
                     onChange={(e) => setTargetValue(e.target.value)}
                     required
-                    className="w-full rounded-2xl border border-slate-200 bg-white pl-4 pr-10 py-2 text-lg sm:text-xl font-black text-blue-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 shadow-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full rounded-2xl border border-base-300 bg-base-100 pl-4 pr-10 py-2 text-lg sm:text-xl font-black text-blue-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
-                  <span className="pointer-events-none absolute right-4 top-2.5 text-base font-black text-slate-400 select-none">%</span>
+                  <span className="pointer-events-none absolute right-4 top-2.5 text-base font-black text-base-content/50 select-none">%</span>
                 </div>
               </div>
 
@@ -428,7 +428,7 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
                   }
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="flex-1 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-2.5 text-xs sm:text-sm text-slate-800 outline-none focus:bg-white focus:border-blue-500 transition"
+                  className="flex-1 rounded-2xl border border-base-300 bg-base-200/70 px-4 py-2.5 text-xs sm:text-sm text-base-content outline-none focus:bg-base-100 focus:border-blue-500 transition"
                 />
                 <button
                   type="submit"
@@ -446,27 +446,27 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-slate-700" />
-                <h4 className="text-sm sm:text-base font-black text-slate-800">
+                <TrendingUp className="h-5 w-5 text-base-content/80" />
+                <h4 className="text-sm sm:text-base font-black text-base-content">
                   {isTh
                     ? `รายการ Target ในเดือน ${monthFormatted}`
                     : `Active Targets for ${monthFormatted}`}
                 </h4>
               </div>
-              <span className="text-xs sm:text-sm font-black px-3 py-0.5 rounded-full bg-slate-200 text-slate-700">
+              <span className="text-xs sm:text-sm font-black px-3 py-0.5 rounded-full bg-base-300 text-base-content/80">
                 {relevantTargets.length} {isTh ? 'ช่วง' : 'ranges'}
               </span>
             </div>
 
             {relevantTargets.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-white/80 p-6 text-center space-y-2">
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+              <div className="rounded-2xl border border-dashed border-base-300 bg-base-100/80 p-6 text-center space-y-2">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-base-200 text-base-content/50">
                   <Calendar className="h-5 w-5" />
                 </div>
-                <div className="text-sm sm:text-base font-black text-slate-700">
+                <div className="text-sm sm:text-base font-black text-base-content/80">
                   {isTh ? 'ยังไม่มีการกำหนดระดับ Target เฉพาะช่วงวัน' : 'No Custom Date Ranges Set'}
                 </div>
-                <div className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+                <div className="text-xs sm:text-sm text-base-content/60 max-w-md mx-auto leading-relaxed">
                   {isTh
                     ? 'เส้นเป้าหมายบนกราฟจะใช้อัตราคงที่ตลอดทั้งเดือน (สามารถคลิกปุ่มเลือกด่วน 1–19 หรือ 20–30 ด้านบนเพื่อเริ่มกำหนด)'
                     : 'Target lines currently use a fixed rate for the entire month'}
@@ -483,7 +483,7 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
                   return (
                     <div
                       key={item.id}
-                      className="group flex items-center justify-between rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-2xs hover:border-blue-300 transition-all"
+                      className="group flex items-center justify-between rounded-2xl border border-base-300/90 bg-base-100 p-3.5 shadow-2xs hover:border-blue-300 transition-all"
                     >
                       <div className="flex items-center gap-3.5">
                         <div
@@ -493,16 +493,16 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
                         />
                         <div>
                           <div className="flex items-center gap-2.5">
-                            <span className="text-sm sm:text-base font-black text-slate-900">
+                            <span className="text-sm sm:text-base font-black text-base-content">
                               {isTh ? `วันที่ ${dayStart} – ${dayEnd}` : `Day ${dayStart} – ${dayEnd}`}
                             </span>
                             <span
                               className={`text-xs font-black px-2.5 py-0.5 rounded-lg ${
                                 isDaily
-                                  ? 'bg-blue-50 text-blue-700 border border-blue-200/60'
+                                  ? 'bg-blue-500/10 text-blue-700 border border-blue-500/30'
                                   : isAcc
-                                    ? 'bg-red-50 text-red-700 border border-red-200/60'
-                                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+                                    ? 'bg-red-500/10 text-red-700 border border-red-500/30'
+                                    : 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/30'
                               }`}
                             >
                               {isDaily
@@ -513,23 +513,23 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
                             </span>
                           </div>
                           {item.note ? (
-                            <p className="text-xs sm:text-sm text-slate-600 mt-0.5">{item.note}</p>
+                            <p className="text-xs sm:text-sm text-base-content/70 mt-0.5">{item.note}</p>
                           ) : (
-                            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">{isTh ? 'ไม่มีหมายเหตุ' : 'No notes'}</p>
+                            <p className="text-xs sm:text-sm text-base-content/50 mt-0.5">{isTh ? 'ไม่มีหมายเหตุ' : 'No notes'}</p>
                           )}
                         </div>
                       </div>
 
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <span className="text-base sm:text-lg font-black text-slate-900">
+                          <span className="text-base sm:text-lg font-black text-base-content">
                             {item.target_value}%
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={() => item.id && onDeleteTarget(item.id)}
-                          className="rounded-xl p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 transition active:scale-95 cursor-pointer"
+                          className="rounded-xl p-2 text-base-content/50 hover:bg-red-500/10 hover:text-red-600 transition active:scale-95 cursor-pointer"
                           title={isTh ? 'ลบช่วงนี้' : 'Delete this range'}
                         >
                           <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -544,8 +544,8 @@ export const CustomTargetModal: React.FC<CustomTargetModalProps> = ({
         </div>
 
         {/* Modern Footer */}
-        <div className="px-5 py-3.5 border-t border-slate-100 bg-white flex items-center justify-between">
-          <span className="text-xs sm:text-sm font-semibold text-slate-500">
+        <div className="px-5 py-3.5 border-t border-base-300 bg-base-100 flex items-center justify-between">
+          <span className="text-xs sm:text-sm font-semibold text-base-content/60">
             {isTh ? '💡 ระบบจะอัปเดตกราฟทันทีเมื่อกดบันทึก' : '💡 Chart updates automatically upon save'}
           </span>
           <button

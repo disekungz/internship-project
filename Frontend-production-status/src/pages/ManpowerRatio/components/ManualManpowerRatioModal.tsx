@@ -199,7 +199,7 @@ export const ManualManpowerRatioModal: React.FC = () => {
       {/* แบล็กดรอปพื้นหลังพร้อมขยายความกว้างเต็มจอ */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="relative flex max-h-[96vh] w-full max-w-[1600px] flex-col overflow-hidden rounded-3xl border border-white/30 bg-white shadow-[0_30px_90px_rgba(0,0,0,0.45)] animate-in zoom-in-95 duration-200">
+          <div className="relative flex max-h-[96vh] w-full max-w-[1600px] flex-col overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-[0_30px_90px_rgba(0,0,0,0.45)] animate-in zoom-in-95 duration-200">
             
             {/* ส่วนหัว (Header) */}
             <div className="relative overflow-hidden bg-gradient-to-r from-[#193886] via-[#1F46A4] to-[#2563EB] px-7 py-5 text-white shadow-md">
@@ -263,7 +263,7 @@ export const ManualManpowerRatioModal: React.FC = () => {
             </div>
 
             {/* Navigation Tabs - Full Visibility without Clipping */}
-            <div className="border-b border-slate-200 bg-slate-50/90 px-4 sm:px-6 pt-3.5 backdrop-blur-sm">
+            <div className="border-b border-base-300 bg-base-200/90 px-4 sm:px-6 pt-3.5 backdrop-blur-sm">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
                 {[
                   { id: "overview", label: cur.tabOverview, icon: Info },
@@ -281,19 +281,19 @@ export const ManualManpowerRatioModal: React.FC = () => {
                       onClick={() => setActiveTab(item.id as any)}
                       className={`group relative flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl py-3 px-2 text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer text-center ${
                         isActive
-                          ? "bg-white text-[#193886] shadow-lg shadow-slate-200 border border-slate-200 scale-[1.02]"
-                          : "text-slate-600 hover:text-[#193886] hover:bg-white/70"
+                          ? "bg-base-100 text-primary shadow-lg shadow-base-300 border border-base-300 scale-[1.02]"
+                          : "text-base-content/70 hover:text-primary hover:bg-base-100/70"
                       }`}
                     >
                       <Icon
                         size={17}
                         className={`shrink-0 transition-transform group-hover:scale-110 ${
-                          isActive ? "text-[#193886]" : "text-slate-400 group-hover:text-blue-500"
+                          isActive ? "text-primary" : "text-base-content/50 group-hover:text-blue-500"
                         }`}
                       />
                       <span className="leading-tight text-center">{item.label}</span>
                       {isActive && (
-                        <div className="absolute -bottom-[14px] left-1/2 h-1.5 w-10 -translate-x-1/2 rounded-full bg-[#193886]" />
+                        <div className="absolute -bottom-[14px] left-1/2 h-1.5 w-10 -translate-x-1/2 rounded-full bg-primary" />
                       )}
                     </button>
                   );
@@ -302,24 +302,24 @@ export const ManualManpowerRatioModal: React.FC = () => {
             </div>
 
             {/* ส่วนเนื้อหาคู่มือพร้อมจัดขนาดตัวอักษรให้อ่านง่าย */}
-            <div className="flex-1 overflow-y-auto p-7 space-y-7 bg-gradient-to-b from-slate-50/50 via-white to-white">
+            <div className="flex-1 overflow-y-auto p-7 space-y-7 bg-gradient-to-b from-base-200/50 via-base-100 to-base-100">
               
               {/* TAB 1: OVERVIEW */}
               {activeTab === "overview" && (
                 <div className="space-y-6 animate-in fade-in-50 duration-200">
-                  <div className="relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-indigo-50/50 to-white p-7 shadow-sm">
+                  <div className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-base-100 p-7 shadow-sm">
                     <div className="flex items-start gap-5">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#193886] text-white shadow-lg shadow-blue-500/25">
                         <Sparkles size={28} />
                       </div>
                       <div className="space-y-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-[#193886]">
+                        <span className="text-xs font-black uppercase tracking-wider text-primary">
                           {cur.overviewBadge}
                         </span>
-                        <h3 className="text-xl font-black text-slate-900">
+                        <h3 className="text-xl font-black text-base-content">
                           {cur.overviewTitle}
                         </h3>
-                        <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-semibold">
+                        <p className="text-base sm:text-lg text-base-content/80 leading-relaxed font-semibold">
                           {cur.overviewDesc}
                         </p>
                       </div>
@@ -327,24 +327,24 @@ export const ManualManpowerRatioModal: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="rounded-3xl border border-blue-200 bg-gradient-to-b from-blue-50/40 to-white p-7 shadow-sm space-y-3">
+                    <div className="rounded-3xl border border-blue-500/30 bg-gradient-to-b from-blue-500/10 to-base-100 p-7 shadow-sm space-y-3">
                       <div className="flex items-center gap-3.5 mb-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                           <BarChart3 size={24} />
                         </div>
-                        <h4 className="font-black text-slate-900 text-lg">{cur.kpiDirectTitle}</h4>
+                        <h4 className="font-black text-base-content text-lg">{cur.kpiDirectTitle}</h4>
                       </div>
-                      <p className="text-base text-slate-700 leading-relaxed font-medium">{cur.kpiDirectDesc}</p>
+                      <p className="text-base text-base-content/80 leading-relaxed font-medium">{cur.kpiDirectDesc}</p>
                     </div>
 
-                    <div className="rounded-3xl border border-indigo-200 bg-gradient-to-b from-indigo-50/40 to-white p-7 shadow-sm space-y-3">
+                    <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-indigo-500/10 to-base-100 p-7 shadow-sm space-y-3">
                       <div className="flex items-center gap-3.5 mb-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm">
                           <Layers size={24} />
                         </div>
-                        <h4 className="font-black text-slate-900 text-lg">{cur.kpiDeptTitle}</h4>
+                        <h4 className="font-black text-base-content text-lg">{cur.kpiDeptTitle}</h4>
                       </div>
-                      <p className="text-base text-slate-700 leading-relaxed font-medium">{cur.kpiDeptDesc}</p>
+                      <p className="text-base text-base-content/80 leading-relaxed font-medium">{cur.kpiDeptDesc}</p>
                     </div>
                   </div>
                 </div>
@@ -354,32 +354,32 @@ export const ManualManpowerRatioModal: React.FC = () => {
               {activeTab === "modes" && (
                 <div className="space-y-6 animate-in fade-in-50 duration-200">
                   <div>
-                    <h3 className="font-black text-slate-800 text-lg flex items-center gap-2.5">
+                    <h3 className="font-black text-base-content text-lg flex items-center gap-2.5">
                       <Percent size={20} className="text-blue-600" />
                       {cur.modesHeader}
                     </h3>
-                    <p className="text-base text-slate-600 mt-1 font-medium">{cur.modesDesc}</p>
+                    <p className="text-base text-base-content/70 mt-1 font-medium">{cur.modesDesc}</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="rounded-3xl border border-blue-200 bg-gradient-to-b from-blue-50/50 via-white to-white p-7 shadow-sm space-y-3">
+                    <div className="rounded-3xl border border-blue-500/30 bg-gradient-to-b from-blue-500/10 via-base-100 to-base-100 p-7 shadow-sm space-y-3">
                       <div className="flex items-center gap-3.5">
                         <span className="rounded-xl bg-blue-600 px-4 py-1.5 text-sm font-black text-white shadow">
                           OT Ratio
                         </span>
-                        <h4 className="text-lg font-black text-slate-900">{cur.otTitle}</h4>
+                        <h4 className="text-lg font-black text-base-content">{cur.otTitle}</h4>
                       </div>
-                      <p className="text-base text-slate-700 leading-relaxed font-medium mt-3">{cur.otDesc}</p>
+                      <p className="text-base text-base-content/80 leading-relaxed font-medium mt-3">{cur.otDesc}</p>
                     </div>
 
-                    <div className="rounded-3xl border border-indigo-200 bg-gradient-to-b from-indigo-50/50 via-white to-white p-7 shadow-sm space-y-3">
+                    <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-indigo-500/10 via-base-100 to-base-100 p-7 shadow-sm space-y-3">
                       <div className="flex items-center gap-3.5">
-                        <span className="rounded-xl bg-slate-200 px-4 py-1.5 text-sm font-black text-slate-800">
+                        <span className="rounded-xl bg-base-300 px-4 py-1.5 text-sm font-black text-base-content">
                           Leave Ratio
                         </span>
-                        <h4 className="text-lg font-black text-slate-900">{cur.leaveTitle}</h4>
+                        <h4 className="text-lg font-black text-base-content">{cur.leaveTitle}</h4>
                       </div>
-                      <p className="text-base text-slate-700 leading-relaxed font-medium mt-3">{cur.leaveDesc}</p>
+                      <p className="text-base text-base-content/80 leading-relaxed font-medium mt-3">{cur.leaveDesc}</p>
                     </div>
                   </div>
                 </div>
@@ -388,37 +388,37 @@ export const ManualManpowerRatioModal: React.FC = () => {
               {/* TAB 3: PERIODS */}
               {activeTab === "periods" && (
                 <div className="space-y-6 animate-in fade-in-50 duration-200">
-                  <div className="rounded-3xl border border-blue-100 bg-gradient-to-r from-blue-50 via-indigo-50/50 to-white p-6">
+                  <div className="rounded-3xl border border-blue-500/20 bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-base-100 p-6">
                     <div className="flex items-center gap-4">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#193886] text-white shadow-lg shadow-blue-500/25">
                         <CalendarDays size={24} />
                       </div>
                       <div>
-                        <h3 className="font-black text-slate-800 text-lg">{cur.periodsHeader}</h3>
-                        <p className="text-base text-slate-600 mt-0.5 font-medium">{cur.periodsDesc}</p>
+                        <h3 className="font-black text-base-content text-lg">{cur.periodsHeader}</h3>
+                        <p className="text-base text-base-content/70 mt-0.5 font-medium">{cur.periodsDesc}</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                      <h4 className="text-base font-black text-[#193886]">{cur.pDayTitle}</h4>
-                      <p className="text-base text-slate-700 mt-2 font-medium leading-relaxed">{cur.pDayDesc}</p>
+                    <div className="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
+                      <h4 className="text-base font-black text-primary">{cur.pDayTitle}</h4>
+                      <p className="text-base text-base-content/80 mt-2 font-medium leading-relaxed">{cur.pDayDesc}</p>
                     </div>
 
-                    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                      <h4 className="text-base font-black text-[#193886]">{cur.pWeekTitle}</h4>
-                      <p className="text-base text-slate-700 mt-2 font-medium leading-relaxed">{cur.pWeekDesc}</p>
+                    <div className="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
+                      <h4 className="text-base font-black text-primary">{cur.pWeekTitle}</h4>
+                      <p className="text-base text-base-content/80 mt-2 font-medium leading-relaxed">{cur.pWeekDesc}</p>
                     </div>
 
-                    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                      <h4 className="text-base font-black text-[#193886]">{cur.pMonthTitle}</h4>
-                      <p className="text-base text-slate-700 mt-2 font-medium leading-relaxed">{cur.pMonthDesc}</p>
+                    <div className="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
+                      <h4 className="text-base font-black text-primary">{cur.pMonthTitle}</h4>
+                      <p className="text-base text-base-content/80 mt-2 font-medium leading-relaxed">{cur.pMonthDesc}</p>
                     </div>
 
-                    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                      <h4 className="text-base font-black text-[#193886]">{cur.pPickerTitle}</h4>
-                      <p className="text-base text-slate-700 mt-2 font-medium leading-relaxed">{cur.pPickerDesc}</p>
+                    <div className="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
+                      <h4 className="text-base font-black text-primary">{cur.pPickerTitle}</h4>
+                      <p className="text-base text-base-content/80 mt-2 font-medium leading-relaxed">{cur.pPickerDesc}</p>
                     </div>
                   </div>
                 </div>
@@ -428,32 +428,32 @@ export const ManualManpowerRatioModal: React.FC = () => {
               {activeTab === "targets" && (
                 <div className="space-y-6 animate-in fade-in-50 duration-200">
                   <div>
-                    <h3 className="font-black text-slate-800 text-lg flex items-center gap-2.5">
+                    <h3 className="font-black text-base-content text-lg flex items-center gap-2.5">
                       <TrendingUp size={20} className="text-blue-600" />
                       {cur.targetsHeader}
                     </h3>
-                    <p className="text-base text-slate-600 mt-1 font-medium">{cur.targetsDesc}</p>
+                    <p className="text-base text-base-content/70 mt-1 font-medium">{cur.targetsDesc}</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="rounded-3xl border border-blue-200 bg-blue-50/50 p-6 shadow-sm">
+                    <div className="rounded-3xl border border-blue-500/30 bg-blue-500/10 p-6 shadow-sm">
                       <div className="flex items-center gap-3.5 mb-3">
                         <span className="w-12 border-t-2 border-dashed border-blue-600" />
-                        <h4 className="text-base font-black text-blue-950">{cur.tDailyTitle}</h4>
+                        <h4 className="text-base font-black text-base-content">{cur.tDailyTitle}</h4>
                       </div>
-                      <p className="text-base text-slate-700 leading-relaxed font-medium">{cur.tDailyDesc}</p>
+                      <p className="text-base text-base-content/80 leading-relaxed font-medium">{cur.tDailyDesc}</p>
                     </div>
 
-                    <div className="rounded-3xl border border-rose-200 bg-rose-50/50 p-6 shadow-sm">
+                    <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-6 shadow-sm">
                       <div className="flex items-center gap-3.5 mb-3">
                         <span className="w-12 border-t-2 border-dashed border-rose-600" />
-                        <h4 className="text-base font-black text-rose-950">{cur.tAccTitle}</h4>
+                        <h4 className="text-base font-black text-base-content">{cur.tAccTitle}</h4>
                       </div>
-                      <p className="text-base text-slate-700 leading-relaxed font-medium">{cur.tAccDesc}</p>
+                      <p className="text-base text-base-content/80 leading-relaxed font-medium">{cur.tAccDesc}</p>
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-base text-amber-950 font-semibold leading-relaxed">
+                  <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-base text-base-content font-semibold leading-relaxed">
                     {cur.tEditTip}
                   </div>
                 </div>
@@ -463,11 +463,11 @@ export const ManualManpowerRatioModal: React.FC = () => {
               {activeTab === "depts" && (
                 <div className="space-y-6 animate-in fade-in-50 duration-200">
                   <div>
-                    <h3 className="font-black text-slate-800 text-lg flex items-center gap-2.5">
+                    <h3 className="font-black text-base-content text-lg flex items-center gap-2.5">
                       <UsersRound size={20} className="text-blue-600" />
                       {cur.deptsHeader}
                     </h3>
-                    <p className="text-base text-slate-600 mt-1 font-medium">{cur.deptsDesc}</p>
+                    <p className="text-base text-base-content/70 mt-1 font-medium">{cur.deptsDesc}</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
@@ -481,17 +481,17 @@ export const ManualManpowerRatioModal: React.FC = () => {
                     ].map((item, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+                        className="flex items-center gap-4 rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm"
                       >
                         <span className={`h-6 w-6 rounded-full ${item.color} shrink-0 shadow-md`} />
-                        <span className="text-base font-black text-slate-800">{item.text}</span>
+                        <span className="text-base font-black text-base-content">{item.text}</span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-5 rounded-3xl border border-amber-200 bg-amber-50/70 p-5 shadow-sm">
+                  <div className="flex items-center gap-5 rounded-3xl border border-amber-500/30 bg-amber-500/10 p-5 shadow-sm">
                     <span className="h-3 w-12 rounded-full bg-[#c2410c] shrink-0" />
-                    <span className="text-base font-black text-amber-950">{cur.dAccLine}</span>
+                    <span className="text-base font-black text-base-content">{cur.dAccLine}</span>
                   </div>
                 </div>
               )}
@@ -500,27 +500,27 @@ export const ManualManpowerRatioModal: React.FC = () => {
               {activeTab === "charts" && (
                 <div className="space-y-6 animate-in fade-in-50 duration-200">
                   <div>
-                    <h3 className="font-black text-slate-800 text-lg flex items-center gap-2.5">
+                    <h3 className="font-black text-base-content text-lg flex items-center gap-2.5">
                       <BarChart3 size={20} className="text-blue-600" />
                       {cur.chartsHeader}
                     </h3>
-                    <p className="text-base text-slate-600 mt-1 font-medium">{cur.chartsDesc}</p>
+                    <p className="text-base text-base-content/70 mt-1 font-medium">{cur.chartsDesc}</p>
                   </div>
 
                   <div className="space-y-5">
-                    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                      <h4 className="text-base font-black text-slate-900">{cur.cPoint1}</h4>
-                      <p className="text-base text-slate-700 mt-2 font-medium leading-relaxed">{cur.cPoint1Desc}</p>
+                    <div className="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
+                      <h4 className="text-base font-black text-base-content">{cur.cPoint1}</h4>
+                      <p className="text-base text-base-content/80 mt-2 font-medium leading-relaxed">{cur.cPoint1Desc}</p>
                     </div>
 
-                    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                      <h4 className="text-base font-black text-slate-900">{cur.cPoint2}</h4>
-                      <p className="text-base text-slate-700 mt-2 font-medium leading-relaxed">{cur.cPoint2Desc}</p>
+                    <div className="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
+                      <h4 className="text-base font-black text-base-content">{cur.cPoint2}</h4>
+                      <p className="text-base text-base-content/80 mt-2 font-medium leading-relaxed">{cur.cPoint2Desc}</p>
                     </div>
 
-                    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                      <h4 className="text-base font-black text-slate-900">{cur.cPoint3}</h4>
-                      <p className="text-base text-slate-700 mt-2 font-medium leading-relaxed">{cur.cPoint3Desc}</p>
+                    <div className="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
+                      <h4 className="text-base font-black text-base-content">{cur.cPoint3}</h4>
+                      <p className="text-base text-base-content/80 mt-2 font-medium leading-relaxed">{cur.cPoint3Desc}</p>
                     </div>
                   </div>
                 </div>
@@ -529,8 +529,8 @@ export const ManualManpowerRatioModal: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 bg-slate-50 px-7 py-4.5">
-              <div className="flex items-center gap-2.5 text-sm sm:text-base text-slate-600 font-semibold">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-base-300 bg-base-200 px-7 py-4.5">
+              <div className="flex items-center gap-2.5 text-sm sm:text-base text-base-content/70 font-semibold">
                 <Lightbulb size={20} className="text-amber-500" />
                 <span>{cur.tipFooter}</span>
               </div>
