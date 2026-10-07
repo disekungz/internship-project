@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: .
+    container_name: smf-backend
+    expose:
+      - "3000"
+    environment:
+      - TZ=Asia/Bangkok
+    networks:
+      - smart-reverse-proxy-network
+    restart: unless-stopped
+
+networks:
+  smart-reverse-proxy-network:
+    external: true
+
+# สร้างและรัน container
+# docker-compose up --build
+# docker compose up --build (New version)

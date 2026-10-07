@@ -1,0 +1,53 @@
+# version: "3.8"
+
+# services:
+#   backend:
+#     build:
+#       context: .
+#     container_name: smf-backend
+#     # ใช้ ports แทน expose หากต้องการเข้าถึงจาก host โดยตรง (optional)
+#     # แต่ถ้าผ่าน reverse proxy อย่างเดียว expose ก็เพียงพอครับ
+#     expose:
+#       - "3000"
+#     environment:
+#       - TZ=Asia/Bangkok
+#       - NODE_ENV=production
+#     networks:
+#       - smart-reverse-proxy-network
+#     restart: unless-stopped
+
+# networks:
+#   smart-reverse-proxy-network:
+#     external: true
+# docker compose up -d --build
+version: "3.8"
+
+services:
+  smart-backend-p1:
+    image: node:25-alpine # 🔹 ใช้เวอร์ชันเสถียร
+    restart: unless-stopped
+    working_dir: /app
+    # ports:
+    #   - "3000:3000"                 # 🔹 เปิดพอร์ตสำหรับบริการ ExpressJS
+    volumes:
+      - ../../smart-backend-88-62:/app
+      - ../../images:/app/images
+      - /file_Folder/OUTPUT_FOLDER:/app/file_Folder/OUTPUT_FOLDER
+      - /file_Folder/FPC_PLAN_OUTPUT:/app/file_Folder/FPC_PLAN_OUTPUT
+      # - ../../Config-main/logs/nginx:/app/logs
+    environment:
+      - TZ=Asia/Bangkok
+      - PGTZ=Asia/Bangkok
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "1"
+    command: ["node", "/app/bin/www"]
+    container_name: smart-backend-p1
+    networks:
+      - smart-reverse-proxy-network # 🧩 อยู่ใน network เดียวกับ Gateway
+
+networks:
+  smart-reverse-proxy-network:
+    external: true

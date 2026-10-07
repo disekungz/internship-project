@@ -1,0 +1,17 @@
+# เข้าไปยังโฟลเดอร์โปรเจกต์
+cd path/to/your/project
+
+# เริ่มต้น Git ในโปรเจกต์
+git init
+
+# เพิ่มไฟล์ทั้งหมดเข้า staging area
+git add .
+
+# Commit ไฟล์ที่เพิ่ม
+git commit -m "Initial commit"
+
+# เชื่อมต่อกับ GitLab repository ของคุณ (ใส่ลิงก์ HTTPS หรือ SSH ที่ GitLab ให้มา)
+git remote add origin https://gitlab.com/your-username/your-repo.git
+
+# ส่งไฟล์ขึ้น GitLab
+git push -u origin master, git push -u origin main
