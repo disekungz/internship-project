@@ -55,22 +55,22 @@ export const TopCriticalHighlights: React.FC<TopHighlightsProps> = ({ rows, tota
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* ── CARD 1: LEAVE % OVERVIEW ── */}
-      <div className="group relative overflow-hidden rounded-3xl border border-rose-100/80 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="group relative overflow-hidden rounded-3xl border border-rose-500/20 bg-base-100 p-5 shadow-sm hover:shadow-md transition-all duration-300">
         {/* Subtle accent background glow */}
-        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-rose-50 blur-2xl transition-all group-hover:scale-110" />
+        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-rose-500/10 blur-2xl transition-all group-hover:scale-110" />
         
         {/* Header */}
-        <div className="relative flex items-center justify-between border-b border-rose-50/80 pb-3">
+        <div className="relative flex items-center justify-between border-b border-rose-500/10 pb-3">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500 text-white shadow-md shadow-rose-500/20">
               <AlertTriangle size={18} />
             </span>
             <div>
-              <h3 className="text-sm font-black tracking-tight text-slate-900">Leave % รวมของวันนี้</h3>
-              <p className="text-[11px] font-semibold text-rose-600">Total P1 Leave Ratio</p>
+              <h3 className="text-sm font-black tracking-tight text-base-content">Leave % รวมของวันนี้</h3>
+              <p className="text-[11px] font-semibold text-rose-500">Total P1 Leave Ratio</p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full border border-rose-200/60 bg-rose-50 px-2.5 py-1 text-[10px] font-black text-rose-700">
+          <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 text-[10px] font-black text-rose-500">
             Target ≤ 5.0%
           </span>
         </div>
@@ -78,51 +78,51 @@ export const TopCriticalHighlights: React.FC<TopHighlightsProps> = ({ rows, tota
         {/* Main Metric Area */}
         <div className="relative mt-4 flex items-baseline justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl sm:text-5xl font-black tracking-tight text-rose-600">
+            <span className="text-4xl sm:text-5xl font-black tracking-tight text-rose-500">
               {totalLeaveRatio}%
             </span>
-            <span className="text-xs font-bold text-slate-400">
+            <span className="text-xs font-bold text-base-content/50">
               (ขาด {totalLeave} / {totalMp} คน)
             </span>
           </div>
           <div className="text-right">
-            <span className="text-[11px] font-bold text-slate-400 block">ขาดสะสมวันนี้</span>
-            <span className="text-lg font-black text-slate-800">{totalLeave} <span className="text-xs text-slate-500 font-semibold">คน</span></span>
+            <span className="text-[11px] font-bold text-base-content/50 block">ขาดสะสมวันนี้</span>
+            <span className="text-lg font-black text-base-content">{totalLeave} <span className="text-xs text-base-content/60 font-semibold">คน</span></span>
           </div>
         </div>
 
         {/* Visual Progress Bar */}
         <div className="relative mt-3">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-rose-100/70">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-base-200">
             <div
               className="h-full rounded-full bg-gradient-to-r from-rose-500 to-red-600 transition-all duration-500"
               style={{ width: `${Math.min(Number(totalLeaveRatio), 100)}%` }}
             />
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-slate-500">
+          <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-base-content/60">
             <span>ขาดงานทั้งหมด {totalLeave} คน</span>
-            <span className="text-slate-400">จากกำลังพล {totalMp} คน</span>
+            <span className="text-base-content/50">จากกำลังพล {totalMp} คน</span>
           </div>
         </div>
       </div>
 
       {/* ── CARD 2: OT % OVERVIEW ── */}
-      <div className="group relative overflow-hidden rounded-3xl border border-blue-100/80 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="group relative overflow-hidden rounded-3xl border border-blue-500/20 bg-base-100 p-5 shadow-sm hover:shadow-md transition-all duration-300">
         {/* Subtle accent background glow */}
-        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-blue-50 blur-2xl transition-all group-hover:scale-110" />
+        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-blue-500/10 blur-2xl transition-all group-hover:scale-110" />
 
         {/* Header */}
-        <div className="relative flex items-center justify-between border-b border-blue-50/80 pb-3">
+        <div className="relative flex items-center justify-between border-b border-blue-500/10 pb-3">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
               <Clock size={18} />
             </span>
             <div>
-              <h3 className="text-sm font-black tracking-tight text-slate-900">OT % รวมของวันนี้</h3>
-              <p className="text-[11px] font-semibold text-blue-600">Total P1 Overtime Ratio</p>
+              <h3 className="text-sm font-black tracking-tight text-base-content">OT % รวมของวันนี้</h3>
+              <p className="text-[11px] font-semibold text-blue-500">Total P1 Overtime Ratio</p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full border border-blue-200/60 bg-blue-50 px-2.5 py-1 text-[10px] font-black text-blue-700">
+          <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-[10px] font-black text-blue-500">
             Workload
           </span>
         </div>
@@ -130,51 +130,51 @@ export const TopCriticalHighlights: React.FC<TopHighlightsProps> = ({ rows, tota
         {/* Main Metric Area */}
         <div className="relative mt-4 flex items-baseline justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl sm:text-5xl font-black tracking-tight text-blue-600">
+            <span className="text-4xl sm:text-5xl font-black tracking-tight text-blue-500">
               {totalOtRatio}%
             </span>
-            <span className="text-xs font-bold text-slate-400">
+            <span className="text-xs font-bold text-base-content/50">
               (ทำ {totalOt} / {totalWork} คน)
             </span>
           </div>
           <div className="text-right">
-            <span className="text-[11px] font-bold text-slate-400 block">ทำ OT สะสมวันนี้</span>
-            <span className="text-lg font-black text-slate-800">{totalOt} <span className="text-xs text-slate-500 font-semibold">คน</span></span>
+            <span className="text-[11px] font-bold text-base-content/50 block">ทำ OT สะสมวันนี้</span>
+            <span className="text-lg font-black text-base-content">{totalOt} <span className="text-xs text-base-content/60 font-semibold">คน</span></span>
           </div>
         </div>
 
         {/* Visual Progress Bar */}
         <div className="relative mt-3">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-blue-100/70">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-base-200">
             <div
               className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500"
               style={{ width: `${Math.min(Number(totalOtRatio), 100)}%` }}
             />
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-slate-500">
+          <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-base-content/60">
             <span>ทำ OT ทั้งหมด {totalOt} คน</span>
-            <span className="text-slate-400">จากคนมาทำงาน {totalWork} คน</span>
+            <span className="text-base-content/50">จากคนมาทำงาน {totalWork} คน</span>
           </div>
         </div>
       </div>
 
       {/* ── CARD 3: TOTAL WORKFORCE OVERVIEW ── */}
-      <div className="group relative overflow-hidden rounded-3xl border border-emerald-100/80 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-base-100 p-5 shadow-sm hover:shadow-md transition-all duration-300">
         {/* Subtle accent background glow */}
-        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-emerald-50 blur-2xl transition-all group-hover:scale-110" />
+        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-emerald-500/10 blur-2xl transition-all group-hover:scale-110" />
 
         {/* Header */}
-        <div className="relative flex items-center justify-between border-b border-emerald-50/80 pb-3">
+        <div className="relative flex items-center justify-between border-b border-emerald-500/10 pb-3">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-500/20">
               <Users size={18} />
             </span>
             <div>
-              <h3 className="text-sm font-black tracking-tight text-slate-900">คนมาทำงาน & กำลังพลรวม</h3>
-              <p className="text-[11px] font-semibold text-emerald-600">Total Workforce Attendance</p>
+              <h3 className="text-sm font-black tracking-tight text-base-content">คนมาทำงาน &amp; กำลังพลรวม</h3>
+              <p className="text-[11px] font-semibold text-emerald-500">Total Workforce Attendance</p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/60 bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-700">
+          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-500">
             {workAttendancePct}% เข้างาน
           </span>
         </div>
@@ -182,30 +182,30 @@ export const TopCriticalHighlights: React.FC<TopHighlightsProps> = ({ rows, tota
         {/* Main Metric Area */}
         <div className="relative mt-4 flex items-baseline justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl sm:text-5xl font-black tracking-tight text-emerald-600">
+            <span className="text-4xl sm:text-5xl font-black tracking-tight text-emerald-500">
               {totalWork}
             </span>
-            <span className="text-xs font-bold text-slate-400">
+            <span className="text-xs font-bold text-base-content/50">
               / {totalMp} คนทั้งหมด
             </span>
           </div>
           <div className="text-right">
-            <span className="text-[11px] font-bold text-slate-400 block">กำลังพลทั้งหมด</span>
-            <span className="text-lg font-black text-slate-800">{totalMp} <span className="text-xs text-slate-500 font-semibold">คน</span></span>
+            <span className="text-[11px] font-bold text-base-content/50 block">กำลังพลทั้งหมด</span>
+            <span className="text-lg font-black text-base-content">{totalMp} <span className="text-xs text-base-content/60 font-semibold">คน</span></span>
           </div>
         </div>
 
         {/* Visual Progress Bar */}
         <div className="relative mt-3">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-emerald-100/70">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-base-200">
             <div
               className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 transition-all duration-500"
               style={{ width: `${Math.min(Number(workAttendancePct), 100)}%` }}
             />
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-slate-500">
+          <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-base-content/60">
             <span>มาทำงานจริง {totalWork} คน</span>
-            <span className="text-slate-400">คิดเป็น {workAttendancePct}% ของโรงงาน</span>
+            <span className="text-base-content/50">คิดเป็น {workAttendancePct}% ของโรงงาน</span>
           </div>
         </div>
       </div>

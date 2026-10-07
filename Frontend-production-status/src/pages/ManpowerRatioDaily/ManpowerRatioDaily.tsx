@@ -99,7 +99,7 @@ export default function ManpowerRatioDaily() {
     <main
       className={`h-full w-full ${
         isMappingModalOpen ? "overflow-hidden" : "overflow-y-auto"
-      } overflow-x-hidden bg-slate-50/50 p-2 sm:p-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden`}
+      } overflow-x-hidden bg-base-200 text-base-content p-2 sm:p-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden`}
     >
       <div className="w-full space-y-5 pb-12">
         {/* Header Banner */}
@@ -174,16 +174,16 @@ export default function ManpowerRatioDaily() {
 
         {/* View Switcher: Charts vs Matrix Table */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 rounded-2xl bg-white p-1.5 shadow-sm border border-slate-200/80">
+          <div className="flex items-center gap-2 rounded-2xl bg-base-100 p-1.5 shadow-sm border border-base-300">
             <button
               onClick={() => setActiveTab("charts")}
               className={`flex items-center gap-2 rounded-xl px-5 py-2 text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer ${
                 activeTab === "charts"
                   ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+                  : "text-base-content/70 hover:text-base-content hover:bg-base-200"
               }`}
             >
-              <Flame size={16} className={activeTab === "charts" ? "text-amber-300" : "text-slate-400"} />
+              <Flame size={16} className={activeTab === "charts" ? "text-amber-300" : "text-base-content/40"} />
               <span>Leave Ratio Daily & OT Ratio Daily</span>
             </button>
             <button
@@ -191,49 +191,49 @@ export default function ManpowerRatioDaily() {
               className={`flex items-center gap-2 rounded-xl px-5 py-2 text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer ${
                 activeTab === "table"
                   ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+                  : "text-base-content/70 hover:text-base-content hover:bg-base-200"
               }`}
             >
-              <Layers size={16} className={activeTab === "table" ? "text-amber-300" : "text-slate-400"} />
+              <Layers size={16} className={activeTab === "table" ? "text-amber-300" : "text-base-content/40"} />
               <span> Daily Manpower Ratio Schedule</span>
             </button>
           </div>
 
           {matrixData && (
-            <div className="text-xs sm:text-sm font-black text-slate-600">
-              Date: <span className="text-blue-600 font-bold">{matrixData.date}</span> | Total MP: <span className="text-slate-900 font-black">{matrixData.totalP1?.P1?.mp || 0}</span> คน
+            <div className="text-xs sm:text-sm font-black text-base-content/70">
+              Date: <span className="text-primary font-bold">{matrixData.date}</span> | Total MP: <span className="text-base-content font-black">{matrixData.totalP1?.P1?.mp || 0}</span> คน
             </div>
           )}
         </div>
 
         {/* Content Body */}
         {error ? (
-          <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-700 font-bold">
+          <div className="rounded-3xl border border-rose-500/20 bg-rose-500/10 p-6 text-center text-rose-500 font-bold">
             เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}
           </div>
         ) : loading || !matrixData ? (
           <div className="animate-pulse space-y-6">
             {/* Skeleton กราฟหลักแบบเดียวกับ WIP P1 และ Manpower Ratio */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-5 w-36 rounded-md bg-slate-200" />
-                  <div className="h-5 w-24 rounded-full bg-blue-100" />
+                  <div className="h-5 w-36 rounded-md bg-base-300" />
+                  <div className="h-5 w-24 rounded-full bg-primary/20" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-4 w-16 rounded bg-slate-200" />
-                  <div className="h-4 w-16 rounded bg-slate-200" />
-                  <div className="h-4 w-16 rounded bg-slate-200" />
+                  <div className="h-4 w-16 rounded bg-base-300" />
+                  <div className="h-4 w-16 rounded bg-base-300" />
+                  <div className="h-4 w-16 rounded bg-base-300" />
                 </div>
               </div>
 
               {/* กราฟจำลอง ขนาดใหญ่ขึ้น แท่งชัดเจน */}
-              <div className="relative h-[560px] w-full rounded-2xl bg-gradient-to-b from-slate-50/60 to-slate-100/40 p-6 flex flex-col justify-end">
+              <div className="relative h-[560px] w-full rounded-2xl bg-base-200/50 p-6 flex flex-col justify-end">
                 <div className="absolute inset-x-6 top-8 bottom-12 flex flex-col justify-between pointer-events-none opacity-50">
-                  <div className="border-b border-dashed border-slate-300 w-full" />
-                  <div className="border-b border-dashed border-slate-300 w-full" />
-                  <div className="border-b border-dashed border-slate-300 w-full" />
-                  <div className="border-b border-dashed border-slate-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
                 </div>
 
                 {/* แท่ง Skeleton Bars ขนาดใหญ่และหนาขึ้น */}
@@ -241,10 +241,10 @@ export default function ManpowerRatioDaily() {
                   {[45, 68, 82, 58, 92, 76, 62, 88, 96, 72, 54, 70, 90, 74, 62, 82, 86, 94].map((heightPct, idx) => (
                     <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
                       <div
-                        className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-blue-400/50 via-blue-300/40 to-blue-200/30 border-t-2 border-blue-400/40"
+                        className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-primary/50 via-primary/30 to-primary/10 border-t-2 border-primary/40"
                         style={{ height: `${heightPct}%` }}
                       />
-                      <div className="h-3 w-8 sm:w-10 rounded-full bg-slate-200" />
+                      <div className="h-3 w-8 sm:w-10 rounded-full bg-base-300" />
                     </div>
                   ))}
                 </div>
@@ -254,19 +254,19 @@ export default function ManpowerRatioDaily() {
             {/* Skeleton กราฟย่อยด้านล่าง */}
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {[1, 2].map((cardIdx) => (
-                <div key={cardIdx} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div key={cardIdx} className="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="h-5 w-28 rounded-md bg-slate-200" />
-                    <div className="h-4 w-20 rounded-full bg-slate-100" />
+                    <div className="h-5 w-28 rounded-md bg-base-300" />
+                    <div className="h-4 w-20 rounded-full bg-base-200" />
                   </div>
-                  <div className="h-[300px] w-full rounded-2xl bg-slate-50 flex items-end justify-between gap-3 p-4">
+                  <div className="h-[300px] w-full rounded-2xl bg-base-200/50 flex items-end justify-between gap-3 p-4">
                     {[50, 70, 40, 85, 60, 75, 90, 65, 55].map((h, i) => (
                       <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
                         <div
-                          className="w-full max-w-[32px] rounded-t-md bg-gradient-to-t from-blue-300/50 to-blue-200/40"
+                          className="w-full max-w-[32px] rounded-t-md bg-gradient-to-t from-primary/40 to-primary/10"
                           style={{ height: `${h}%` }}
                         />
-                        <div className="h-2.5 w-6 rounded-full bg-slate-200" />
+                        <div className="h-2.5 w-6 rounded-full bg-base-300" />
                       </div>
                     ))}
                   </div>
