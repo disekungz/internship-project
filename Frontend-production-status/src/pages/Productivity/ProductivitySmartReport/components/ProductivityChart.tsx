@@ -98,6 +98,33 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
   hybridBrackets: propHybridBrackets,
   onTotalsCalculated,
 }) => {
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof document !== "undefined") {
+      const theme = document.documentElement.getAttribute("data-theme") || "";
+      const isDarkClass = document.documentElement.classList.contains("dark");
+      const darkThemes = ["dark", "synthwave", "dracula", "night", "dim", "sunset", "halloween", "forest", "black", "luxury", "business", "coffee"];
+      return isDarkClass || darkThemes.includes(theme);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const updateTheme = () => {
+      const theme = document.documentElement.getAttribute("data-theme") || "";
+      const isDarkClass = document.documentElement.classList.contains("dark");
+      const darkThemes = ["dark", "synthwave", "dracula", "night", "dim", "sunset", "halloween", "forest", "black", "luxury", "business", "coffee"];
+      setIsDark(isDarkClass || darkThemes.includes(theme));
+    };
+
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   const [showDataOnly, setShowDataOnly] = useState(false);
   const [chartMode, setChartMode] = useState<'output' | 'productivity'>('productivity');
   const [visibleSeries, setVisibleSeries] = useState<{
@@ -1294,14 +1321,14 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
     yAxisList.push({
       type: 'value',
       name: isProdView ? `${selectedUnitMeta.shortLabel}/MH` : selectedUnitMeta.shortLabel,
-      nameTextStyle: { color: '#64748b', fontSize: 11, fontWeight: 700, padding: [0, 0, 4, 0] },
-      axisLine: { show: true, lineStyle: { color: '#cbd5e1' } },
-      axisTick: { show: true, lineStyle: { color: '#cbd5e1' } },
+      nameTextStyle: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 11, fontWeight: 700, padding: [0, 0, 4, 0] },
+      axisLine: { show: true, lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
+      axisTick: { show: true, lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
       splitNumber: 4,
       max: (value: { max: number }) => getCleanNiceAxisMax(value.max),
-      splitLine: { show: true, lineStyle: { color: '#e2e8f0', type: 'dashed' } },
+      splitLine: { show: true, lineStyle: { color: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', type: 'dashed' } },
       axisLabel: {
-        color: '#64748b',
+        color: isDark ? '#94a3b8' : '#64748b',
         fontSize: 11,
         fontWeight: 600,
         formatter: (val: number) => {
@@ -1322,8 +1349,8 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
         nameTextStyle: { color: '#10b981', fontSize: 11, fontWeight: 700, padding: [0, 0, 4, 0] },
         position: 'right',
         offset: 0,
-        axisLine: { show: true, lineStyle: { color: '#cbd5e1' } },
-        axisTick: { show: true, lineStyle: { color: '#cbd5e1' } },
+        axisLine: { show: true, lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
+        axisTick: { show: true, lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
         splitNumber: 4,
         max: (value: { max: number }) => getCleanNiceAxisMax(value.max),
         splitLine: { show: false },
@@ -1349,8 +1376,8 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
         nameTextStyle: { color: '#ea580c', fontSize: 11, fontWeight: 700, padding: [0, 0, 4, 0] },
         position: 'right',
         offset: showAccAxis ? 65 : 0,
-        axisLine: { show: true, lineStyle: { color: '#cbd5e1' } },
-        axisTick: { show: true, lineStyle: { color: '#cbd5e1' } },
+        axisLine: { show: true, lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
+        axisTick: { show: true, lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
         splitNumber: 4,
         max: (value: { max: number }) => getCleanNiceAxisMax(value.max),
         splitLine: { show: false },
@@ -2841,14 +2868,16 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
         trigger: 'axis',
         axisPointer: {
           type: 'shadow',
-          shadowStyle: { color: 'rgba(224, 242, 254, 0.35)' }
+          shadowStyle: { color: isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(224, 242, 254, 0.35)' }
         },
-        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-        borderColor: '#e2e8f0',
+        backgroundColor: isDark ? '#1e293b' : 'rgba(255, 255, 255, 0.98)',
+        borderColor: isDark ? '#334155' : '#e2e8f0',
         borderWidth: 1,
         padding: [12, 16],
-        textStyle: { color: '#1e293b', fontSize: 12, fontFamily: 'Inter, system-ui, sans-serif' },
-        extraCssText: 'box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08); border-radius: 14px; backdrop-filter: blur(8px); min-width: 230px;',
+        textStyle: { color: isDark ? '#f8fafc' : '#1e293b', fontSize: 12, fontFamily: 'Inter, system-ui, sans-serif' },
+        extraCssText: isDark
+          ? 'box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4); border-radius: 14px; backdrop-filter: blur(8px); min-width: 230px;'
+          : 'box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08); border-radius: 14px; backdrop-filter: blur(8px); min-width: 230px;',
         formatter: (params: any) => {
           if (!params || !params.length) return '';
           const dataIdx = params[0].dataIndex;
@@ -2874,7 +2903,7 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
             }
           }
 
-          let html = `<div style="font-weight: 800; color: ${isCurrentAcc ? '#7c3aed' : isPrior ? '#4338ca' : '#475569'}; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
+          let html = `<div style="font-weight: 800; color: ${isCurrentAcc ? '#a855f7' : isPrior ? '#818cf8' : isDark ? '#cbd5e1' : '#475569'}; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid ${isDark ? '#334155' : '#f1f5f9'}; padding-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
             <span>${dateLabel}</span>
             ${badgeHtml}
           </div>`;
@@ -2921,25 +2950,25 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
             html += `
               <div style="display: flex; flex-direction: column; gap: 8px; min-width: 270px;">
                 <!-- PD Card -->
-                <div style="background: #f8fafc; border: 1px solid #bfdbfe; border-left: 4px solid #2563eb; border-radius: 8px; padding: 8px 10px;">
-                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e0f2fe;">
+                <div style="background: ${isDark ? '#0f172a' : '#f8fafc'}; border: 1px solid ${isDark ? '#1e3a8a' : '#bfdbfe'}; border-left: 4px solid #2563eb; border-radius: 8px; padding: 8px 10px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid ${isDark ? '#1e293b' : '#e0f2fe'};">
                     <div style="display: flex; align-items: center; gap: 6px;">
                       <span style="width: 9px; height: 9px; border-radius: 2px; background: #2563eb; display: inline-block;"></span>
-                      <strong style="color: #1e40af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">PD (${unitLabel})</strong>
+                      <strong style="color: ${isDark ? '#60a5fa' : '#1e40af'}; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">PD (${unitLabel})</strong>
                     </div>
                     ${pdTgt !== null ? `
-                      <span style="font-size: 10px; font-weight: 700; color: #1d4ed8; background: #eff6ff; padding: 1px 6px; border-radius: 4px; border: 1px solid #bfdbfe; font-family: monospace;">
+                      <span style="font-size: 10px; font-weight: 700; color: ${isDark ? '#93c5fd' : '#1d4ed8'}; background: ${isDark ? '#1e293b' : '#eff6ff'}; padding: 1px 6px; border-radius: 4px; border: 1px solid ${isDark ? '#1e3a8a' : '#bfdbfe'}; font-family: monospace;">
                         Target: ${pdTgt.toFixed(2)}
                       </span>
                     ` : ''}
                   </div>
                   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 11px;">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                      <span style="color: #64748b;">${isCurrentAcc || isPrior ? 'Monthly' : 'Daily'}:</span>
+                      <span style="color: ${isDark ? '#94a3b8' : '#64748b'};">${isCurrentAcc || isPrior ? 'Monthly' : 'Daily'}:</span>
                       <div style="display: flex; align-items: center; gap: 6px;">
-                        <strong style="color: #0f172a; font-family: monospace; font-size: 12px;">${formatVal(pdVal, isProd)}</strong>
+                        <strong style="color: ${isDark ? '#f8fafc' : '#0f172a'}; font-family: monospace; font-size: 12px;">${formatVal(pdVal, isProd)}</strong>
                         ${pdPct !== null ? `
-                          <span style="font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: ${pdIsOver ? '#ecfdf5' : '#fef2f2'}; color: ${pdIsOver ? '#059669' : '#dc2626'}; font-family: monospace;">
+                          <span style="font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: ${pdIsOver ? (isDark ? '#064e3b' : '#ecfdf5') : (isDark ? '#7f1d1d' : '#fef2f2')}; color: ${pdIsOver ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')}; font-family: monospace;">
                             ${pdPct.toFixed(1)}% (${pdDiff! >= 0 ? '+' : ''}${pdDiff!.toFixed(2)})
                           </span>
                         ` : ''}
@@ -2947,11 +2976,11 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                     </div>
                     ${!isCurrentAcc && !isPrior ? `
                       <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                        <span style="color: #64748b;">Acc Prod:</span>
+                        <span style="color: ${isDark ? '#94a3b8' : '#64748b'};">Acc Prod:</span>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                          <strong style="color: #1e40af; font-family: monospace; font-size: 12px;">${formatVal(accPdVal, isProd)}</strong>
+                          <strong style="color: ${isDark ? '#60a5fa' : '#1e40af'}; font-family: monospace; font-size: 12px;">${formatVal(accPdVal, isProd)}</strong>
                           ${pdAccPct !== null ? `
-                            <span style="font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: ${pdAccIsOver ? '#ecfdf5' : '#fef2f2'}; color: ${pdAccIsOver ? '#059669' : '#dc2626'}; font-family: monospace;">
+                            <span style="font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: ${pdAccIsOver ? (isDark ? '#064e3b' : '#ecfdf5') : (isDark ? '#7f1d1d' : '#fef2f2')}; color: ${pdAccIsOver ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')}; font-family: monospace;">
                               ${pdAccPct.toFixed(1)}% (${pdAccDiff! >= 0 ? '+' : ''}${pdAccDiff!.toFixed(2)})
                             </span>
                           ` : ''}
@@ -2962,25 +2991,25 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                 </div>
 
                 <!-- MOS Card -->
-                <div style="background: #fffdfa; border: 1px solid #fed7aa; border-left: 4px solid #ea580c; border-radius: 8px; padding: 8px 10px;">
-                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #ffedd5;">
+                <div style="background: ${isDark ? '#1c1917' : '#fffdfa'}; border: 1px solid ${isDark ? '#7c2d12' : '#fed7aa'}; border-left: 4px solid #ea580c; border-radius: 8px; padding: 8px 10px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid ${isDark ? '#292524' : '#ffedd5'};">
                     <div style="display: flex; align-items: center; gap: 6px;">
                       <span style="width: 9px; height: 9px; border-radius: 2px; background: #ea580c; display: inline-block;"></span>
-                      <strong style="color: #c2410c; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">MOS (${unitLabel})</strong>
+                      <strong style="color: ${isDark ? '#fb923c' : '#c2410c'}; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">MOS (${unitLabel})</strong>
                     </div>
                     ${mosTgt !== null ? `
-                      <span style="font-size: 10px; font-weight: 700; color: #ea580c; background: #fff7ed; padding: 1px 6px; border-radius: 4px; border: 1px solid #fed7aa; font-family: monospace;">
+                      <span style="font-size: 10px; font-weight: 700; color: ${isDark ? '#fdba74' : '#ea580c'}; background: ${isDark ? '#292524' : '#fff7ed'}; padding: 1px 6px; border-radius: 4px; border: 1px solid ${isDark ? '#7c2d12' : '#fed7aa'}; font-family: monospace;">
                         Target: ${mosTgt.toFixed(2)}
                       </span>
                     ` : ''}
                   </div>
                   <div style="display: flex; flex-direction: column; gap: 4px; font-size: 11px;">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                      <span style="color: #64748b;">${isCurrentAcc || isPrior ? 'Monthly' : 'Daily'}:</span>
+                      <span style="color: ${isDark ? '#94a3b8' : '#64748b'};">${isCurrentAcc || isPrior ? 'Monthly' : 'Daily'}:</span>
                       <div style="display: flex; align-items: center; gap: 6px;">
-                        <strong style="color: #0f172a; font-family: monospace; font-size: 12px;">${formatVal(mosVal, isProd)}</strong>
+                        <strong style="color: ${isDark ? '#f8fafc' : '#0f172a'}; font-family: monospace; font-size: 12px;">${formatVal(mosVal, isProd)}</strong>
                         ${mosPct !== null ? `
-                          <span style="font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: ${mosIsOver ? '#ecfdf5' : '#fef2f2'}; color: ${mosIsOver ? '#059669' : '#dc2626'}; font-family: monospace;">
+                          <span style="font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: ${mosIsOver ? (isDark ? '#064e3b' : '#ecfdf5') : (isDark ? '#7f1d1d' : '#fef2f2')}; color: ${mosIsOver ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')}; font-family: monospace;">
                             ${mosPct.toFixed(1)}% (${mosDiff! >= 0 ? '+' : ''}${mosDiff!.toFixed(2)})
                           </span>
                         ` : ''}
@@ -2988,11 +3017,11 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                     </div>
                     ${!isCurrentAcc && !isPrior ? `
                       <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                        <span style="color: #64748b;">Acc Prod:</span>
+                        <span style="color: ${isDark ? '#94a3b8' : '#64748b'};">Acc Prod:</span>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                          <strong style="color: #ea580c; font-family: monospace; font-size: 12px;">${formatVal(accMosVal, isProd)}</strong>
+                          <strong style="color: ${isDark ? '#fb923c' : '#ea580c'}; font-family: monospace; font-size: 12px;">${formatVal(accMosVal, isProd)}</strong>
                           ${mosAccPct !== null ? `
-                            <span style="font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: ${mosAccIsOver ? '#ecfdf5' : '#fef2f2'}; color: ${mosAccIsOver ? '#059669' : '#dc2626'}; font-family: monospace;">
+                            <span style="font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: ${mosAccIsOver ? (isDark ? '#064e3b' : '#ecfdf5') : (isDark ? '#7f1d1d' : '#fef2f2')}; color: ${mosAccIsOver ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')}; font-family: monospace;">
                               ${mosAccPct.toFixed(1)}% (${mosAccDiff! >= 0 ? '+' : ''}${mosAccDiff!.toFixed(2)})
                             </span>
                           ` : ''}
@@ -3039,10 +3068,10 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
 
             html += `
               <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
-                <span style="display: flex; align-items: center; gap: 6px; font-weight: 600; color: #334155; font-size: 12px;">
+                <span style="display: flex; align-items: center; gap: 6px; font-weight: 600; color: ${isDark ? '#cbd5e1' : '#334155'}; font-size: 12px;">
                   ${marker} ${displaySeriesName}
                 </span>
-                <span style="font-family: monospace; font-weight: 800; color: #0f172a; font-size: 13px;">
+                <span style="font-family: monospace; font-weight: 800; color: ${isDark ? '#f8fafc' : '#0f172a'}; font-size: 13px;">
                   ${formattedVal}
                 </span>
               </div>
@@ -3054,11 +3083,11 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
             const diff = outputVal - planVal;
             const pct = (outputVal / planVal) * 100;
             const isOver = diff >= 0;
-            const badgeColor = isOver ? '#059669' : '#dc2626';
-            const badgeBg = isOver ? '#ecfdf5' : '#fef2f2';
+            const badgeColor = isOver ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626');
+            const badgeBg = isOver ? (isDark ? '#064e3b' : '#ecfdf5') : (isDark ? '#7f1d1d' : '#fef2f2');
             html += `
-              <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
-                <span style="font-size: 11px; font-weight: 700; color: #64748b;">Achievement:</span>
+              <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed ${isDark ? '#334155' : '#e2e8f0'}; display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 11px; font-weight: 700; color: ${isDark ? '#94a3b8' : '#64748b'};">Achievement:</span>
                 <span style="font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: ${badgeBg}; color: ${badgeColor}; font-family: monospace;">
                   ${pct.toFixed(1)}% (${diff >= 0 ? '+' : ''}${diff.toLocaleString()})
                 </span>
@@ -3071,11 +3100,11 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
             const diff = prodVal - targetVal;
             const pct = (prodVal / targetVal) * 100;
             const isOver = diff >= 0;
-            const badgeColor = isOver ? '#059669' : '#dc2626';
-            const badgeBg = isOver ? '#ecfdf5' : '#fef2f2';
+            const badgeColor = isOver ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626');
+            const badgeBg = isOver ? (isDark ? '#064e3b' : '#ecfdf5') : (isDark ? '#7f1d1d' : '#fef2f2');
             html += `
-              <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
-                <span style="font-size: 11px; font-weight: 700; color: #64748b;">Target Achv:</span>
+              <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed ${isDark ? '#334155' : '#e2e8f0'}; display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 11px; font-weight: 700; color: ${isDark ? '#94a3b8' : '#64748b'};">Target Achv:</span>
                 <span style="font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: ${badgeBg}; color: ${badgeColor}; font-family: monospace;">
                   ${pct.toFixed(1)}% (${diff >= 0 ? '+' : ''}${diff.toFixed(2)})
                 </span>
@@ -3090,18 +3119,18 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
       xAxis: {
         type: 'category',
         data: dates,
-        axisLine: { lineStyle: { color: '#cbd5e1' } },
-        axisTick: { show: true, alignWithLabel: true, lineStyle: { color: '#cbd5e1' } },
+        axisLine: { lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
+        axisTick: { show: true, alignWithLabel: true, lineStyle: { color: isDark ? '#334155' : '#cbd5e1' } },
         splitLine: {
           show: true,
           interval: 0,
           lineStyle: {
-            color: '#e2e8f0',
+            color: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
             type: 'dashed'
           }
         },
         axisLabel: {
-          color: '#64748b',
+          color: isDark ? '#94a3b8' : '#64748b',
           fontSize: 11,
           fontWeight: 600,
           rotate: dates.length > 15 ? 45 : 0,
@@ -3112,7 +3141,7 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
       dataZoom: [],
       series: seriesList
     };
-  }, [visibleChartData, isProdView, isHybridMode, linesToSum, visibleSeries, visibleLineSeries, hasPlanData, hasOutputData, hasAccPlanData, hasAccOutputData, hasAccProdData, hasTargetData, selectedUnitMeta, granularity, isLineMat, matVisibleSeries, hasMatPdOutput, hasMatMosOutput, hasMatAccPd, hasMatAccMos, hasMatPdTarget, hasMatMosTarget, chartLeftPadding, chartRightPadding, showAccAxis, showProdAxisInOutputView]);
+  }, [visibleChartData, isProdView, isHybridMode, linesToSum, visibleSeries, visibleLineSeries, hasPlanData, hasOutputData, hasAccPlanData, hasAccOutputData, hasAccProdData, hasTargetData, selectedUnitMeta, granularity, isLineMat, matVisibleSeries, hasMatPdOutput, hasMatMosOutput, hasMatAccPd, hasMatAccMos, hasMatPdTarget, hasMatMosTarget, chartLeftPadding, chartRightPadding, showAccAxis, showProdAxisInOutputView, isDark]);
 
   // Dynamic Title depending on Mode (Output vs Productivity) and Line/Sector Selection
   const displayTitle = useMemo(() => {
@@ -3141,98 +3170,98 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
   }
 
   return (
-    <div className="relative z-10 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl transition-opacity duration-300">
+    <div className="relative z-10 w-full overflow-hidden rounded-2xl border border-base-300/80 bg-base-100 shadow-xl transition-opacity duration-300">
 
       {/* Header Bar */}
-      <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50/80 p-5 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex flex-col gap-4 border-b border-base-300/80 bg-base-200/50 dark:bg-base-200/30 p-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h3 className="text-lg font-black text-slate-900">
+            <h3 className="text-lg font-black text-base-content">
               {displayTitle}
             </h3>
-            <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+            <span className="rounded-full border border-base-300 bg-base-100 px-2.5 py-1 text-xs font-bold uppercase tracking-[0.12em] text-base-content/70">
               {granularity}
             </span>
           </div>
           {isLineMat && matStats ? (
             !isProdView ? (
-              <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
-                <span className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 font-medium text-amber-900">
-                  Total PD: <b className="font-mono text-amber-950">{matStats.totPdOut.toLocaleString()}</b> Sht
+              <div className="mt-3 flex flex-wrap gap-2 text-xs text-base-content/80">
+                <span className="rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 font-medium text-amber-900 dark:text-amber-200">
+                  Total PD: <b className="font-mono text-amber-950 dark:text-amber-100">{matStats.totPdOut.toLocaleString()}</b> Sht
                 </span>
-                <span className="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-1.5 font-medium text-amber-800">
-                  Total MOS: <b className="font-mono text-amber-950">{matStats.totMosOut.toLocaleString()}</b> Sht
+                <span className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-950/30 px-3 py-1.5 font-medium text-amber-800 dark:text-amber-300">
+                  Total MOS: <b className="font-mono text-amber-950 dark:text-amber-100">{matStats.totMosOut.toLocaleString()}</b> Sht
                 </span>
-                <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium">
-                  Total Output: <b className="font-mono text-slate-900">{matStats.totTotalOut.toLocaleString()}</b> Sht
+                <span className="rounded-lg border border-base-300 bg-base-100 dark:bg-base-200/60 px-3 py-1.5 font-medium text-base-content">
+                  Total Output: <b className="font-mono text-base-content font-bold">{matStats.totTotalOut.toLocaleString()}</b> Sht
                 </span>
                 {matStats.latestDate && (
-                  <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium">
-                    Latest on <b className="font-mono text-slate-900">{matStats.latestDate}</b>: PD <b className="font-mono text-amber-900">{matStats.latestPdOut.toLocaleString()}</b> | MOS <b className="font-mono text-amber-800">{matStats.latestMosOut.toLocaleString()}</b>
+                  <span className="rounded-lg border border-base-300 bg-base-100 dark:bg-base-200/60 px-3 py-1.5 font-medium text-base-content">
+                    Latest on <b className="font-mono text-base-content font-bold">{matStats.latestDate}</b>: PD <b className="font-mono text-amber-900 dark:text-amber-300">{matStats.latestPdOut.toLocaleString()}</b> | MOS <b className="font-mono text-amber-800 dark:text-amber-400">{matStats.latestMosOut.toLocaleString()}</b>
                   </span>
                 )}
               </div>
             ) : (
-              <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
-                <span className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 font-medium text-amber-900">
-                  Avg PD: <b className="font-mono text-amber-950">{matStats.avgPd.toFixed(2)}</b> Sht/MH
+              <div className="mt-3 flex flex-wrap gap-2 text-xs text-base-content/80">
+                <span className="rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 font-medium text-amber-900 dark:text-amber-200">
+                  Avg PD: <b className="font-mono text-amber-950 dark:text-amber-100">{matStats.avgPd.toFixed(2)}</b> Sht/MH
                 </span>
-                <span className="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-1.5 font-medium text-amber-800">
-                  Avg MOS: <b className="font-mono text-amber-950">{matStats.avgMos.toFixed(2)}</b> Sht/MH
+                <span className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-950/30 px-3 py-1.5 font-medium text-amber-800 dark:text-amber-300">
+                  Avg MOS: <b className="font-mono text-amber-950 dark:text-amber-100">{matStats.avgMos.toFixed(2)}</b> Sht/MH
                 </span>
-                <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-medium text-emerald-800">
-                  Avg Total: <b className="font-mono text-emerald-950">{matStats.avgTotal.toFixed(2)}</b> Sht/MH
+                <span className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 font-medium text-emerald-800 dark:text-emerald-300">
+                  Avg Total: <b className="font-mono text-emerald-950 dark:text-emerald-100">{matStats.avgTotal.toFixed(2)}</b> Sht/MH
                 </span>
                 {matStats.latestDate && (
-                  <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium">
-                    Latest on {matStats.latestDate}: PD <b className="font-mono text-slate-900">{matStats.latestPd.toFixed(2)}</b> | MOS <b className="font-mono text-slate-900">{matStats.latestMos.toFixed(2)}</b>
+                  <span className="rounded-lg border border-base-300 bg-base-100 dark:bg-base-200/60 px-3 py-1.5 font-medium text-base-content">
+                    Latest on {matStats.latestDate}: PD <b className="font-mono text-base-content font-bold">{matStats.latestPd.toFixed(2)}</b> | MOS <b className="font-mono text-base-content font-bold">{matStats.latestMos.toFixed(2)}</b>
                   </span>
                 )}
               </div>
             )
           ) : !isProdView ? (
-            <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
-              <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium">
+            <div className="mt-3 flex flex-wrap gap-2 text-xs text-base-content/80">
+              <span className="rounded-lg border border-base-300 bg-base-100 dark:bg-base-200/60 px-3 py-1.5 font-medium text-base-content">
                 {isHybridMode ? "YTD Total " : "Total "}
-                <b className="font-mono text-slate-900">{totalOutput.toLocaleString()}</b> {selectedUnitMeta.shortLabel}
+                <b className="font-mono text-base-content font-bold">{totalOutput.toLocaleString()}</b> {selectedUnitMeta.shortLabel}
               </span>
               {latestOutputPoint && (
-                <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium">
-                  Latest <b className="font-mono text-slate-900">{latestOutputPoint.output.toLocaleString()}</b> on {latestOutputPoint.date}
+                <span className="rounded-lg border border-base-300 bg-base-100 dark:bg-base-200/60 px-3 py-1.5 font-medium text-base-content">
+                  Latest <b className="font-mono text-base-content font-bold">{latestOutputPoint.output.toLocaleString()}</b> on {latestOutputPoint.date}
                 </span>
               )}
               {peakOutputPoint && peakOutputPoint.output > 0 && (
-                <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium">
-                  Peak <b className="font-mono text-slate-900">{peakOutputPoint.output.toLocaleString()}</b> on {peakOutputPoint.date}
+                <span className="rounded-lg border border-base-300 bg-base-100 dark:bg-base-200/60 px-3 py-1.5 font-medium text-base-content">
+                  Peak <b className="font-mono text-base-content font-bold">{peakOutputPoint.output.toLocaleString()}</b> on {peakOutputPoint.date}
                 </span>
               )}
             </div>
           ) : (
-            <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
-              <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700 font-medium">
+            <div className="mt-3 flex flex-wrap gap-2 text-xs text-base-content/80">
+              <span className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 text-emerald-800 dark:text-emerald-300 font-medium">
                 {isHybridMode ? "YTD Acc " : "Avg "}
-                <b className="font-mono text-emerald-900">
+                <b className="font-mono text-emerald-950 dark:text-emerald-100 font-bold">
                   {isHybridMode && prodChartStats.accAvg > 0 ? prodChartStats.accAvg.toFixed(2) : prodChartStats.avg.toFixed(2)}
                 </b> {selectedUnitMeta.shortLabel}/MH
               </span>
               {hasTargetData && visibleSeries.target && prodChartStats.targetAvg > 0 && (
-                <span className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-rose-700 font-medium">
-                  Target <b className="font-mono text-rose-900">{prodChartStats.targetAvg.toFixed(2)}</b> {selectedUnitMeta.shortLabel}/MH
+                <span className="rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 px-3 py-1.5 text-rose-700 dark:text-rose-300 font-medium">
+                  Target <b className="font-mono text-rose-900 dark:text-rose-200 font-bold">{prodChartStats.targetAvg.toFixed(2)}</b> {selectedUnitMeta.shortLabel}/MH
                   {(isHybridMode && prodChartStats.accAvg > 0 ? prodChartStats.accAvg : prodChartStats.avg) > 0 && (
-                    <span className={`ml-1.5 font-bold ${(isHybridMode && prodChartStats.accAvg > 0 ? prodChartStats.accAvg : prodChartStats.avg) >= prodChartStats.targetAvg ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    <span className={`ml-1.5 font-bold ${(isHybridMode && prodChartStats.accAvg > 0 ? prodChartStats.accAvg : prodChartStats.avg) >= prodChartStats.targetAvg ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                       ({(((isHybridMode && prodChartStats.accAvg > 0 ? prodChartStats.accAvg : prodChartStats.avg) / prodChartStats.targetAvg) * 100).toFixed(1)}%)
                     </span>
                   )}
                 </span>
               )}
               {prodChartStats.latestMonth && (
-                <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium">
-                  Latest <b className="font-mono text-slate-900">{prodChartStats.latest.toFixed(2)}</b> on {prodChartStats.latestMonth}
+                <span className="rounded-lg border border-base-300 bg-base-100 dark:bg-base-200/60 px-3 py-1.5 font-medium text-base-content">
+                  Latest <b className="font-mono text-base-content font-bold">{prodChartStats.latest.toFixed(2)}</b> on {prodChartStats.latestMonth}
                 </span>
               )}
               {prodChartStats.peak > 0 && (
-                <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium">
-                  Peak <b className="font-mono text-slate-900">{prodChartStats.peak.toFixed(2)}</b> on {prodChartStats.peakMonth}
+                <span className="rounded-lg border border-base-300 bg-base-100 dark:bg-base-200/60 px-3 py-1.5 font-medium text-base-content">
+                  Peak <b className="font-mono text-base-content font-bold">{prodChartStats.peak.toFixed(2)}</b> on {prodChartStats.peakMonth}
                 </span>
               )}
             </div>
@@ -3243,15 +3272,15 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
         <div className="flex flex-wrap items-center gap-2">
           {/* Unit Toggle (Piece / Sht / Lot) - Locked/Disabled if line has no data */}
           {onSelectUnit && (
-            <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="flex overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-sm">
               <button
                 type="button"
                 disabled={!availableUnits.piece}
                 className={`px-3 py-1.5 text-xs font-bold transition-colors ${!availableUnits.piece
-                  ? 'opacity-35 cursor-not-allowed bg-slate-100 text-slate-400'
+                  ? 'opacity-35 cursor-not-allowed bg-base-200/50 text-base-content/40'
                   : selectedUnit === 'piece'
                     ? 'bg-primary text-primary-content font-extrabold shadow-inner cursor-pointer'
-                    : 'text-slate-600 hover:bg-slate-100 cursor-pointer'
+                    : 'text-base-content/70 hover:bg-base-200 cursor-pointer'
                   }`}
                 onClick={() => availableUnits.piece && onSelectUnit('piece')}
                 title={availableUnits.piece ? "หน่วย Piece (ชิ้น)" : "ไม่มีข้อมูลหน่วย Piece สำหรับไลน์นี้"}
@@ -3262,10 +3291,10 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                 type="button"
                 disabled={!availableUnits.sht}
                 className={`px-3 py-1.5 text-xs font-bold transition-colors ${!availableUnits.sht
-                  ? 'opacity-35 cursor-not-allowed bg-slate-100 text-slate-400'
+                  ? 'opacity-35 cursor-not-allowed bg-base-200/50 text-base-content/40'
                   : selectedUnit === 'sht'
                     ? 'bg-primary text-primary-content font-extrabold shadow-inner cursor-pointer'
-                    : 'text-slate-600 hover:bg-slate-100 cursor-pointer'
+                    : 'text-base-content/70 hover:bg-base-200 cursor-pointer'
                   }`}
                 onClick={() => availableUnits.sht && onSelectUnit('sht')}
                 title={availableUnits.sht ? "หน่วย Sheet (แผ่น)" : "ไม่มีข้อมูลหน่วย Sheet สำหรับไลน์นี้"}
@@ -3276,10 +3305,10 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                 type="button"
                 disabled={!availableUnits.lot}
                 className={`px-3 py-1.5 text-xs font-bold transition-colors ${!availableUnits.lot
-                  ? 'opacity-35 cursor-not-allowed bg-slate-100 text-slate-400'
+                  ? 'opacity-35 cursor-not-allowed bg-base-200/50 text-base-content/40'
                   : selectedUnit === 'lot'
                     ? 'bg-primary text-primary-content font-extrabold shadow-inner cursor-pointer'
-                    : 'text-slate-600 hover:bg-slate-100 cursor-pointer'
+                    : 'text-base-content/70 hover:bg-base-200 cursor-pointer'
                   }`}
                 onClick={() => availableUnits.lot && onSelectUnit('lot')}
                 title={
@@ -3296,10 +3325,10 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
           )}
 
           {(isYearly || isMonthly || isWeekly || isDaily) && (
-            <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="flex overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-sm">
               <button
                 type="button"
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${chartMode === 'output' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${chartMode === 'output' ? 'bg-slate-900 dark:bg-slate-800 text-white' : 'text-base-content/70 hover:bg-base-200'
                   }`}
                 onClick={() => setChartMode('output')}
               >
@@ -3308,7 +3337,7 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               </button>
               <button
                 type="button"
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${chartMode === 'productivity' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${chartMode === 'productivity' ? 'bg-emerald-600 text-white' : 'text-base-content/70 hover:bg-base-200'
                   }`}
                 onClick={() => {
                   setChartMode('productivity');
@@ -3322,10 +3351,10 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               </button>
             </div>
           )}
-          <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="flex overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-sm">
             <button
               type="button"
-              className={`px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${showDataOnly ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"
+              className={`px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${showDataOnly ? "bg-slate-900 dark:bg-slate-800 text-white" : "text-base-content/70 hover:bg-base-200"
                 }`}
               onClick={() => setShowDataOnly(true)}
             >
@@ -3333,7 +3362,7 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
             </button>
             <button
               type="button"
-              className={`px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${!showDataOnly ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"
+              className={`px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${!showDataOnly ? "bg-slate-900 dark:bg-slate-800 text-white" : "text-base-content/70 hover:bg-base-200"
                 }`}
               onClick={() => setShowDataOnly(false)}
             >
@@ -3344,19 +3373,19 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
       </div>
 
       {/* Series Toggle Buttons / Legend */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-100 px-5 py-2.5 text-xs font-semibold text-slate-600 bg-slate-50/50">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-base-300/60 px-5 py-2.5 text-xs font-semibold text-base-content/70 bg-base-200/30">
         {isHybridMode && isProdView ? (
           <div className="flex flex-wrap items-center gap-2 w-full">
-            <span className="text-xs font-bold text-slate-700 mr-1">Hierarchy Legend:</span>
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-sky-50 border border-sky-200 px-2.5 py-1 text-xs font-bold text-sky-800 shadow-xs">
+            <span className="text-xs font-bold text-base-content mr-1">Hierarchy Legend:</span>
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 px-2.5 py-1 text-xs font-bold text-sky-800 dark:text-sky-300 shadow-xs">
               <span className="h-2.5 w-2.5 rounded-sm bg-sky-600" />
               MONTHLY
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-800 shadow-xs">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2.5 py-1 text-xs font-bold text-amber-800 dark:text-amber-300 shadow-xs">
               <span className="h-2.5 w-2.5 rounded-sm bg-amber-500" />
               WEEKLY
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-purple-50 border border-purple-200 px-2.5 py-1 text-xs font-bold text-purple-800 shadow-xs">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 px-2.5 py-1 text-xs font-bold text-purple-800 dark:text-purple-300 shadow-xs">
               <span className="h-2.5 w-2.5 rounded-sm bg-purple-600" />
               DAILY
             </span>
@@ -3364,8 +3393,8 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               <button
                 type="button"
                 className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold border transition-all ${visibleSeries.accProd
-                  ? "bg-blue-50 border-blue-300 text-blue-800 shadow-xs"
-                  : "bg-slate-100 border-slate-200 text-slate-400 opacity-60"
+                  ? "bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 shadow-xs"
+                  : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60"
                   }`}
                 onClick={() => setVisibleSeries(prev => ({ ...prev, accProd: !prev.accProd }))}
               >
@@ -3374,7 +3403,7 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               </button>
             )}
             {hasTargetData && (
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-50 border border-rose-200 px-2.5 py-1 text-xs font-bold text-rose-800 shadow-xs sm:ml-auto">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 px-2.5 py-1 text-xs font-bold text-rose-800 dark:text-rose-300 shadow-xs sm:ml-auto">
                 <span className="h-0.5 w-4 rounded bg-rose-600" />
                 Target ({selectedUnitMeta.shortLabel}/MH)
               </span>
@@ -3387,13 +3416,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               <button
                 type="button"
                 className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${matVisibleSeries.pdOutput
-                  ? "bg-blue-50 border-blue-400 text-blue-950 font-bold shadow-xs hover:bg-blue-100"
-                  : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                  ? "bg-blue-50 dark:bg-blue-950/40 border-blue-400 dark:border-blue-800 text-blue-950 dark:text-blue-200 font-bold shadow-xs hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                  : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                   }`}
                 onClick={() => setMatVisibleSeries(prev => ({ ...prev, pdOutput: !prev.pdOutput }))}
               >
                 <span
-                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.pdOutput ? "bg-blue-600 border-blue-600 text-white" : "border-slate-300 bg-white"
+                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.pdOutput ? "bg-blue-600 border-blue-600 text-white" : "border-base-300 bg-base-100"
                     }`}
                 >
                   {matVisibleSeries.pdOutput && <Check size={10} strokeWidth={3.5} />}
@@ -3406,13 +3435,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               <button
                 type="button"
                 className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${matVisibleSeries.mosOutput
-                  ? "bg-amber-50/60 border-amber-300 text-amber-900 font-bold shadow-xs hover:bg-amber-100"
-                  : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                  ? "bg-amber-50/60 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 font-bold shadow-xs hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                  : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                   }`}
                 onClick={() => setMatVisibleSeries(prev => ({ ...prev, mosOutput: !prev.mosOutput }))}
               >
                 <span
-                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.mosOutput ? "bg-amber-600 border-amber-600 text-white" : "border-slate-300 bg-white"
+                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.mosOutput ? "bg-amber-600 border-amber-600 text-white" : "border-base-300 bg-base-100"
                     }`}
                 >
                   {matVisibleSeries.mosOutput && <Check size={10} strokeWidth={3.5} />}
@@ -3425,13 +3454,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               <button
                 type="button"
                 className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${matVisibleSeries.accPdOutput
-                  ? "bg-blue-50 border-blue-400 text-blue-950 font-bold shadow-xs hover:bg-blue-100"
-                  : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                  ? "bg-blue-50 dark:bg-blue-950/40 border-blue-400 dark:border-blue-800 text-blue-950 dark:text-blue-200 font-bold shadow-xs hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                  : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                   }`}
                 onClick={() => setMatVisibleSeries(prev => ({ ...prev, accPdOutput: !prev.accPdOutput }))}
               >
                 <span
-                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.accPdOutput ? "bg-blue-600 border-blue-600 text-white" : "border-slate-300 bg-white"
+                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.accPdOutput ? "bg-blue-600 border-blue-600 text-white" : "border-base-300 bg-base-100"
                     }`}
                 >
                   {matVisibleSeries.accPdOutput && <Check size={10} strokeWidth={3.5} />}
@@ -3444,13 +3473,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               <button
                 type="button"
                 className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${matVisibleSeries.accMosOutput
-                  ? "bg-amber-50/60 border-amber-300 text-amber-900 font-bold shadow-xs hover:bg-amber-100"
-                  : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                  ? "bg-amber-50/60 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 font-bold shadow-xs hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                  : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                   }`}
                 onClick={() => setMatVisibleSeries(prev => ({ ...prev, accMosOutput: !prev.accMosOutput }))}
               >
                 <span
-                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.accMosOutput ? "bg-amber-600 border-amber-600 text-white" : "border-slate-300 bg-white"
+                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.accMosOutput ? "bg-amber-600 border-amber-600 text-white" : "border-base-300 bg-base-100"
                     }`}
                 >
                   {matVisibleSeries.accMosOutput && <Check size={10} strokeWidth={3.5} />}
@@ -3466,13 +3495,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                 <button
                   type="button"
                   className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${visibleSeries.plan
-                    ? "bg-blue-50 border-blue-300 text-blue-800 font-bold shadow-xs hover:bg-blue-100"
-                    : "bg-slate-50 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                    ? "bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 font-bold shadow-xs hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                    : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                     }`}
                   onClick={() => setVisibleSeries(prev => ({ ...prev, plan: !prev.plan }))}
                 >
                   <span
-                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.plan ? "bg-blue-600 border-blue-600 text-white" : "border-slate-300 bg-white"
+                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.plan ? "bg-blue-600 border-blue-600 text-white" : "border-base-300 bg-base-100"
                       }`}
                   >
                     {visibleSeries.plan && <Check size={10} strokeWidth={3.5} />}
@@ -3487,13 +3516,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                 <button
                   type="button"
                   className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${visibleSeries.output
-                    ? "bg-emerald-50 border-emerald-300 text-emerald-800 font-bold shadow-xs hover:bg-emerald-100"
-                    : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                    ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-bold shadow-xs hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                    : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                     }`}
                   onClick={() => setVisibleSeries(prev => ({ ...prev, output: !prev.output }))}
                 >
                   <span
-                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.output ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-300 bg-white"
+                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.output ? "bg-emerald-600 border-emerald-600 text-white" : "border-base-300 bg-base-100"
                       }`}
                   >
                     {visibleSeries.output && <Check size={10} strokeWidth={3.5} />}
@@ -3508,13 +3537,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                 <button
                   type="button"
                   className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${visibleSeries.accPlan
-                    ? "bg-orange-50 border-orange-300 text-orange-800 font-bold shadow-xs hover:bg-orange-100"
-                    : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                    ? "bg-orange-50 dark:bg-orange-950/40 border-orange-300 dark:border-orange-800 text-orange-800 dark:text-orange-300 font-bold shadow-xs hover:bg-orange-100 dark:hover:bg-orange-900/40"
+                    : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                     }`}
                   onClick={() => setVisibleSeries(prev => ({ ...prev, accPlan: !prev.accPlan }))}
                 >
                   <span
-                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.accPlan ? "bg-orange-500 border-orange-500 text-white" : "border-slate-300 bg-white"
+                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.accPlan ? "bg-orange-500 border-orange-500 text-white" : "border-base-300 bg-base-100"
                       }`}
                   >
                     {visibleSeries.accPlan && <Check size={10} strokeWidth={3.5} />}
@@ -3529,13 +3558,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                 <button
                   type="button"
                   className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${visibleSeries.accOutput
-                    ? "bg-emerald-50 border-emerald-300 text-emerald-800 font-bold shadow-xs hover:bg-emerald-100"
-                    : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                    ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-bold shadow-xs hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                    : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                     }`}
                   onClick={() => setVisibleSeries(prev => ({ ...prev, accOutput: !prev.accOutput }))}
                 >
                   <span
-                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.accOutput ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300 bg-white"
+                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.accOutput ? "bg-emerald-500 border-emerald-500 text-white" : "border-base-300 bg-base-100"
                       }`}
                   >
                     {visibleSeries.accOutput && <Check size={10} strokeWidth={3.5} />}
@@ -3550,13 +3579,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                 <button
                   type="button"
                   className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${visibleSeries.outputDailyProd
-                    ? "bg-purple-50 border-purple-300 text-purple-800 font-bold shadow-xs hover:bg-purple-100"
-                    : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                    ? "bg-purple-50 dark:bg-purple-950/40 border-purple-300 dark:border-purple-800 text-purple-800 dark:text-purple-300 font-bold shadow-xs hover:bg-purple-100 dark:hover:bg-purple-900/40"
+                    : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                     }`}
                   onClick={() => setVisibleSeries(prev => ({ ...prev, outputDailyProd: !prev.outputDailyProd }))}
                 >
                   <span
-                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.outputDailyProd ? "bg-purple-500 border-purple-500 text-white" : "border-slate-300 bg-white"
+                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.outputDailyProd ? "bg-purple-500 border-purple-500 text-white" : "border-base-300 bg-base-100"
                       }`}
                   >
                     {visibleSeries.outputDailyProd && <Check size={10} strokeWidth={3.5} />}
@@ -3569,16 +3598,16 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               {/* Timeline Guide for Hybrid Mode in Output View */}
               {isHybridMode && (
                 <div className="flex items-center gap-1.5 sm:ml-auto">
-                  <span className="text-xs font-bold text-slate-500 mr-0.5">Timeline:</span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 border border-sky-200 px-2 py-0.5 text-[11px] font-bold text-sky-800">
+                  <span className="text-xs font-bold text-base-content/70 mr-0.5">Timeline:</span>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 px-2 py-0.5 text-[11px] font-bold text-sky-800 dark:text-sky-300">
                     <span className="h-2 w-2 rounded-sm bg-sky-600" />
                     MONTHLY
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[11px] font-bold text-amber-800 dark:text-amber-300">
                     <span className="h-2 w-2 rounded-sm bg-amber-500" />
                     WEEKLY
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-purple-50 border border-purple-200 px-2 py-0.5 text-[11px] font-bold text-purple-800">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 px-2 py-0.5 text-[11px] font-bold text-purple-800 dark:text-purple-300">
                     <span className="h-2 w-2 rounded-sm bg-purple-600" />
                     DAILY
                   </span>
@@ -3594,7 +3623,7 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                 <button
                   key={line}
                   type="button"
-                  className={`inline-flex items-center gap-1.5 cursor-pointer select-none text-xs px-2.5 py-1.5 rounded-lg border transition-all ${isOutVisible ? 'bg-sky-50 border-sky-300 text-sky-900 font-bold' : 'bg-slate-100 border-slate-200 text-slate-400 opacity-50'
+                  className={`inline-flex items-center gap-1.5 cursor-pointer select-none text-xs px-2.5 py-1.5 rounded-lg border transition-all ${isOutVisible ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-300 dark:border-sky-800 text-sky-900 dark:text-sky-200 font-bold' : 'bg-base-200/60 border-base-300 text-base-content/40 opacity-50'
                     }`}
                   onClick={() => setVisibleLineSeries(prev => ({
                     ...prev,
@@ -3602,7 +3631,7 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
                   }))}
                 >
                   <span
-                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border text-[9px] transition-colors ${isOutVisible ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-300 bg-white'
+                    className={`flex items-center justify-center w-3.5 h-3.5 rounded border text-[9px] transition-colors ${isOutVisible ? 'bg-sky-500 border-sky-500 text-white' : 'border-base-300 bg-base-100'
                       }`}
                   >
                     {isOutVisible && <Check size={10} strokeWidth={3.5} />}
@@ -3619,13 +3648,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
             <button
               type="button"
               className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${matVisibleSeries.pdProd
-                ? "bg-blue-50 border-blue-400 text-blue-950 font-bold shadow-xs hover:bg-blue-100"
-                : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                ? "bg-blue-50 dark:bg-blue-950/40 border-blue-400 dark:border-blue-800 text-blue-950 dark:text-blue-200 font-bold shadow-xs hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                 }`}
               onClick={() => setMatVisibleSeries(prev => ({ ...prev, pdProd: !prev.pdProd }))}
             >
               <span
-                className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.pdProd ? "bg-blue-600 border-blue-600 text-white" : "border-slate-300 bg-white"
+                className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.pdProd ? "bg-blue-600 border-blue-600 text-white" : "border-base-300 bg-base-100"
                   }`}
               >
                 {matVisibleSeries.pdProd && <Check size={10} strokeWidth={3.5} />}
@@ -3638,13 +3667,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
             <button
               type="button"
               className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${matVisibleSeries.mosProd
-                ? "bg-amber-50/60 border-amber-300 text-amber-900 font-bold shadow-xs hover:bg-amber-100"
-                : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                ? "bg-amber-50/60 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 font-bold shadow-xs hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                 }`}
               onClick={() => setMatVisibleSeries(prev => ({ ...prev, mosProd: !prev.mosProd }))}
             >
               <span
-                className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.mosProd ? "bg-amber-600 border-amber-600 text-white" : "border-slate-300 bg-white"
+                className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.mosProd ? "bg-amber-600 border-amber-600 text-white" : "border-base-300 bg-base-100"
                   }`}
               >
                 {matVisibleSeries.mosProd && <Check size={10} strokeWidth={3.5} />}
@@ -3658,13 +3687,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               <button
                 type="button"
                 className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${matVisibleSeries.pdTarget
-                  ? "bg-blue-50 border-blue-300 text-blue-800 font-bold shadow-xs hover:bg-blue-100"
-                  : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                  ? "bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 font-bold shadow-xs hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                  : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                   }`}
                 onClick={() => setMatVisibleSeries(prev => ({ ...prev, pdTarget: !prev.pdTarget }))}
               >
                 <span
-                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.pdTarget ? "bg-blue-600 border-blue-600 text-white" : "border-slate-300 bg-white"
+                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.pdTarget ? "bg-blue-600 border-blue-600 text-white" : "border-base-300 bg-base-100"
                     }`}
                 >
                   {matVisibleSeries.pdTarget && <Check size={10} strokeWidth={3.5} />}
@@ -3679,13 +3708,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               <button
                 type="button"
                 className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${matVisibleSeries.mosTarget
-                  ? "bg-orange-50 border-orange-300 text-orange-800 font-bold shadow-xs hover:bg-orange-100"
-                  : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                  ? "bg-orange-50 dark:bg-orange-950/40 border-orange-300 dark:border-orange-800 text-orange-800 dark:text-orange-300 font-bold shadow-xs hover:bg-orange-100 dark:hover:bg-orange-900/40"
+                  : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                   }`}
                 onClick={() => setMatVisibleSeries(prev => ({ ...prev, mosTarget: !prev.mosTarget }))}
               >
                 <span
-                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.mosTarget ? "bg-orange-600 border-orange-600 text-white" : "border-slate-300 bg-white"
+                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.mosTarget ? "bg-orange-600 border-orange-600 text-white" : "border-base-300 bg-base-100"
                     }`}
                 >
                   {matVisibleSeries.mosTarget && <Check size={10} strokeWidth={3.5} />}
@@ -3699,13 +3728,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
             <button
               type="button"
               className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${matVisibleSeries.accPdProd
-                ? "bg-blue-50 border-blue-400 text-blue-950 font-bold shadow-xs hover:bg-blue-100"
-                : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                ? "bg-blue-50 dark:bg-blue-950/40 border-blue-400 dark:border-blue-800 text-blue-950 dark:text-blue-200 font-bold shadow-xs hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                 }`}
               onClick={() => setMatVisibleSeries(prev => ({ ...prev, accPdProd: !prev.accPdProd }))}
             >
               <span
-                className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.accPdProd ? "bg-blue-600 border-blue-600 text-white" : "border-slate-300 bg-white"
+                className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.accPdProd ? "bg-blue-600 border-blue-600 text-white" : "border-base-300 bg-base-100"
                   }`}
               >
                 {matVisibleSeries.accPdProd && <Check size={10} strokeWidth={3.5} />}
@@ -3718,13 +3747,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
             <button
               type="button"
               className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${matVisibleSeries.accMosProd
-                ? "bg-amber-50/60 border-amber-300 text-amber-900 font-bold shadow-xs hover:bg-amber-100"
-                : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                ? "bg-amber-50/60 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 font-bold shadow-xs hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                 }`}
               onClick={() => setMatVisibleSeries(prev => ({ ...prev, accMosProd: !prev.accMosProd }))}
             >
               <span
-                className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.accMosProd ? "bg-amber-600 border-amber-600 text-white" : "border-slate-300 bg-white"
+                className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${matVisibleSeries.accMosProd ? "bg-amber-600 border-amber-600 text-white" : "border-base-300 bg-base-100"
                   }`}
               >
                 {matVisibleSeries.accMosProd && <Check size={10} strokeWidth={3.5} />}
@@ -3738,13 +3767,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
             <button
               type="button"
               className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${visibleSeries.productivity
-                ? "bg-emerald-50 border-emerald-300 text-emerald-800 font-bold shadow-xs hover:bg-emerald-100"
-                : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-bold shadow-xs hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                 }`}
               onClick={() => setVisibleSeries(prev => ({ ...prev, productivity: !prev.productivity }))}
             >
               <span
-                className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.productivity ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-300 bg-white"
+                className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.productivity ? "bg-emerald-600 border-emerald-600 text-white" : "border-base-300 bg-base-100"
                   }`}
               >
                 {visibleSeries.productivity && <Check size={10} strokeWidth={3.5} />}
@@ -3758,13 +3787,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               <button
                 type="button"
                 className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${visibleSeries.accProd
-                  ? "bg-blue-50 border-blue-300 text-blue-800 font-bold shadow-xs hover:bg-blue-100"
-                  : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                  ? "bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 font-bold shadow-xs hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                  : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                   }`}
                 onClick={() => setVisibleSeries(prev => ({ ...prev, accProd: !prev.accProd }))}
               >
                 <span
-                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.accProd ? "bg-blue-600 border-blue-600 text-white" : "border-slate-300 bg-white"
+                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.accProd ? "bg-blue-600 border-blue-600 text-white" : "border-base-300 bg-base-100"
                     }`}
                 >
                   {visibleSeries.accProd && <Check size={10} strokeWidth={3.5} />}
@@ -3778,13 +3807,13 @@ export const ProductivityChart: React.FC<ProductivityChartProps> = React.memo(({
               <button
                 type="button"
                 className={`inline-flex items-center gap-2 cursor-pointer select-none rounded-lg px-2.5 py-1.5 border transition-all ${visibleSeries.target
-                  ? "bg-rose-50 border-rose-300 text-rose-800 font-bold shadow-xs hover:bg-rose-100"
-                  : "bg-slate-100 border-slate-200 text-slate-400 opacity-60 hover:opacity-100"
+                  ? "bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300 font-bold shadow-xs hover:bg-rose-100 dark:hover:bg-rose-900/40"
+                  : "bg-base-200/60 border-base-300 text-base-content/40 opacity-60 hover:opacity-100"
                   }`}
                 onClick={() => setVisibleSeries(prev => ({ ...prev, target: !prev.target }))}
               >
                 <span
-                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.target ? "bg-rose-600 border-rose-600 text-white" : "border-slate-300 bg-white"
+                  className={`flex items-center justify-center w-3.5 h-3.5 rounded border transition-colors ${visibleSeries.target ? "bg-rose-600 border-rose-600 text-white" : "border-base-300 bg-base-100"
                     }`}
                 >
                   {visibleSeries.target && <Check size={10} strokeWidth={3.5} />}

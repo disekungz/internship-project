@@ -1061,59 +1061,59 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
   const showTotalColumn = dateColumns.length > 1;
   const totalColumnCount = 1 + dateColumns.length + (showTotalColumn ? 1 : 0);
   const parameterCellClass =
-    "sticky left-0 z-10 bg-white py-2.5 px-3 text-xs font-medium text-slate-700 border-r border-b border-slate-200";
+    "sticky left-0 z-10 bg-base-100 py-2.5 px-3 text-xs font-medium text-base-content border-r border-b border-base-300";
   const metricCellClass =
-    "sticky left-0 z-10 bg-blue-50 py-2.5 px-3 text-xs font-bold text-blue-800 border-r border-b border-slate-200";
+    "sticky left-0 z-10 bg-blue-50/70 dark:bg-blue-950/50 py-2.5 px-3 text-xs font-bold text-blue-800 dark:text-blue-300 border-r border-b border-base-300";
   const naCellClass =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-slate-200 bg-slate-50/50 text-slate-400";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-base-300 bg-base-200/40 text-base-content/35";
   const productionCellClass =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-slate-200 bg-emerald-50/70 text-emerald-800 font-semibold";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-base-300 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-semibold";
   const brownOutputCellClass =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-slate-200 bg-amber-50/70 text-amber-900 font-semibold";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-base-300 bg-amber-50/70 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 font-semibold";
   const brownHolidayDataCellClass =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-amber-300 bg-amber-100/80 text-amber-950 font-bold";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-amber-300/80 dark:border-amber-800 bg-amber-100/80 dark:bg-amber-950/70 text-amber-950 dark:text-amber-200 font-bold";
   const brownParameterCellClass =
-    "sticky left-0 z-10 bg-amber-50/40 py-2.5 px-3 text-xs font-semibold text-amber-900 border-r border-b border-slate-200";
+    "sticky left-0 z-10 bg-amber-50/40 dark:bg-amber-950/40 py-2.5 px-3 text-xs font-semibold text-amber-900 dark:text-amber-300 border-r border-b border-base-300";
   const brownRowClass =
-    "bg-amber-50/20 hover:bg-amber-50/50 transition-colors border-t border-slate-200 snap-start";
+    "bg-amber-50/20 dark:bg-amber-950/20 hover:bg-amber-50/50 dark:hover:bg-amber-950/40 transition-colors border-t border-base-300 snap-start";
   const belowPlanCellClass =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-rose-300 bg-rose-50/70 text-red-600 font-bold";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-rose-300/80 dark:border-rose-800 bg-rose-50/70 dark:bg-rose-950/40 text-red-600 dark:text-rose-400 font-bold";
   const planParameterCellClass =
-    "sticky left-0 z-10 bg-purple-50 py-2.5 px-3 text-xs font-bold text-purple-900 border-r border-b border-slate-200";
+    "sticky left-0 z-10 bg-purple-50/70 dark:bg-purple-950/50 py-2.5 px-3 text-xs font-bold text-purple-900 dark:text-purple-300 border-r border-b border-base-300";
   const planDataCellClass =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-slate-200 bg-purple-50/60 text-purple-900 font-semibold";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-base-300 bg-purple-50/60 dark:bg-purple-950/40 text-purple-900 dark:text-purple-300 font-semibold";
   const productivityCellClass =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-slate-200 bg-blue-50/70 text-blue-800 font-semibold";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-base-300 bg-blue-50/70 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 font-semibold";
   const otCellClass =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-slate-200 bg-cyan-50/60 text-cyan-800 font-semibold";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-base-300 bg-cyan-50/60 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 font-semibold";
   const leaveCellClass =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-slate-200 bg-orange-50/60 text-orange-800 font-semibold";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-base-300 bg-orange-50/60 dark:bg-orange-950/40 text-orange-800 dark:text-orange-300 font-semibold";
   const holidayDataCellClass =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-slate-200 bg-indigo-50/80 text-indigo-900 font-semibold";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-r border-b border-base-300 bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-300 font-semibold";
   const totalCellBase =
-    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-l-2 border-b border-slate-300 bg-slate-100 font-bold";
+    "py-2.5 px-3 text-right text-xs font-mono tabular-nums border-l-2 border-b border-base-300 bg-base-200 text-base-content font-bold";
   const standardRowClass =
-    "hover:bg-slate-50 transition-colors border-t border-slate-200 snap-start";
+    "hover:bg-base-200/50 transition-colors border-t border-base-300 snap-start";
   const planRowClass =
-    "bg-purple-50/25 hover:bg-purple-50/60 transition-colors border-t border-slate-200 snap-start";
+    "bg-purple-50/25 dark:bg-purple-950/20 hover:bg-purple-50/60 dark:hover:bg-purple-950/40 transition-colors border-t border-base-300 snap-start";
   const productivityRowClass =
-    "bg-blue-50/25 hover:bg-blue-50/60 transition-colors border-t border-slate-200 snap-start";
+    "bg-blue-50/25 dark:bg-blue-950/20 hover:bg-blue-50/60 dark:hover:bg-blue-950/40 transition-colors border-t border-base-300 snap-start";
   const otRowClass =
-    "bg-cyan-50/25 hover:bg-cyan-50/60 transition-colors border-t border-slate-200 snap-start";
+    "bg-cyan-50/25 dark:bg-cyan-950/20 hover:bg-cyan-50/60 dark:hover:bg-cyan-950/40 transition-colors border-t border-base-300 snap-start";
   const leaveRowClass =
-    "bg-orange-50/25 hover:bg-orange-50/60 transition-colors border-t border-slate-200 snap-start";
+    "bg-orange-50/25 dark:bg-orange-950/20 hover:bg-orange-50/60 dark:hover:bg-orange-950/40 transition-colors border-t border-base-300 snap-start";
   const prodActualCellClass = productivityCellClass;
   const targetCellClass = productivityCellClass;
   const planCellClass = planDataCellClass;
   const viewButtonClass = (mode: MatrixViewMode) =>
     `px-3 py-1.5 text-xs font-semibold transition-colors ${viewMode === mode
       ? "bg-blue-700 text-white shadow-sm"
-      : "bg-white text-slate-600 hover:bg-slate-100"
+      : "bg-base-100 text-base-content/70 hover:bg-base-200"
     }`;
   const focusButtonClass = (metric: FocusMetric) =>
     `px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${focusMetric === metric
-      ? "bg-slate-800 text-white"
-      : "bg-white text-slate-600 hover:bg-slate-100"
+      ? "bg-slate-800 dark:bg-slate-700 text-white"
+      : "bg-base-100 text-base-content/70 hover:bg-base-200"
     }`;
 
   const isHolidayColumn = (date: string) => {
@@ -1152,16 +1152,16 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
   }
 
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg flex flex-col relative transition-opacity duration-300">
-      <div className="p-4 border-b border-slate-200 flex flex-col lg:flex-row justify-between items-start lg:items-center bg-slate-50 gap-4">
+    <div className="w-full overflow-hidden rounded-xl border border-base-300/80 bg-base-100 shadow-lg flex flex-col relative transition-opacity duration-300">
+      <div className="p-4 border-b border-base-300/80 flex flex-col lg:flex-row justify-between items-start lg:items-center bg-base-200/50 gap-4">
         <div className="flex items-center gap-3">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Productivity Board Matrix</h3>
-            <p className="text-sm text-slate-500">Data aggregated by {granularity}</p>
+            <h3 className="text-lg font-bold text-base-content">Productivity Board Matrix</h3>
+            <p className="text-sm text-base-content/60">Data aggregated by {granularity}</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="flex overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-sm">
             <button type="button" className={viewButtonClass("full")} onClick={() => setViewMode("full")}>
               Full
             </button>
@@ -1173,7 +1173,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
             </button>
           </div>
           {viewMode === "focus" && (
-            <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1">
+            <div className="flex flex-wrap gap-1 rounded-lg border border-base-300 bg-base-200 p-1">
               <button type="button" className={focusButtonClass("production")} onClick={() => setFocusMetric("production")}>
                 Production
               </button>
@@ -1193,22 +1193,22 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
 
       <div className={`overflow-x-auto overflow-y-auto ${containerMaxHeight} flex-1 scrollbar-thin snap-both snap-mandatory scroll-pl-[220px] scroll-pt-[90px]`}>
         <table className="table table-xs w-full border-separate border-spacing-0">
-          <thead className="bg-slate-100 sticky top-0 z-20 shadow-sm border-b border-slate-300">
+          <thead className="bg-base-200 sticky top-0 z-20 shadow-sm border-b border-base-300">
             {granularity === 'daily' ? (
               <>
                 {/* Row 1: Day of Week */}
                 <tr>
-                  <th rowSpan={3} className="sticky left-0 z-30 bg-slate-100 py-3.5 px-4 font-bold uppercase text-xs tracking-wide text-slate-700 min-w-[220px] border-r border-b border-slate-300 align-bottom">
+                  <th rowSpan={3} className="sticky left-0 z-30 bg-base-200 py-3.5 px-4 font-bold uppercase text-xs tracking-wide text-base-content min-w-[220px] border-r border-b border-base-300 align-bottom">
                     Parameter
                   </th>
                   {dateColumns.map(col => {
                     const d = dayjs(col);
                     const dayOfWeek = d.day();
-                    let stateClass = "bg-white text-slate-700";
+                    let stateClass = "bg-base-100 text-base-content border-base-300";
                     if (dayOfWeek === 6) {
-                      stateClass = "bg-success/20 text-success-content font-bold border-slate-200";
+                      stateClass = "bg-success/20 text-success-content font-bold border-base-300";
                     } else if (dayOfWeek === 0) {
-                      stateClass = "bg-error/20 text-error-content font-bold border-slate-200";
+                      stateClass = "bg-error/20 text-error-content font-bold border-base-300";
                     }
                     return (
                       <th key={`dow-${col}`} className={`py-1.5 px-3 text-center border-r border-b min-w-[92px] text-xs snap-start ${stateClass}`}>
@@ -1217,7 +1217,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
                     );
                   })}
                   {showTotalColumn && (
-                    <th rowSpan={3} className="sticky right-0 z-30 py-3.5 px-4 text-right border-l-2 border-b border-slate-300 min-w-[110px] font-bold text-blue-800 bg-slate-200 text-xs align-bottom">
+                    <th rowSpan={3} className="sticky right-0 z-30 py-3.5 px-4 text-right border-l-2 border-b border-base-300 min-w-[110px] font-bold text-blue-800 dark:text-blue-300 bg-base-300 text-xs align-bottom">
                       TOTAL
                     </th>
                   )}
@@ -1247,8 +1247,8 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
 
                     const numVal = calVal;
                     const stateClass = numVal === 1
-                      ? "bg-emerald-50 text-emerald-800 font-bold border-slate-200"
-                      : "bg-rose-100 text-rose-800 font-bold border-rose-200";
+                      ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold border-base-300"
+                      : "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 font-bold border-base-300";
 
                     return (
                       <th key={`work-${col}`} className={`py-1.5 px-3 text-center border-r border-b text-xs snap-start ${stateClass}`}>
@@ -1261,7 +1261,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
                 <tr>
                   {dateColumns.map(col => {
                     return (
-                      <th key={`date-${col}`} className="py-2 px-3 text-center border-r border-b border-slate-200 text-xs font-mono bg-slate-50 text-slate-600 snap-start">
+                      <th key={`date-${col}`} className="py-2 px-3 text-center border-r border-b border-base-300 text-xs font-mono bg-base-200/60 text-base-content snap-start">
                         {dayjs(col).format('D-MMM')}
                       </th>
                     );
@@ -1270,18 +1270,18 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
               </>
             ) : (
               <tr>
-                <th className="sticky left-0 z-30 bg-slate-100 py-3.5 px-4 font-bold uppercase text-xs tracking-wide text-slate-700 min-w-[220px] border-r border-b border-slate-300">
+                <th className="sticky left-0 z-30 bg-base-200 py-3.5 px-4 font-bold uppercase text-xs tracking-wide text-base-content min-w-[220px] border-r border-b border-base-300">
                   Parameter
                 </th>
                 {dateColumns.map(col => {
                   return (
-                    <th key={col} className="py-3.5 px-3 text-center border-r border-b border-slate-200 min-w-[92px] text-xs text-slate-700 bg-white snap-start">
+                    <th key={col} className="py-3.5 px-3 text-center border-r border-b border-base-300 min-w-[92px] text-xs text-base-content bg-base-100 snap-start">
                       {renderColHeader(col)}
                     </th>
                   );
                 })}
                 {showTotalColumn && (
-                  <th className="sticky right-0 z-30 py-3.5 px-4 text-right border-l-2 border-b border-slate-300 min-w-[110px] font-bold text-blue-800 bg-slate-200 text-xs">
+                  <th className="sticky right-0 z-30 py-3.5 px-4 text-right border-l-2 border-b border-base-300 min-w-[110px] font-bold text-blue-800 dark:text-blue-300 bg-base-300 text-xs">
                     TOTAL
                   </th>
                 )}
@@ -1869,7 +1869,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
                     <tr className="snap-start">
                       <td
                         colSpan={totalColumnCount}
-                        className="bg-slate-100 border-y border-slate-200 border-l-4 border-l-blue-700 px-4 py-3 text-left text-base font-black text-slate-800 tracking-wide shadow-sm snap-start"
+                        className="bg-base-200 border-y border-base-300 border-l-4 border-l-blue-700 px-4 py-3 text-left text-base font-black text-base-content tracking-wide shadow-sm snap-start"
                       >
                         <div className="flex items-center gap-2 sticky left-4 w-fit">
                           <div className="w-2.5 h-2.5 rounded-full bg-blue-700" />
@@ -1881,7 +1881,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
                     {/* 1. OP & Leader register */}
                     {showProductionRows && (
                       <tr className={standardRowClass}>
-                        <td className="sticky left-0 z-10 bg-emerald-50 py-2 px-3 text-xs font-semibold text-emerald-800 border-r border-b border-emerald-100">
+                        <td className="sticky left-0 z-10 bg-emerald-50/70 dark:bg-emerald-950/40 py-2 px-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300 border-r border-b border-base-300">
                           OP & Leader register
                         </td>
                         {isMacroRow ? (
@@ -2046,12 +2046,12 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
                           {showProductivityRows && unitIncludePcs && renderAccProdRow("sum_prod_pcs", isAsySmt ? "Acc Prod<PCS/MH>" : "SUM Productivity<Pcs/MH>", linePcsMap)}
                         </>
                       );
-                    })()}
+                    })}
 
                     {/* OT and Leave Metrics (UI Only) */}
                     {showOtRows && (
                       <tr className={otRowClass}>
-                        <td className="sticky left-0 z-10 bg-cyan-50 py-2.5 px-3 text-xs font-medium text-cyan-800 border-r border-b border-cyan-100">
+                        <td className="sticky left-0 z-10 bg-cyan-50/70 dark:bg-cyan-950/40 py-2.5 px-3 text-xs font-medium text-cyan-800 dark:text-cyan-300 border-r border-b border-base-300">
                           OT. (psn)
                         </td>
                         {isMacroRow ? (
@@ -2069,7 +2069,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
                               );
                             })}
                             {showTotalColumn && (
-                              <td className={`${totalCellBase} sticky right-0 z-10 text-cyan-800`}>
+                              <td className={`${totalCellBase} sticky right-0 z-10 text-cyan-800 dark:text-cyan-300`}>
                                 {(() => {
                                   let count = 0;
                                   const sum = dateColumns.reduce((acc, date) => {
@@ -2092,7 +2092,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
 
                     {showOtRows && (
                       <tr className={otRowClass}>
-                        <td className="sticky left-0 z-10 bg-cyan-50 py-2.5 px-3 text-xs font-medium text-cyan-800 border-r border-b border-cyan-100">
+                        <td className="sticky left-0 z-10 bg-cyan-50/70 dark:bg-cyan-950/40 py-2.5 px-3 text-xs font-medium text-cyan-800 dark:text-cyan-300 border-r border-b border-base-300">
                           OT working day rate(%)
                         </td>
                         {isMacroRow ? (
@@ -2113,7 +2113,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
                               );
                             })}
                             {showTotalColumn && (
-                              <td className={`${totalCellBase} sticky right-0 z-10 text-cyan-800`}>
+                              <td className={`${totalCellBase} sticky right-0 z-10 text-cyan-800 dark:text-cyan-300`}>
                                 {(() => {
                                   let sumOt = 0;
                                   let sumReg = 0;
@@ -2139,7 +2139,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
 
                     {showOtRows && (
                       <tr className={otRowClass}>
-                        <td className="sticky left-0 z-10 bg-cyan-50 py-2.5 px-3 text-xs font-medium text-cyan-800 border-r border-b border-cyan-100">
+                        <td className="sticky left-0 z-10 bg-cyan-50/70 dark:bg-cyan-950/40 py-2.5 px-3 text-xs font-medium text-cyan-800 dark:text-cyan-300 border-r border-b border-base-300">
                           OT Holiday day rate(%)
                         </td>
                         {isMacroRow ? (
@@ -2160,7 +2160,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
                               );
                             })}
                             {showTotalColumn && (
-                              <td className={`${totalCellBase} sticky right-0 z-10 text-cyan-800`}>
+                              <td className={`${totalCellBase} sticky right-0 z-10 text-cyan-800 dark:text-cyan-300`}>
                                 {(() => {
                                   let sumOt = 0;
                                   let sumReg = 0;
@@ -2186,7 +2186,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
 
                     {showLeaveRows && (
                       <tr className={leaveRowClass}>
-                        <td className="sticky left-0 z-10 bg-orange-50 py-2.5 px-3 text-xs font-medium text-orange-800 border-r border-b border-orange-100">
+                        <td className="sticky left-0 z-10 bg-orange-50/70 dark:bg-orange-950/40 py-2.5 px-3 text-xs font-medium text-orange-800 dark:text-orange-300 border-r border-b border-base-300">
                           Leave (psn)
                         </td>
                         {isMacroRow ? (
@@ -2208,7 +2208,7 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
                               );
                             })}
                             {showTotalColumn && (
-                              <td className={`${totalCellBase} sticky right-0 z-10 text-orange-800`}>
+                              <td className={`${totalCellBase} sticky right-0 z-10 text-orange-800 dark:text-orange-300`}>
                                 {(() => {
                                   let count = 0;
                                   const sum = dateColumns.reduce((acc, date) => {
@@ -2231,9 +2231,10 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
                         )}
                       </tr>
                     )}
+
                     {showLeaveRows && (
                       <tr className={leaveRowClass}>
-                        <td className="sticky left-0 z-10 bg-orange-50 py-2.5 px-3 text-xs font-medium text-orange-800 border-r border-b border-orange-100">
+                        <td className="sticky left-0 z-10 bg-orange-50/70 dark:bg-orange-950/40 py-2.5 px-3 text-xs font-medium text-orange-800 dark:text-orange-300 border-r border-b border-base-300">
                           Leave working day rate(%)
                         </td>
                         {isMacroRow ? (
@@ -2289,13 +2290,13 @@ export const DailyMatrixTable: React.FC<DailyMatrixTableProps> = React.memo(({
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-600">
-        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-100 ring-1 ring-emerald-200" />Production / attendance data</span>
-        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-blue-100 ring-1 ring-blue-200" />Productivity metrics</span>
-        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-cyan-100 ring-1 ring-cyan-200" />OT metrics</span>
-        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-orange-100 ring-1 ring-orange-200" />Leave metrics</span>
-        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-indigo-100 ring-1 ring-indigo-200" />Holiday / OT2 data</span>
-        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-slate-100 ring-1 ring-slate-200" />Holiday without data</span>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-base-300/80 bg-base-200/50 px-4 py-2.5 text-xs text-base-content/70">
+        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-100 dark:bg-emerald-950 ring-1 ring-emerald-300 dark:ring-emerald-700" />Production / attendance data</span>
+        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-blue-100 dark:bg-blue-950 ring-1 ring-blue-300 dark:ring-blue-700" />Productivity metrics</span>
+        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-cyan-100 dark:bg-cyan-950 ring-1 ring-cyan-300 dark:ring-cyan-700" />OT metrics</span>
+        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-orange-100 dark:bg-orange-950 ring-1 ring-orange-300 dark:ring-orange-700" />Leave metrics</span>
+        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-indigo-100 dark:bg-indigo-950 ring-1 ring-indigo-300 dark:ring-indigo-700" />Holiday / OT2 data</span>
+        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-base-200 ring-1 ring-base-300" />Holiday without data</span>
       </div>
     </div>
   );
