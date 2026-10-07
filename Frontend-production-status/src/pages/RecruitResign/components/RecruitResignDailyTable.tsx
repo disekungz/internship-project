@@ -134,11 +134,11 @@ export const RecruitResignDailyTable: React.FC<Props> = ({
   });
 
   return (
-    <div className="rounded-2xl border border-slate-300 bg-white shadow-sm overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between px-4 py-2.5 border-b border-slate-300 bg-slate-50 gap-2">
+    <div className="rounded-2xl border border-base-300 bg-base-100 shadow-sm overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between px-4 py-2.5 border-b border-base-300 bg-base-200/60 gap-2">
         <div className="flex items-center gap-2">
-          <TrendingUp size={16} className="text-blue-700" />
-          <h3 className="text-xs font-black text-slate-800 uppercase tracking-tight">
+          <TrendingUp size={16} className="text-blue-600 dark:text-blue-400" />
+          <h3 className="text-xs font-black text-base-content uppercase tracking-tight">
             Recruit & Resign Daily Summary ({activeGroup})
           </h3>
         </div>
@@ -150,7 +150,7 @@ export const RecruitResignDailyTable: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={() => setIsInlineEditing(false)}
-                className="flex items-center gap-1 rounded-xl bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-300 transition cursor-pointer"
+                className="flex items-center gap-1 rounded-xl bg-base-300 px-3 py-1 text-xs font-bold text-base-content hover:bg-base-200 transition cursor-pointer"
               >
                 <X size={13} />
                 <span>ยกเลิก</span>
@@ -169,10 +169,10 @@ export const RecruitResignDailyTable: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => setIsInlineEditing(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-blue-50 border border-blue-300 px-3.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-sm transition cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl bg-blue-500/10 border border-blue-500/30 px-3.5 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 shadow-sm transition cursor-pointer"
               title="คลิกเพื่อแก้ไขตัวเลข Recruit / Resign ในตารางโดยตรง"
             >
-              <Edit3 size={13} className="text-blue-600" />
+              <Edit3 size={13} className="text-blue-600 dark:text-blue-400" />
               <span>แก้ไขในตาราง (Inline)</span>
             </button>
           )}
@@ -180,10 +180,10 @@ export const RecruitResignDailyTable: React.FC<Props> = ({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-center text-[10.5px] sm:text-xs border-collapse table-fixed border border-slate-300">
+        <table className="w-full text-center text-[10.5px] sm:text-xs border-collapse table-fixed border border-base-300">
           <thead>
-            <tr className="border-b border-slate-300">
-              <th className="sticky left-0 z-20 bg-[#002060] text-white py-1 px-2 border-r-2 border-r-blue-950 text-center font-black w-[90px] min-w-[85px]">
+            <tr className="border-b border-base-300">
+              <th className="sticky left-0 z-20 bg-[#193886] text-white py-1 px-2 border-r-2 border-r-base-300 text-center font-black w-[90px] min-w-[85px]">
                 MP
               </th>
               {liveRowData.map((d) => {
@@ -192,14 +192,14 @@ export const RecruitResignDailyTable: React.FC<Props> = ({
                 const isSun = d.dayOfWeek === 0 || d.isHoliday;
                 const isSat = d.dayOfWeek === 6;
 
-                let headerBg = "bg-[#4f81bd] text-white";
-                if (isSun) headerBg = "bg-[#f8cbdf] text-red-700 font-black";
-                else if (isSat) headerBg = "bg-[#c6efce] text-emerald-800 font-black";
+                let headerBg = "bg-blue-600/20 text-blue-800 dark:text-blue-300";
+                if (isSun) headerBg = "bg-rose-500/20 text-rose-700 dark:text-rose-300 font-black";
+                else if (isSat) headerBg = "bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-black";
 
                 return (
                   <th
                     key={d.day}
-                    className={`py-1 px-0.5 border-r border-slate-300 select-none ${headerBg}`}
+                    className={`py-1 px-0.5 border-r border-base-300 select-none ${headerBg}`}
                   >
                     <div className="text-[9px] font-semibold opacity-90 leading-tight">{dayName}</div>
                     <div className="text-[10px] font-bold leading-tight">{d.day}-{monthShort}</div>
@@ -208,17 +208,17 @@ export const RecruitResignDailyTable: React.FC<Props> = ({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-300 font-bold">
+          <tbody className="divide-y divide-base-300 font-bold">
             {/* Recruit (person) */}
-            <tr className="hover:bg-blue-50/40 bg-white">
-              <td className="sticky left-0 z-10 bg-[#dbe5f1] py-1 px-2 border-r-2 border-r-slate-400 text-left font-bold text-slate-800 text-[10.5px]">
+            <tr className="hover:bg-primary/5 bg-base-100">
+              <td className="sticky left-0 z-10 bg-base-200 py-1 px-2 border-r-2 border-r-base-300 text-left font-bold text-base-content text-[10.5px]">
                 Recruit
               </td>
               {liveRowData.map((d) => (
                 <td
                   key={d.day}
-                  className={`py-1 px-0.5 border-r border-slate-300 font-bold ${
-                    d.recruit !== null && d.recruit > 0 ? "bg-blue-100 font-black text-blue-700" : "text-slate-600"
+                  className={`py-1 px-0.5 border-r border-base-300 font-bold ${
+                    d.recruit !== null && d.recruit > 0 ? "bg-blue-500/15 font-black text-blue-600 dark:text-blue-400" : "text-base-content/70"
                   }`}
                 >
                   {isInlineEditing ? (
@@ -230,7 +230,7 @@ export const RecruitResignDailyTable: React.FC<Props> = ({
                       value={editValues[d.day]?.recruit ? String(editValues[d.day]?.recruit) : ""}
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => handleCellChange(d.day, "recruit", e.target.value)}
-                      className="w-full text-center bg-white border border-blue-400 rounded py-0.5 font-bold text-blue-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner text-xs"
+                      className="w-full text-center bg-base-100 border border-blue-500/40 rounded py-0.5 font-bold text-blue-600 dark:text-blue-400 placeholder-base-content/30 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner text-xs"
                     />
                   ) : (
                     d.hasData && d.recruit !== null ? d.recruit : "-"
@@ -240,27 +240,27 @@ export const RecruitResignDailyTable: React.FC<Props> = ({
             </tr>
 
             {/* Acc. Recruit / Balance */}
-            <tr className="bg-[#e9eef4] hover:bg-blue-50/60">
-              <td className="sticky left-0 z-10 bg-[#dbe5f1] py-1.5 px-2 border-r-2 border-r-slate-400 text-left font-black text-[#1e3a8a] text-[11px]">
+            <tr className="bg-base-200/40 hover:bg-primary/5">
+              <td className="sticky left-0 z-10 bg-base-200 py-1.5 px-2 border-r-2 border-r-base-300 text-left font-black text-blue-600 dark:text-blue-400 text-[11px]">
                 {activeGroup}
               </td>
               {liveRowData.map((d) => (
-                <td key={d.day} className="py-1 px-0.5 border-r border-slate-300 font-bold text-slate-800">
+                <td key={d.day} className="py-1 px-0.5 border-r border-base-300 font-bold text-base-content">
                   {d.hasData && d.accRecruit !== null ? d.accRecruit : "-"}
                 </td>
               ))}
             </tr>
 
             {/* Resign (person) */}
-            <tr className="bg-[#fce4d6] hover:bg-orange-100/70">
-              <td className="sticky left-0 z-10 bg-[#f8cbdf] py-1 px-2 border-r-2 border-r-slate-400 text-left font-bold text-red-900 text-[10.5px]">
+            <tr className="bg-rose-500/5 hover:bg-rose-500/10">
+              <td className="sticky left-0 z-10 bg-rose-500/15 py-1 px-2 border-r-2 border-r-base-300 text-left font-bold text-rose-700 dark:text-rose-400 text-[10.5px]">
                 Resign
               </td>
               {liveRowData.map((d) => (
                 <td
                   key={d.day}
-                  className={`py-1 px-0.5 border-r border-slate-300 ${
-                    d.resign !== null && d.resign > 0 ? "bg-[#f8cbdf] font-black text-red-700" : "text-slate-600"
+                  className={`py-1 px-0.5 border-r border-base-300 ${
+                    d.resign !== null && d.resign > 0 ? "bg-rose-500/20 font-black text-rose-600 dark:text-rose-400" : "text-base-content/70"
                   }`}
                 >
                   {isInlineEditing ? (
@@ -272,7 +272,7 @@ export const RecruitResignDailyTable: React.FC<Props> = ({
                       value={editValues[d.day]?.resign ? String(editValues[d.day]?.resign) : ""}
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => handleCellChange(d.day, "resign", e.target.value)}
-                      className="w-full text-center bg-white border border-rose-400 rounded py-0.5 font-bold text-rose-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-inner text-xs"
+                      className="w-full text-center bg-base-100 border border-rose-500/40 rounded py-0.5 font-bold text-rose-600 dark:text-rose-400 placeholder-base-content/30 focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-inner text-xs"
                     />
                   ) : (
                     d.hasData && d.resign !== null ? d.resign : "-"
@@ -282,15 +282,15 @@ export const RecruitResignDailyTable: React.FC<Props> = ({
             </tr>
 
             {/* Resign Ratio (%) */}
-            <tr className="bg-[#f2f2f2] hover:bg-slate-100">
-              <td className="sticky left-0 z-10 bg-[#dbe5f1] py-1 px-2 border-r-2 border-r-slate-400 text-left font-bold text-slate-700 text-[10px]">
+            <tr className="bg-base-200/20 hover:bg-base-200/40">
+              <td className="sticky left-0 z-10 bg-base-200 py-1 px-2 border-r-2 border-r-base-300 text-left font-bold text-base-content/70 text-[10px]">
                 % Turnover
               </td>
               {liveRowData.map((d) => (
                 <td
                   key={d.day}
-                  className={`py-1 px-0.5 border-r border-slate-300 text-[10px] font-semibold ${
-                    d.hasData && d.resignRatio !== null && d.resignRatio > 0 ? "font-black text-red-600" : "text-slate-600"
+                  className={`py-1 px-0.5 border-r border-base-300 text-[10px] font-semibold ${
+                    d.hasData && d.resignRatio !== null && d.resignRatio > 0 ? "font-black text-rose-600 dark:text-rose-400" : "text-base-content/60"
                   }`}
                 >
                   {d.hasData && d.resignRatio !== null ? `${d.resignRatio.toFixed(1)}%` : "-"}

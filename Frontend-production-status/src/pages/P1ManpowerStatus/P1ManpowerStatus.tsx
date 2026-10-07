@@ -130,7 +130,7 @@ export default function P1ManpowerStatus() {
   const variancePct = target > 0 && currentTotal > 0 ? ((variance / target) * 100).toFixed(1) : "0";
 
   return (
-    <main className="h-full w-full overflow-y-auto overflow-x-hidden bg-slate-50/50 p-2 sm:p-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+    <main className="min-h-full w-full overflow-y-auto overflow-x-hidden bg-base-200/50 p-2 sm:p-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       <div className="w-full space-y-4 pb-12">
         {/* ── Top Header Banner ────────────────────────────────────────── */}
         <header className="rounded-2xl bg-gradient-to-r from-[#193886] via-[#1F46A4] to-[#2563EB] px-5 py-4 text-white shadow-xl">
@@ -143,7 +143,7 @@ export default function P1ManpowerStatus() {
               />
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-xl sm:text-2xl font-black tracking-wide">
+                  <h1 className="text-xl sm:text-2xl font-black tracking-wide text-white">
                     P1 MANPOWER STATUS
                   </h1>
                   {loading && (
@@ -220,27 +220,27 @@ export default function P1ManpowerStatus() {
         {/* ── KPI Summary Cards ────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-3.5">
           {/* Card 1: Total Manpower */}
-          <div className="rounded-2xl bg-white p-3.5 sm:p-4 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div className="rounded-2xl bg-base-100 p-3.5 sm:p-4 shadow-sm border border-base-300 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Total</span>
-                <UsersRound className="h-4 w-4 text-blue-600" />
+              <div className="flex items-center justify-between text-base-content/60 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-base-content/70">Total</span>
+                <UsersRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black text-slate-900">
+                <span className="text-xl sm:text-2xl font-black text-base-content">
                   {currentTotal > 0 ? currentTotal.toLocaleString() : "-"}
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">/ {target.toLocaleString()}</span>
+                <span className="text-[11px] text-base-content/50 font-medium">/ {target.toLocaleString()}</span>
               </div>
             </div>
             <div className="mt-2 flex items-center gap-1 text-[11px] font-bold">
               {variance >= 0 ? (
-                <span className="inline-flex items-center text-emerald-600 truncate">
+                <span className="inline-flex items-center text-emerald-600 dark:text-emerald-400 truncate">
                   <TrendingUp className="h-3 w-3 mr-0.5 shrink-0" />
                   +{variance} ({variancePct}%)
                 </span>
               ) : (
-                <span className="inline-flex items-center text-rose-600 truncate">
+                <span className="inline-flex items-center text-rose-600 dark:text-rose-400 truncate">
                   <TrendingDown className="h-3 w-3 mr-0.5 shrink-0" />
                   {variance} ({variancePct}%)
                 </span>
@@ -249,98 +249,98 @@ export default function P1ManpowerStatus() {
           </div>
 
           {/* Card 2: Direct Workers */}
-          <div className="rounded-2xl bg-white p-3.5 sm:p-4 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div className="rounded-2xl bg-base-100 p-3.5 sm:p-4 shadow-sm border border-base-300 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700">Direct</span>
-                <Briefcase className="h-4 w-4 text-purple-600" />
+              <div className="flex items-center justify-between text-base-content/60 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Direct</span>
+                <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-purple-900">
+              <div className="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-300">
                 {currentDirect > 0 ? currentDirect.toLocaleString() : "-"}
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-purple-700 font-medium truncate">
+            <p className="mt-2 text-[10px] text-purple-600 dark:text-purple-400 font-medium truncate">
               TO/TT 1-7 (100% PRD)
             </p>
           </div>
 
           {/* Card 3: In-Direct Workers */}
-          <div className="rounded-2xl bg-white p-3.5 sm:p-4 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div className="rounded-2xl bg-base-100 p-3.5 sm:p-4 shadow-sm border border-base-300 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700">In-Direct</span>
-                <Layers className="h-4 w-4 text-rose-600" />
+              <div className="flex items-center justify-between text-base-content/60 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">In-Direct</span>
+                <Layers className="h-4 w-4 text-rose-600 dark:text-rose-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-rose-900">
+              <div className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-300">
                 {currentIndirect > 0 ? currentIndirect.toLocaleString() : "-"}
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-rose-700 font-medium truncate">
+            <p className="mt-2 text-[10px] text-rose-600 dark:text-rose-400 font-medium truncate">
               Employee all level...
             </p>
           </div>
 
           {/* Card 4: Employee Contract (DC) */}
-          <div className="rounded-2xl bg-white p-3.5 sm:p-4 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div className="rounded-2xl bg-base-100 p-3.5 sm:p-4 shadow-sm border border-base-300 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Contract (DC)</span>
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <div className="flex items-center justify-between text-base-content/60 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Contract (DC)</span>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-emerald-900">
+              <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-300">
                 {currentContract > 0 ? currentContract.toLocaleString() : "-"}
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-emerald-700 font-medium truncate">
+            <p className="mt-2 text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
               DC Contract Balance
             </p>
           </div>
 
           {/* Card 5: Subcontract */}
-          <div className="rounded-2xl bg-white p-3.5 sm:p-4 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div className="rounded-2xl bg-base-100 p-3.5 sm:p-4 shadow-sm border border-base-300 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700">Subcontract</span>
-                <UserCheck className="h-4 w-4 text-amber-600" />
+              <div className="flex items-center justify-between text-base-content/60 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Subcontract</span>
+                <UserCheck className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-amber-900">
+              <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-300">
                 {currentSubcontract > 0 ? currentSubcontract.toLocaleString() : "-"}
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-amber-700 font-medium truncate">
+            <p className="mt-2 text-[10px] text-amber-600 dark:text-amber-400 font-medium truncate">
               VDS / PIMB Balance
             </p>
           </div>
 
           {/* Card 6: MOU */}
-          <div className="rounded-2xl bg-white p-3.5 sm:p-4 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div className="rounded-2xl bg-base-100 p-3.5 sm:p-4 shadow-sm border border-base-300 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-pink-700">MOU</span>
-                <Award className="h-4 w-4 text-pink-600" />
+              <div className="flex items-center justify-between text-base-content/60 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400">MOU</span>
+                <Award className="h-4 w-4 text-pink-600 dark:text-pink-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-pink-900">
+              <div className="text-xl sm:text-2xl font-black text-pink-600 dark:text-pink-300">
                 {currentMou > 0 ? currentMou.toLocaleString() : "-"}
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-pink-700 font-medium truncate">
+            <p className="mt-2 text-[10px] text-pink-600 dark:text-pink-400 font-medium truncate">
               MOU Student Balance
             </p>
           </div>
 
           {/* Card 7: Schedule */}
-          <div className="rounded-2xl bg-white p-3.5 sm:p-4 shadow-sm border border-slate-200 col-span-2 sm:col-span-1 flex flex-col justify-between">
+          <div className="rounded-2xl bg-base-100 p-3.5 sm:p-4 shadow-sm border border-base-300 col-span-2 sm:col-span-1 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-700">Schedule</span>
-                <Calendar className="h-4 w-4 text-teal-600" />
+              <div className="flex items-center justify-between text-base-content/60 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">Schedule</span>
+                <Calendar className="h-4 w-4 text-teal-600 dark:text-teal-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-slate-800">
+              <div className="text-xl sm:text-2xl font-black text-base-content">
                 {days.filter((d) => d.total > 0).length}{" "}
-                <span className="text-xs text-slate-400 font-normal">/ {days.length} Days</span>
+                <span className="text-xs text-base-content/50 font-normal">/ {days.length} Days</span>
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-teal-700 font-medium truncate">
+            <p className="mt-2 text-[10px] text-teal-600 dark:text-teal-400 font-medium truncate">
               Day {lastActiveDay} ({lastActiveDate})
             </p>
           </div>

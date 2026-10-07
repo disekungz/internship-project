@@ -78,27 +78,27 @@ export const P1StatusTable: React.FC<P1StatusTableProps> = ({ days, target, mont
   const dayNamesShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div className="w-full rounded-2xl bg-white p-4 shadow-md border border-slate-200 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+    <div className="w-full rounded-2xl bg-base-100 p-4 shadow-md border border-base-300 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-base-200 pb-3">
         <div className="flex items-center gap-2">
-          <FileSpreadsheet className="h-5 w-5 text-blue-600" />
-          <h2 className="text-sm sm:text-base font-black text-slate-800">
+          <FileSpreadsheet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <h2 className="text-sm sm:text-base font-black text-base-content">
             Daily Manpower Breakdown Matrix
           </h2>
-          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">
+          <span className="rounded-full bg-base-200 px-2.5 py-0.5 text-xs font-bold text-base-content/70">
             {filteredDays.length} Days
           </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-base-content/40" />
             <input
               type="text"
               placeholder="Search day / status..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-9 w-44 rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 text-xs font-medium text-slate-700 outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500"
+              className="h-9 w-44 rounded-xl border border-base-300 bg-base-200 pl-8 pr-3 text-xs font-medium text-base-content outline-none focus:border-blue-500 focus:bg-base-100 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
@@ -115,21 +115,21 @@ export const P1StatusTable: React.FC<P1StatusTableProps> = ({ days, target, mont
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-center text-xs">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/80 font-black text-slate-600">
+            <tr className="border-b border-base-300 bg-base-200/80 font-black text-base-content/80">
               <th className="py-2.5 px-3 text-center align-middle">Day</th>
               <th className="py-2.5 px-3 text-center align-middle">Date</th>
               <th className="py-2.5 px-3 text-center align-middle">Type</th>
-              <th className="py-2.5 px-3 text-center align-middle text-purple-700">Direct Workers</th>
-              <th className="py-2.5 px-3 text-center align-middle text-rose-700">In-Direct</th>
-              <th className="py-2.5 px-3 text-center align-middle text-emerald-700">Contract (DC)</th>
-              <th className="py-2.5 px-3 text-center align-middle text-amber-700">Subcontract</th>
-              <th className="py-2.5 px-3 text-center align-middle text-pink-700">MOU</th>
-              <th className="py-2.5 px-3 text-center align-middle font-black text-slate-900 bg-slate-100/70">Total</th>
-              <th className="py-2.5 px-3 text-center align-middle text-blue-600">Target</th>
+              <th className="py-2.5 px-3 text-center align-middle text-purple-600 dark:text-purple-400">Direct Workers</th>
+              <th className="py-2.5 px-3 text-center align-middle text-rose-600 dark:text-rose-400">In-Direct</th>
+              <th className="py-2.5 px-3 text-center align-middle text-emerald-600 dark:text-emerald-400">Contract (DC)</th>
+              <th className="py-2.5 px-3 text-center align-middle text-amber-600 dark:text-amber-400">Subcontract</th>
+              <th className="py-2.5 px-3 text-center align-middle text-pink-600 dark:text-pink-400">MOU</th>
+              <th className="py-2.5 px-3 text-center align-middle font-black text-base-content bg-base-300/40">Total</th>
+              <th className="py-2.5 px-3 text-center align-middle text-blue-600 dark:text-blue-400">Target</th>
               <th className="py-2.5 px-3 text-center align-middle">Variance</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-base-200">
             {filteredDays.map((d) => {
               const dayName = dayNamesShort[d.dayOfWeek];
               const isHol = d.isHoliday;
@@ -138,57 +138,57 @@ export const P1StatusTable: React.FC<P1StatusTableProps> = ({ days, target, mont
               return (
                 <tr
                   key={d.day}
-                  className={`hover:bg-blue-50/40 transition-colors ${
-                    isHol ? "bg-slate-50/50 text-slate-400" : "text-slate-700"
+                  className={`hover:bg-primary/5 transition-colors ${
+                    isHol ? "bg-rose-500/5 text-base-content/50" : "text-base-content"
                   }`}
                 >
                   <td className="py-2 px-3 text-center align-middle font-black">{d.day}</td>
                   <td className="py-2 px-3 text-center align-middle font-medium whitespace-nowrap">
-                    {d.date} <span className="text-[10px] text-slate-400">({dayName})</span>
+                    {d.date} <span className="text-[10px] text-base-content/40">({dayName})</span>
                   </td>
                   <td className="py-2 px-3 text-center align-middle">
                     <span
                       className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         isHol
-                          ? "bg-rose-100 text-rose-700"
-                          : "bg-blue-100 text-blue-700"
+                          ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                          : "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20"
                       }`}
                     >
                       {isHol ? "Holiday" : "Working"}
                     </span>
                   </td>
-                  <td className="py-2 px-3 text-center align-middle font-semibold text-purple-900">
+                  <td className="py-2 px-3 text-center align-middle font-semibold text-purple-600 dark:text-purple-300">
                     {d.direct > 0 ? d.direct.toLocaleString() : "-"}
                   </td>
-                  <td className="py-2 px-3 text-center align-middle font-semibold text-rose-900">
+                  <td className="py-2 px-3 text-center align-middle font-semibold text-rose-600 dark:text-rose-300">
                     {d.indirect > 0 ? d.indirect.toLocaleString() : "-"}
                   </td>
-                  <td className="py-2 px-3 text-center align-middle font-semibold text-emerald-900">
+                  <td className="py-2 px-3 text-center align-middle font-semibold text-emerald-600 dark:text-emerald-300">
                     {d.contract > 0 ? d.contract.toLocaleString() : "-"}
                   </td>
-                  <td className="py-2 px-3 text-center align-middle font-semibold text-amber-900">
+                  <td className="py-2 px-3 text-center align-middle font-semibold text-amber-600 dark:text-amber-300">
                     {d.subcontract > 0 ? d.subcontract.toLocaleString() : "-"}
                   </td>
-                  <td className="py-2 px-3 text-center align-middle font-semibold text-pink-900">
+                  <td className="py-2 px-3 text-center align-middle font-semibold text-pink-600 dark:text-pink-300">
                     {d.mou > 0 ? d.mou.toLocaleString() : "-"}
                   </td>
-                  <td className="py-2 px-3 text-center align-middle font-black text-slate-900 bg-slate-100/50">
+                  <td className="py-2 px-3 text-center align-middle font-black text-base-content bg-base-300/20">
                     {d.total > 0 ? (
-                      <span className="rounded px-2 py-0.5 bg-teal-50 text-teal-800 font-bold border border-teal-200 inline-block">
+                      <span className="rounded px-2 py-0.5 bg-teal-500/15 text-teal-700 dark:text-teal-300 font-bold border border-teal-500/30 inline-block">
                         {d.total.toLocaleString()}
                       </span>
                     ) : (
                       "0"
                     )}
                   </td>
-                  <td className="py-2 px-3 text-center align-middle font-semibold text-blue-700">
+                  <td className="py-2 px-3 text-center align-middle font-semibold text-blue-600 dark:text-blue-400">
                     {target.toLocaleString()}
                   </td>
                   <td className="py-2 px-3 text-center align-middle font-bold whitespace-nowrap">
                     {d.total > 0 ? (
                       <span
                         className={
-                          variance >= 0 ? "text-emerald-600" : "text-rose-600"
+                          variance >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                         }
                       >
                         {variance >= 0 ? `+${variance}` : variance}
@@ -202,36 +202,36 @@ export const P1StatusTable: React.FC<P1StatusTableProps> = ({ days, target, mont
             })}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-slate-300 bg-slate-100/90 font-black text-slate-800">
+            <tr className="border-t-2 border-base-300 bg-base-200/90 font-black text-base-content">
               <td colSpan={3} className="py-3 px-3 text-center align-middle">
                 Average (Working Days)
               </td>
-              <td className="py-3 px-3 text-center align-middle text-purple-900 font-black">
+              <td className="py-3 px-3 text-center align-middle text-purple-600 dark:text-purple-300 font-black">
                 {avgDirect.toLocaleString()}
               </td>
-              <td className="py-3 px-3 text-center align-middle text-rose-900 font-black">
+              <td className="py-3 px-3 text-center align-middle text-rose-600 dark:text-rose-300 font-black">
                 {avgIndirect.toLocaleString()}
               </td>
-              <td className="py-3 px-3 text-center align-middle text-emerald-900 font-black">
+              <td className="py-3 px-3 text-center align-middle text-emerald-600 dark:text-emerald-300 font-black">
                 {avgContract.toLocaleString()}
               </td>
-              <td className="py-3 px-3 text-center align-middle text-amber-900 font-black">
+              <td className="py-3 px-3 text-center align-middle text-amber-600 dark:text-amber-300 font-black">
                 {avgSubcontract.toLocaleString()}
               </td>
-              <td className="py-3 px-3 text-center align-middle text-pink-900 font-black">
+              <td className="py-3 px-3 text-center align-middle text-pink-600 dark:text-pink-300 font-black">
                 {avgMou.toLocaleString()}
               </td>
-              <td className="py-3 px-3 text-center align-middle font-black text-teal-900 bg-teal-100/60">
+              <td className="py-3 px-3 text-center align-middle font-black text-teal-700 dark:text-teal-300 bg-teal-500/15">
                 {avgTotal.toLocaleString()}
               </td>
-              <td className="py-3 px-3 text-center align-middle text-blue-700 font-black">
+              <td className="py-3 px-3 text-center align-middle text-blue-600 dark:text-blue-400 font-black">
                 {target.toLocaleString()}
               </td>
               <td className="py-3 px-3 text-center align-middle font-black">
                 {avgTotal > 0 ? (
                   <span
                     className={
-                      avgTotal - target >= 0 ? "text-emerald-600" : "text-rose-600"
+                      avgTotal - target >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                     }
                   >
                     {avgTotal - target >= 0 ? `+${avgTotal - target}` : avgTotal - target}
