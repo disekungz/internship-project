@@ -157,6 +157,32 @@ const RatioChart = memo(function RatioChart({
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
 
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof document === "undefined") return false;
+    const darkThemes = ["dark", "synthwave", "halloween", "forest", "black", "luxury", "dracula", "business", "night", "coffee", "dim", "sunset", "abyss", "Dark-Purple"];
+    const theme = document.documentElement.getAttribute("data-theme") || "light";
+    return darkThemes.includes(theme);
+  });
+
+  useEffect(() => {
+    const updateTheme = () => {
+      const darkThemes = ["dark", "synthwave", "halloween", "forest", "black", "luxury", "dracula", "business", "night", "coffee", "dim", "sunset", "abyss", "Dark-Purple"];
+      const theme = document.documentElement.getAttribute("data-theme") || "light";
+      setIsDark(darkThemes.includes(theme));
+    };
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const textColor = isDark ? "#f1f5f9" : "#1e293b";
+  const mutedTextColor = isDark ? "#94a3b8" : "#64748b";
+  const splitLineColor = isDark ? "rgba(148, 163, 184, 0.15)" : "#e2e8f0";
+  const tooltipBg = isDark ? "rgba(30, 41, 59, 0.96)" : "rgba(255, 255, 255, 0.96)";
+  const tooltipBorder = isDark ? "#475569" : "#e2e8f0";
+  const tooltipText = isDark ? "#f8fafc" : "#1e293b";
+  const labelBg = isDark ? "rgba(30, 41, 59, 0.95)" : "rgba(255, 255, 255, 0.92)";
+
   const withAcc = showAcc ?? (kind === "ot" && !groupKey);
 
   const fallbackDaily = Number(otDailyTarget) || 0;
@@ -513,8 +539,8 @@ const RatioChart = memo(function RatioChart({
             formatter: () => (Number(val) > 0.05 ? `${val}%` : ""),
             fontSize: 9,
             fontWeight: "bold",
-            color: SUM_COLOR,
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            color: isDark ? "#60a5fa" : SUM_COLOR,
+            backgroundColor: labelBg,
             padding: [1, 2],
             borderRadius: 3,
             align: "center",
@@ -657,8 +683,8 @@ const RatioChart = memo(function RatioChart({
             formatter: () => `${Number(val || 0).toFixed(1)}%`,
             fontSize: 9,
             fontWeight: "bold",
-            color: SUM_COLOR,
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            color: isDark ? "#60a5fa" : SUM_COLOR,
+            backgroundColor: labelBg,
             padding: [1, 2],
             borderRadius: 3,
           },
@@ -680,8 +706,8 @@ const RatioChart = memo(function RatioChart({
             formatter: () => (Number(val) > 0.05 ? `${val}%` : ""),
             fontSize: 8,
             fontWeight: "bold",
-            color: ACC_COLOR,
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            color: isDark ? "#fb923c" : ACC_COLOR,
+            backgroundColor: labelBg,
             padding: [1, 2],
             borderRadius: 3,
           },
@@ -745,13 +771,13 @@ const RatioChart = memo(function RatioChart({
         endLabel: {
           show: true,
           formatter: () => dailyEndLabelText,
-          color: OT_DAILY_COLOR,
+          color: isDark ? "#60a5fa" : OT_DAILY_COLOR,
           fontWeight: "bold",
           fontSize: 10,
           lineHeight: 13,
           distance: isTargetLevelColliding ? 14 : 14,
           offset: isTargetLevelColliding ? [0, -14] : [0, 0], // ถ้าชนกัน ให้เส้นสีน้ำเงินยกตัวขึ้นด้านบน
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          backgroundColor: labelBg,
           padding: [2, 4],
           borderRadius: 3,
         },
@@ -777,13 +803,13 @@ const RatioChart = memo(function RatioChart({
         endLabel: {
           show: true,
           formatter: () => accEndLabelText,
-          color: TARGET_COLOR,
+          color: isDark ? "#f87171" : TARGET_COLOR,
           fontWeight: "bold",
           fontSize: 10,
           lineHeight: 13,
           distance: isTargetLevelColliding ? 14 : 14,
           offset: isTargetLevelColliding ? [0, 14] : [0, 0], // ถ้าชนกัน ให้เส้นสีแดงกดตัวลงด้านล่าง
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          backgroundColor: labelBg,
           padding: [2, 4],
           borderRadius: 3,
         },
@@ -797,7 +823,7 @@ const RatioChart = memo(function RatioChart({
           data: sumDataWithOffsets,
           symbol: "circle",
           symbolSize: 4,
-          itemStyle: { color: SUM_COLOR },
+          itemStyle: { color: isDark ? "#60a5fa" : SUM_COLOR },
           lineStyle: { opacity: 0 },
         });
       }
@@ -818,8 +844,8 @@ const RatioChart = memo(function RatioChart({
           data: accDataWithOffsets,
           symbol: "circle",
           symbolSize: 5,
-          itemStyle: { color: ACC_COLOR },
-          lineStyle: { width: 2.2, color: ACC_COLOR },
+          itemStyle: { color: isDark ? "#fb923c" : ACC_COLOR },
+          lineStyle: { width: 2.2, color: isDark ? "#fb923c" : ACC_COLOR },
         });
       }
     } else {
@@ -863,12 +889,12 @@ const RatioChart = memo(function RatioChart({
           endLabel: {
             show: true,
             formatter: () => leaveEndLabelText,
-            color: TARGET_COLOR,
+            color: isDark ? "#f87171" : TARGET_COLOR,
             fontWeight: "bold",
             fontSize: 10,
             lineHeight: 13,
             distance: 14,
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            backgroundColor: labelBg,
             padding: [2, 4],
             borderRadius: 3,
           },
@@ -889,8 +915,8 @@ const RatioChart = memo(function RatioChart({
         data: parsedData.sumSeriesData,
         symbol: "circle",
         symbolSize: 5,
-        itemStyle: { color: SUM_COLOR },
-        lineStyle: { width: 2.2, color: SUM_COLOR },
+        itemStyle: { color: isDark ? "#60a5fa" : SUM_COLOR },
+        lineStyle: { width: 2.2, color: isDark ? "#60a5fa" : SUM_COLOR },
         label: {
           show: true,
           position: "top",
@@ -904,8 +930,8 @@ const RatioChart = memo(function RatioChart({
           },
           fontSize: 9,
           fontWeight: "bold",
-          color: SUM_COLOR,
-          backgroundColor: "rgba(255, 255, 255, 0.88)",
+          color: isDark ? "#60a5fa" : SUM_COLOR,
+          backgroundColor: labelBg,
           padding: [1, 3],
           borderRadius: 3,
         },
@@ -917,13 +943,13 @@ const RatioChart = memo(function RatioChart({
       tooltip: {
         trigger: "axis",
         axisPointer: { type: "shadow" },
-        backgroundColor: "rgba(255, 255, 255, 0.96)",
-        borderColor: "#e2e8f0",
+        backgroundColor: tooltipBg,
+        borderColor: tooltipBorder,
         borderWidth: 1,
-        textStyle: { color: "#1e293b", fontSize: 12 },
+        textStyle: { color: tooltipText, fontSize: 12 },
         formatter: (params: any) => {
           if (!Array.isArray(params) || params.length === 0) return "";
-          const header = `<div style="font-weight: 800; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; margin-bottom: 6px;">Date: ${params[0].axisValue}</div>`;
+          const header = `<div style="font-weight: 800; border-bottom: 1px solid ${isDark ? '#334155' : '#f1f5f9'}; padding-bottom: 4px; margin-bottom: 6px;">Date: ${params[0].axisValue}</div>`;
           const dataIdx = params[0].dataIndex;
           const row = rows[dataIdx] || {};
           const isLeave = kind === "leave";
@@ -971,9 +997,9 @@ const RatioChart = memo(function RatioChart({
                 return `<div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin: 3px 0;">
                   <span>${marker}<b>${name}</b></span>
                   <div style="text-align:right;">
-                    <span style="font-weight:800; color:#0f172a;">${realRate}</span>
-                    <span style="font-size:10px; color:#64748b;">${detailStr}</span>
-                    ${showStackDiff ? `<span style="font-size:11px; font-weight:700; color:#334155; margin-left:4px;">[ส่วนแบ่ง: ${pct(val)}]</span>` : ""}
+                    <span style="font-weight:800; color:${isDark ? '#f8fafc' : '#0f172a'};">${realRate}</span>
+                    <span style="font-size:10px; color:${mutedTextColor};">${detailStr}</span>
+                    ${showStackDiff ? `<span style="font-size:11px; font-weight:700; color:${mutedTextColor}; margin-left:4px;">[ส่วนแบ่ง: ${pct(val)}]</span>` : ""}
                   </div>
                 </div>`;
               }
@@ -988,11 +1014,11 @@ const RatioChart = memo(function RatioChart({
                   ? (pCount ? ` (ขาด ${aCount}/${pCount} คน)` : "")
                   : (pCount ? ` (OT ${oCount}/${pCount} คน)` : "");
 
-                return `<div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin: 4px 0; border-top:1px dashed #e2e8f0; padding-top:4px;">
+                return `<div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin: 4px 0; border-top:1px dashed ${isDark ? '#334155' : '#e2e8f0'}; padding-top:4px;">
                   <span>${marker}<b>${name}</b></span>
                   <div style="text-align:right;">
-                    <span style="font-weight:900; color:#1e3a8a;">${pct(val)}</span>
-                    <span style="font-size:10px; color:#475569; font-weight:600;">${sumDetail}</span>
+                    <span style="font-weight:900; color:${isDark ? '#60a5fa' : '#1e3a8a'};">${pct(val)}</span>
+                    <span style="font-size:10px; color:${mutedTextColor}; font-weight:600;">${sumDetail}</span>
                   </div>
                 </div>`;
               }
@@ -1014,7 +1040,7 @@ const RatioChart = memo(function RatioChart({
         textStyle: {
           fontSize: 12,
           fontWeight: "bold",
-          color: "#334155",
+          color: textColor,
         },
         itemWidth: 20,
         itemHeight: 12,
@@ -1046,7 +1072,7 @@ const RatioChart = memo(function RatioChart({
           alignWithLabel: true,
           interval: 0,
         },
-        axisLine: { lineStyle: { color: "#94a3b8" } },
+        axisLine: { lineStyle: { color: mutedTextColor } },
         axisLabel: {
           interval: 0,
           align: "center",
@@ -1055,7 +1081,7 @@ const RatioChart = memo(function RatioChart({
           color: (val: string, index?: number) =>
             typeof index === "number" && parsedData.weekendList[index]
               ? TARGET_COLOR
-              : "#334155",
+              : mutedTextColor,
         } as any,
       },
       yAxis: {
@@ -1102,10 +1128,10 @@ const RatioChart = memo(function RatioChart({
         axisLabel: {
           formatter: "{value}%",
           fontSize: 10,
-          color: "#475569",
+          color: mutedTextColor,
         },
         splitLine: {
-          lineStyle: { color: "#e2e8f0", type: "dashed" },
+          lineStyle: { color: splitLineColor, type: "dashed" },
         },
       },
       dataZoom: undefined,
@@ -1271,9 +1297,9 @@ const RatioChart = memo(function RatioChart({
   };
 
   return (
-    <section className="rounded-3xl bg-white p-5 shadow-sm border border-slate-200/70 hover:shadow-md transition-shadow duration-300">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
-        <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight flex items-center gap-2">
+    <section className="rounded-3xl bg-base-100 p-5 shadow-sm border border-base-300 hover:shadow-md transition-shadow duration-300">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-base-300/60">
+        <h2 className="text-sm sm:text-base font-black text-base-content tracking-tight flex items-center gap-2">
           <span className="inline-block w-2 h-4.5 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full" />
           {title}
         </h2>
@@ -1365,8 +1391,8 @@ const RatioChart = memo(function RatioChart({
                       <div
                         className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold shadow-sm transition ${
                           hasMultiDaily || hasVaryingMonthDaily || customDailyItems.length > 0
-                            ? "border-blue-400 bg-blue-100/90 text-blue-950"
-                            : "border-blue-300 bg-blue-50/90 text-blue-900 hover:bg-blue-100"
+                            ? "border-blue-500/40 bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                            : "border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20"
                         }`}
                         title={
                           hasVaryingMonthDaily
@@ -1383,33 +1409,33 @@ const RatioChart = memo(function RatioChart({
                         {hasVaryingMonthDaily ? (
                           <div
                             onClick={onOpenTargetModal}
-                            className="cursor-pointer flex items-center gap-1 rounded bg-white px-1.5 py-0.5 border border-blue-300 text-blue-900 hover:bg-blue-50 font-black text-xs"
+                            className="cursor-pointer flex items-center gap-1 rounded bg-base-100 px-1.5 py-0.5 border border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-base-200 font-black text-xs"
                           >
                             {groupedDailyBadges.map((m, idx) => (
                               <span key={m.key} className="inline-flex items-center gap-1 whitespace-nowrap">
-                                {idx > 0 && <span className="text-slate-400 font-bold mx-0.5">|</span>}
-                                <span className="rounded bg-blue-100/90 px-1 py-0.2 text-[11px] font-bold text-blue-950">
+                                {idx > 0 && <span className="text-base-content/40 font-bold mx-0.5">|</span>}
+                                <span className="rounded bg-blue-500/20 px-1 py-0.2 text-[11px] font-bold text-blue-600 dark:text-blue-400">
                                   {m.label}
                                 </span>
-                                <span className="font-black text-[12px] text-blue-900">{m.val}%</span>
+                                <span className="font-black text-[12px] text-blue-600 dark:text-blue-400">{m.val}%</span>
                               </span>
                             ))}
                           </div>
                         ) : hasMultiDaily ? (
                           <div
                             onClick={onOpenTargetModal}
-                            className="cursor-pointer flex items-center gap-1 rounded bg-white px-1.5 py-0.5 border border-blue-300 text-blue-900 hover:bg-blue-50 font-black text-xs"
+                            className="cursor-pointer flex items-center gap-1 rounded bg-base-100 px-1.5 py-0.5 border border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-base-200 font-black text-xs"
                           >
                             {validDateRangeItems.map((c, idx) => {
                               const f = parseInt(String(c.date_from).split("-")[2] || "0", 10);
                               const t = parseInt(String(c.date_to).split("-")[2] || "0", 10);
                               return (
                                 <span key={idx} className="inline-flex items-center gap-1 whitespace-nowrap">
-                                  {idx > 0 && <span className="text-slate-400 font-bold mx-0.5">|</span>}
-                                  <span className="rounded bg-blue-100/90 px-1 py-0.2 text-[11px] font-bold text-blue-950">
+                                  {idx > 0 && <span className="text-base-content/40 font-bold mx-0.5">|</span>}
+                                  <span className="rounded bg-blue-500/20 px-1 py-0.2 text-[11px] font-bold text-blue-600 dark:text-blue-400">
                                     {f}-{t}
                                   </span>
-                                  <span className="font-black text-[12px] text-blue-900">{Number(c.target_value)}%</span>
+                                  <span className="font-black text-[12px] text-blue-600 dark:text-blue-400">{Number(c.target_value)}%</span>
                                 </span>
                               );
                             })}
@@ -1436,7 +1462,7 @@ const RatioChart = memo(function RatioChart({
                                 const val = parseFloat(str);
                                 if (!isNaN(val)) onOtDailyTargetChange?.(val);
                               }}
-                              className="w-14 rounded border border-blue-300 bg-white px-1 py-0.5 text-center text-xs font-black text-blue-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                              className="w-14 rounded border border-blue-500/30 bg-base-100 px-1 py-0.5 text-center text-xs font-black text-blue-600 dark:text-blue-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                               min={0}
                               max={100}
                               step={1}
@@ -1532,8 +1558,8 @@ const RatioChart = memo(function RatioChart({
                       <div
                         className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold shadow-sm transition ${
                           hasMultiAcc || hasVaryingMonthAcc || customAccItems.length > 0
-                            ? "border-red-400 bg-red-100/90 text-red-950"
-                            : "border-red-300 bg-red-50/90 text-red-900 hover:bg-red-100"
+                            ? "border-rose-500/40 bg-rose-500/15 text-rose-600 dark:text-rose-400"
+                            : "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20"
                         }`}
                         title={
                           hasVaryingMonthAcc
@@ -1550,33 +1576,33 @@ const RatioChart = memo(function RatioChart({
                         {hasVaryingMonthAcc ? (
                           <div
                             onClick={onOpenTargetModal}
-                            className="cursor-pointer flex items-center gap-1 rounded bg-white px-1.5 py-0.5 border border-red-300 text-red-900 hover:bg-red-50 font-black text-xs"
+                            className="cursor-pointer flex items-center gap-1 rounded bg-base-100 px-1.5 py-0.5 border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-base-200 font-black text-xs"
                           >
                             {groupedAccBadges.map((m, idx) => (
                               <span key={m.key} className="inline-flex items-center gap-1 whitespace-nowrap">
-                                {idx > 0 && <span className="text-slate-400 font-bold mx-0.5">|</span>}
-                                <span className="rounded bg-red-100/90 px-1 py-0.2 text-[11px] font-bold text-red-950">
+                                {idx > 0 && <span className="text-base-content/40 font-bold mx-0.5">|</span>}
+                                <span className="rounded bg-rose-500/20 px-1 py-0.2 text-[11px] font-bold text-rose-600 dark:text-rose-400">
                                   {m.label}
                                 </span>
-                                <span className="font-black text-[12px] text-red-900">{m.val}%</span>
+                                <span className="font-black text-[12px] text-rose-600 dark:text-rose-400">{m.val}%</span>
                               </span>
                             ))}
                           </div>
                         ) : hasMultiAcc ? (
                           <div
                             onClick={onOpenTargetModal}
-                            className="cursor-pointer flex items-center gap-1 rounded bg-white px-1.5 py-0.5 border border-red-300 text-red-900 hover:bg-red-50 font-black text-xs"
+                            className="cursor-pointer flex items-center gap-1 rounded bg-base-100 px-1.5 py-0.5 border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-base-200 font-black text-xs"
                           >
                             {validDateRangeAccItems.map((c, idx) => {
                               const f = parseInt(String(c.date_from).split("-")[2] || "0", 10);
                               const t = parseInt(String(c.date_to).split("-")[2] || "0", 10);
                               return (
                                 <span key={idx} className="inline-flex items-center gap-1 whitespace-nowrap">
-                                  {idx > 0 && <span className="text-slate-400 font-bold mx-0.5">|</span>}
-                                  <span className="rounded bg-red-100/90 px-1 py-0.2 text-[11px] font-bold text-red-950">
+                                  {idx > 0 && <span className="text-base-content/40 font-bold mx-0.5">|</span>}
+                                  <span className="rounded bg-rose-500/20 px-1 py-0.2 text-[11px] font-bold text-rose-600 dark:text-rose-400">
                                     {f}-{t}
                                   </span>
-                                  <span className="font-black text-[12px] text-red-900">{Number(c.target_value)}%</span>
+                                  <span className="font-black text-[12px] text-rose-600 dark:text-rose-400">{Number(c.target_value)}%</span>
                                 </span>
                               );
                             })}
@@ -1603,7 +1629,7 @@ const RatioChart = memo(function RatioChart({
                                 const val = parseFloat(str);
                                 if (!isNaN(val)) onOtTargetChange?.(val);
                               }}
-                              className="w-14 rounded border border-red-300 bg-white px-1 py-0.5 text-center text-xs font-black text-red-900 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                              className="w-14 rounded border border-rose-500/30 bg-base-100 px-1 py-0.5 text-center text-xs font-black text-rose-600 dark:text-rose-400 outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20"
                               min={0}
                               max={100}
                               step={1}
@@ -1690,21 +1716,21 @@ const RatioChart = memo(function RatioChart({
                   })();
 
                   return (
-                    <div className="flex items-center gap-1.5 rounded-lg border border-orange-300 bg-amber-50/90 px-2.5 py-1 text-xs font-bold text-slate-800 shadow-sm transition hover:bg-amber-100">
+                    <div className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 shadow-sm transition hover:bg-amber-500/20">
                       <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#DC2626]" />
                       <span className="font-extrabold">Target:</span>
                       {hasVaryingMonthLeave ? (
                         <div
                           onClick={onOpenTargetModal}
-                          className="cursor-pointer flex items-center gap-1 rounded bg-white px-1.5 py-0.5 border border-orange-300 text-orange-950 hover:bg-orange-50 font-black text-xs"
+                          className="cursor-pointer flex items-center gap-1 rounded bg-base-100 px-1.5 py-0.5 border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-base-200 font-black text-xs"
                         >
                           {groupedLeaveBadges.map((m, idx) => (
                             <span key={m.key} className="inline-flex items-center gap-1 whitespace-nowrap">
-                              {idx > 0 && <span className="text-slate-400 font-bold mx-0.5">|</span>}
-                              <span className="rounded bg-amber-100 px-1 py-0.2 text-[11px] font-bold text-amber-950">
+                              {idx > 0 && <span className="text-base-content/40 font-bold mx-0.5">|</span>}
+                              <span className="rounded bg-amber-500/20 px-1 py-0.2 text-[11px] font-bold text-amber-600 dark:text-amber-400">
                                 {m.label}
                               </span>
-                              <span className="font-black text-[12px] text-amber-950">{m.val}%</span>
+                              <span className="font-black text-[12px] text-amber-600 dark:text-amber-400">{m.val}%</span>
                             </span>
                           ))}
                         </div>
@@ -1724,13 +1750,13 @@ const RatioChart = memo(function RatioChart({
                               const val = parseFloat(str);
                               if (!isNaN(val)) onLeaveTargetChange?.(val);
                             }}
-                            className="w-14 rounded border border-orange-300 bg-white px-1 py-0.5 text-center text-xs font-black text-slate-800 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+                            className="w-14 rounded border border-amber-500/30 bg-base-100 px-1 py-0.5 text-center text-xs font-black text-amber-600 dark:text-amber-400 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
                             min={0}
                             max={100}
                             step={0.5}
                             title="ปรับค่า Target การลา (เส้นสีแดง)"
                           />
-                          <span className="font-extrabold text-slate-700">%</span>
+                          <span className="font-extrabold text-amber-600 dark:text-amber-400">%</span>
                         </>
                       )}
                     </div>
@@ -1743,10 +1769,10 @@ const RatioChart = memo(function RatioChart({
                 <button
                   type="button"
                   onClick={onOpenTargetModal}
-                  className="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50/80 px-2.5 py-1 text-xs font-bold text-indigo-800 shadow-xs transition hover:bg-indigo-100 hover:border-indigo-300 active:scale-95"
+                  className="flex items-center gap-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 shadow-xs transition hover:bg-indigo-500/20 active:scale-95"
                   title="กำหนด Target ตามวันหรือช่วงวัน (ปรับระดับเส้น Target)"
                 >
-                  <Calendar className="h-3.5 w-3.5 text-indigo-600" />
+                  <Calendar className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                   <span>ตั้งเป้าตามวัน</span>
                   {(() => {
                     const relevantCount = (customTargets || []).filter((t) =>
@@ -1769,10 +1795,10 @@ const RatioChart = memo(function RatioChart({
               <button
                 type="button"
                 onClick={handleExportExcel}
-                className="group flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-gradient-to-r from-emerald-50 to-teal-50 px-2.5 py-1 text-xs font-black text-emerald-800 shadow-xs transition-all duration-200 hover:border-emerald-600 hover:from-emerald-600 hover:to-teal-600 hover:text-white hover:shadow-md hover:shadow-emerald-500/20 active:scale-95"
+                className="group flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 shadow-xs transition-all duration-200 hover:bg-emerald-500/20 active:scale-95 cursor-pointer"
                 title="Export ข้อมูลกราฟนี้เป็น Excel (.xlsx)"
               >
-                <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 transition-colors group-hover:text-white" />
+                <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 transition-colors" />
                 <span>Export Excel</span>
               </button>
 
@@ -1791,10 +1817,10 @@ const RatioChart = memo(function RatioChart({
                     link.click();
                   }
                 }}
-                className="group flex items-center gap-1.5 rounded-lg border border-blue-500/40 bg-gradient-to-r from-blue-50 to-indigo-50 px-2.5 py-1 text-xs font-black text-blue-800 shadow-xs transition-all duration-200 hover:border-blue-600 hover:from-blue-600 hover:to-indigo-600 hover:text-white hover:shadow-md hover:shadow-blue-500/20 active:scale-95"
+                className="group flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-bold text-blue-600 dark:text-blue-400 shadow-xs transition-all duration-200 hover:bg-blue-500/20 active:scale-95 cursor-pointer"
                 title="ดาวน์โหลดรูปภาพกราฟ (.png)"
               >
-                <Download className="h-3.5 w-3.5 text-blue-600 transition-colors group-hover:text-white" />
+                <Download className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 transition-colors" />
                 <span>Save PNG</span>
               </button>
             </div>
@@ -1803,7 +1829,7 @@ const RatioChart = memo(function RatioChart({
       </div>
 
       {needsHorizontalScroll && parsedData.hasData && (
-        <div className="mb-2 flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-700">
+        <div className="mb-2 flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-base-content/80">
           {isOverview ? (
             <>
               <div className="flex items-center gap-1.5">
@@ -1856,7 +1882,7 @@ const RatioChart = memo(function RatioChart({
       )}
 
       {!parsedData.hasData ? (
-        <div className="flex h-[330px] items-center justify-center rounded-lg bg-slate-50 text-sm font-bold text-slate-400">
+        <div className="flex h-[330px] items-center justify-center rounded-lg bg-base-200/50 text-sm font-bold text-base-content/40">
           There is no data for this month.
         </div>
       ) : (

@@ -350,7 +350,7 @@ export default function ManpowerRatio() {
     (viewMode === "day" && dayYearMode);
 
   return (
-    <main className="h-full w-full overflow-y-auto overflow-x-hidden bg-slate-100 p-3 md:p-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+    <main className="h-full w-full overflow-y-auto overflow-x-hidden bg-base-200 text-base-content p-3 md:p-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       <div className="w-full pb-8">
         <header className="mb-6 rounded-2xl bg-gradient-to-r from-[#193886] via-[#1F46A4] to-[#2563EB] p-4 text-white shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -388,7 +388,7 @@ export default function ManpowerRatio() {
                     key={v}
                     type="button"
                     onClick={() => setViewMode(v)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-black transition ${viewMode === v
+                    className={`rounded-md px-3 py-1.5 text-xs font-black transition cursor-pointer ${viewMode === v
                       ? "bg-white text-[#193886] shadow"
                       : "text-white hover:bg-white/20"
                       }`}
@@ -403,7 +403,7 @@ export default function ManpowerRatio() {
                   <button
                     type="button"
                     onClick={() => setDayYearMode(false)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-black transition ${!dayYearMode
+                    className={`rounded-md px-3 py-1.5 text-xs font-black transition cursor-pointer ${!dayYearMode
                       ? "bg-white text-[#193886] shadow"
                       : "text-white hover:bg-white/20"
                       }`}
@@ -413,7 +413,7 @@ export default function ManpowerRatio() {
                   <button
                     type="button"
                     onClick={() => setDayYearMode(true)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-black transition ${dayYearMode
+                    className={`rounded-md px-3 py-1.5 text-xs font-black transition cursor-pointer ${dayYearMode
                       ? "bg-white text-[#193886] shadow"
                       : "text-white hover:bg-white/20"
                       }`}
@@ -448,16 +448,16 @@ export default function ManpowerRatio() {
           </div>
         </header>
 
-        <div className="mb-5 flex items-center gap-2 rounded-2xl bg-white p-1.5 shadow-sm border border-slate-200/80 w-fit">
+        <div className="mb-5 flex items-center gap-2 rounded-2xl bg-base-100 p-1.5 shadow-sm border border-base-300 w-fit">
           <button
             onClick={() => setMode("ot")}
             className={`flex items-center gap-2 rounded-xl px-5 py-2 text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer ${
               mode === "ot"
                 ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+                : "text-base-content/70 hover:text-base-content hover:bg-base-200"
             }`}
           >
-            <Flame className={`h-4 w-4 ${mode === "ot" ? "text-amber-300" : "text-slate-400"}`} />
+            <Flame className={`h-4 w-4 ${mode === "ot" ? "text-amber-300" : "text-base-content/40"}`} />
             <span>OT Ratio</span>
           </button>
           <button
@@ -465,10 +465,10 @@ export default function ManpowerRatio() {
             className={`flex items-center gap-2 rounded-xl px-5 py-2 text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer ${
               mode === "leave"
                 ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+                : "text-base-content/70 hover:text-base-content hover:bg-base-200"
             }`}
           >
-            <UserX className={`h-4 w-4 ${mode === "leave" ? "text-amber-300" : "text-slate-400"}`} />
+            <UserX className={`h-4 w-4 ${mode === "leave" ? "text-amber-300" : "text-base-content/40"}`} />
             <span>Leave Ratio</span>
           </button>
         </div>
@@ -487,26 +487,26 @@ export default function ManpowerRatio() {
         ) : isLoading ? (
           <div className="animate-pulse space-y-6">
             {/* Skeleton กราฟหลักแบบเดียวกับ WIP P1 */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-5 w-36 rounded-md bg-slate-200" />
-                  <div className="h-5 w-24 rounded-full bg-blue-100" />
+                  <div className="h-5 w-36 rounded-md bg-base-300" />
+                  <div className="h-5 w-24 rounded-full bg-primary/20" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-4 w-16 rounded bg-slate-200" />
-                  <div className="h-4 w-16 rounded bg-slate-200" />
-                  <div className="h-4 w-16 rounded bg-slate-200" />
+                  <div className="h-4 w-16 rounded bg-base-300" />
+                  <div className="h-4 w-16 rounded bg-base-300" />
+                  <div className="h-4 w-16 rounded bg-base-300" />
                 </div>
               </div>
 
               {/* กราฟจำลอง ขนาดใหญ่ขึ้น แท่งชัดเจน */}
-              <div className="relative h-[560px] w-full rounded-2xl bg-gradient-to-b from-slate-50/60 to-slate-100/40 p-6 flex flex-col justify-end">
+              <div className="relative h-[560px] w-full rounded-2xl bg-base-200/50 p-6 flex flex-col justify-end">
                 <div className="absolute inset-x-6 top-8 bottom-12 flex flex-col justify-between pointer-events-none opacity-50">
-                  <div className="border-b border-dashed border-slate-300 w-full" />
-                  <div className="border-b border-dashed border-slate-300 w-full" />
-                  <div className="border-b border-dashed border-slate-300 w-full" />
-                  <div className="border-b border-dashed border-slate-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
                 </div>
 
                 {/* แท่ง Skeleton Bars ขนาดใหญ่และหนาขึ้น */}
@@ -514,10 +514,10 @@ export default function ManpowerRatio() {
                   {[45, 68, 82, 58, 92, 76, 62, 88, 96, 72, 54, 70, 90, 74, 62, 82, 86, 94].map((heightPct, idx) => (
                     <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
                       <div
-                        className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-blue-400/50 via-blue-300/40 to-blue-200/30 border-t-2 border-blue-400/40"
+                        className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-primary/50 via-primary/30 to-primary/10 border-t-2 border-primary/40"
                         style={{ height: `${heightPct}%` }}
                       />
-                      <div className="h-3 w-8 sm:w-10 rounded-full bg-slate-200" />
+                      <div className="h-3 w-8 sm:w-10 rounded-full bg-base-300" />
                     </div>
                   ))}
                 </div>
@@ -525,11 +525,11 @@ export default function ManpowerRatio() {
             </div>
           </div>
         ) : error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-sm font-bold text-red-600">
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-8 text-center text-sm font-bold text-red-500">
             <div>Unable to load department ratios: {error}</div>
             <button
               onClick={() => refresh()}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700 transition"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-700 transition cursor-pointer"
             >
               <RefreshCw className="h-3 w-3" />
               Retry
@@ -540,3 +540,4 @@ export default function ManpowerRatio() {
     </main>
   );
 }
+

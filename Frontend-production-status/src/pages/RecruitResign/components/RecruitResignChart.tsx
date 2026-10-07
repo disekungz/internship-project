@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import * as echarts from "echarts";
 import { DayItem } from "../types";
 import { BaseEChart } from "@/components/common/BaseEChart";
@@ -11,6 +11,33 @@ interface Props {
 }
 
 export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysData, loading }) => {
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof document !== "undefined") {
+      const theme = document.documentElement.getAttribute("data-theme") || "";
+      const isDarkClass = document.documentElement.classList.contains("dark");
+      const darkThemes = ["dark", "synthwave", "dracula", "night", "dim", "sunset", "halloween", "forest", "black", "luxury", "business", "coffee"];
+      return isDarkClass || darkThemes.includes(theme);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const updateTheme = () => {
+      const theme = document.documentElement.getAttribute("data-theme") || "";
+      const isDarkClass = document.documentElement.classList.contains("dark");
+      const darkThemes = ["dark", "synthwave", "dracula", "night", "dim", "sunset", "halloween", "forest", "black", "luxury", "business", "coffee"];
+      setIsDark(isDarkClass || darkThemes.includes(theme));
+    };
+
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   const option = useMemo<echarts.EChartsOption>(() => {
     if (daysData.length === 0) return {};
 
@@ -59,6 +86,11 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
     const mStr = mDate.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
     const yrStr = month.slice(2, 4);
 
+    const titleColor = isDark ? "#f1f5f9" : "#1e293b";
+    const legendColor = isDark ? "#cbd5e1" : "#334155";
+    const axisColor = isDark ? "#94a3b8" : "#475569";
+    const splitColor = isDark ? "rgba(255, 255, 255, 0.08)" : "#e2e8f0";
+
     return {
       title: {
         text: `Recruit & Resign ${activeGroup}: ${mStr}.${yrStr}`,
@@ -67,26 +99,26 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
         textStyle: {
           fontSize: 16,
           fontWeight: "bold",
-          color: "#1e293b",
+          color: titleColor,
           fontFamily: "Inter, Roboto, sans-serif",
         },
       },
       tooltip: {
         trigger: "axis",
         axisPointer: { type: "shadow" },
-        backgroundColor: "rgba(255, 255, 255, 0.98)",
-        borderColor: "#cbd5e1",
+        backgroundColor: isDark ? "rgba(15, 23, 42, 0.96)" : "rgba(255, 255, 255, 0.98)",
+        borderColor: isDark ? "#334155" : "#cbd5e1",
         borderWidth: 1,
         padding: [10, 14],
         textStyle: {
-          color: "#0f172a",
+          color: isDark ? "#f8fafc" : "#0f172a",
           fontSize: 12,
         },
       },
       legend: {
         top: 36,
         data: ["Recruit (person)", "Acc. Recruit (person)", "Resign (person)"],
-        textStyle: { fontWeight: "600", color: "#334155", fontSize: 12 },
+        textStyle: { fontWeight: "600", color: legendColor, fontSize: 12 },
       },
       grid: {
         left: "3%",
@@ -103,10 +135,10 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
           rotate: 45,
           fontSize: 10,
           fontWeight: "600",
-          color: "#475569",
+          color: axisColor,
         },
         axisTick: { alignWithLabel: true },
-        axisLine: { lineStyle: { color: "#cbd5e1" } },
+        axisLine: { lineStyle: { color: isDark ? "#475569" : "#cbd5e1" } },
       },
       yAxis: {
         type: "value",
@@ -114,15 +146,15 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
         max: yMax,
         interval: interval,
         name: "PS",
-        nameTextStyle: { fontWeight: "bold", color: "#334155", padding: [0, 20, 0, 0] },
+        nameTextStyle: { fontWeight: "bold", color: axisColor, padding: [0, 20, 0, 0] },
         axisLabel: {
           fontSize: 11,
           fontWeight: "500",
-          color: "#475569",
+          color: axisColor,
           formatter: (val: number) => val.toLocaleString(),
         },
-        splitLine: { lineStyle: { type: "solid", color: "#e2e8f0" } },
-        axisLine: { lineStyle: { color: "#cbd5e1" } },
+        splitLine: { lineStyle: { type: "solid", color: splitColor } },
+        axisLine: { lineStyle: { color: isDark ? "#475569" : "#cbd5e1" } },
       },
       series: [
         {
@@ -131,8 +163,8 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
           data: recruitData,
           barMaxWidth: 22,
           itemStyle: {
-            color: "#8cb4e2",
-            borderColor: "#41719c",
+            color: isDark ? "#60a5fa" : "#8cb4e2",
+            borderColor: isDark ? "#3b82f6" : "#41719c",
             borderWidth: 1,
             borderRadius: [2, 2, 0, 0],
           },
@@ -144,7 +176,7 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
             verticalAlign: "bottom",
             fontSize: 11,
             fontWeight: "bold",
-            color: "#002060",
+            color: isDark ? "#93c5fd" : "#002060",
             formatter: (p: any) => (p.value > 0 ? p.value : ""),
           },
           z: 3,
@@ -157,8 +189,8 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
           symbol: "diamond",
           symbolSize: 8,
           connectNulls: false,
-          lineStyle: { color: "#c55a11", width: 2 },
-          itemStyle: { color: "#c55a11" },
+          lineStyle: { color: isDark ? "#fb923c" : "#c55a11", width: 2 },
+          itemStyle: { color: isDark ? "#fb923c" : "#c55a11" },
           label: {
             show: true,
             position: "top",
@@ -167,7 +199,7 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
             verticalAlign: "bottom",
             fontSize: 11,
             fontWeight: "bold",
-            color: "#833c0c",
+            color: isDark ? "#fdba74" : "#833c0c",
             formatter: (p: any) => (p.value !== null && p.value !== undefined ? p.value : ""),
           },
           z: 4,
@@ -180,8 +212,8 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
           symbol: "circle",
           symbolSize: 6,
           connectNulls: false,
-          lineStyle: { color: "#c00000", width: 1.5 },
-          itemStyle: { color: "#ffffff", borderColor: "#c00000", borderWidth: 1.5 },
+          lineStyle: { color: isDark ? "#f87171" : "#c00000", width: 1.5 },
+          itemStyle: { color: isDark ? "#0f172a" : "#ffffff", borderColor: isDark ? "#f87171" : "#c00000", borderWidth: 1.5 },
           label: {
             show: true,
             position: "top",
@@ -190,17 +222,17 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
             verticalAlign: "bottom",
             fontSize: 11,
             fontWeight: "bold",
-            color: "#c00000",
+            color: isDark ? "#fca5a5" : "#c00000",
             formatter: (p: any) => (p.value !== null && p.value !== undefined && p.value > 0 ? p.value : ""),
           },
           z: 5,
         },
       ],
     };
-  }, [daysData, month, activeGroup]);
+  }, [daysData, month, activeGroup, isDark]);
 
   return (
-    <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-sm overflow-hidden">
+    <div className="rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm overflow-hidden">
       <div className="w-full h-[380px]">
         <BaseEChart
           option={option}
@@ -213,3 +245,4 @@ export const RecruitResignChart: React.FC<Props> = ({ activeGroup, month, daysDa
     </div>
   );
 };
+

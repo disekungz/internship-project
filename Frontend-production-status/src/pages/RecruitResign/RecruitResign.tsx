@@ -80,7 +80,7 @@ export default function RecruitResign() {
   }, [month, activeGroup]);
 
   return (
-    <main className="h-full w-full overflow-y-auto overflow-x-hidden bg-slate-50/50 p-3 sm:p-4 pb-1">
+    <main className="min-h-full w-full overflow-y-auto overflow-x-hidden bg-base-200/50 p-3 sm:p-4 pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       <div className="w-full space-y-4 pb-0 mb-1">
         {/* ── Top Header Bar ────────────────────────────────────────── */}
         <div className="rounded-3xl bg-gradient-to-r from-[#193886] via-[#1e40af] to-[#2563eb] p-6 text-white shadow-xl shadow-blue-900/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -90,10 +90,10 @@ export default function RecruitResign() {
                 <Users size={24} className="text-blue-200" />
               </span>
               <div>
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2 text-white">
                   RECRUIT & RESIGN
                   {loading && (
-                    <span className="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-bold animate-pulse">
+                    <span className="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-bold animate-pulse text-white">
                       Loading...
                     </span>
                   )}
@@ -127,15 +127,15 @@ export default function RecruitResign() {
         </div>
 
         {/* ── Tabs Navigation: MPS | MOU | DC | PER | IND ─────────── */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-200/80 border border-slate-300 w-fit">
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-base-300/70 border border-base-300 w-fit backdrop-blur-sm">
           {GROUPS.map((grp) => (
             <button
               key={grp}
               onClick={() => setActiveGroup(grp)}
               className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
                 activeGroup === grp
-                  ? "bg-[#193886] text-white shadow-md shadow-blue-900/30 scale-102"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                  ? "bg-primary text-primary-content shadow-md shadow-primary/20 scale-102"
+                  : "text-base-content/70 hover:text-base-content hover:bg-base-100/60"
               }`}
             >
               {grp}
