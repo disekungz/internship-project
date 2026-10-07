@@ -475,30 +475,30 @@ export default function ExecutiveKpiBanner({
   return (
     <div className="w-full space-y-3">
       {/* 🔹 Top Context Toolbar (Clean Factory Theme) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white px-5 py-3 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-base-300 bg-base-100 px-5 py-3 shadow-sm text-base-content">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/20">
             <Activity className="h-5 w-5" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-blue-600">
+              <span className="text-[10px] font-bold tracking-wider uppercase text-primary">
                 EXECUTIVE TELEMETRY
               </span>
-              <span className="text-slate-300">&bull;</span>
-              <span className="font-mono text-xs font-bold text-slate-800">
+              <span className="text-base-content/30">&bull;</span>
+              <span className="font-mono text-xs font-bold text-base-content">
                 {activeTab} / {selectedLine}
               </span>
               {isMasterLine ? (
-                <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 border border-indigo-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-indigo-950 px-2 py-0.5 text-[10px] font-bold text-indigo-300 border border-indigo-700/60">
                   PROCESS SUMMARY
                 </span>
               ) : isShiftLine(selectedLine) ? (
-                <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-sky-950 px-2 py-0.5 text-[10px] font-bold text-sky-300 border border-sky-700/60">
                   SHIFT LINE
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-950 px-2 py-0.5 text-[10px] font-bold text-emerald-300 border border-emerald-700/60">
                   PRODUCTION LINE
                 </span>
               )}
@@ -508,8 +508,8 @@ export default function ExecutiveKpiBanner({
 
         {/* Right: Period Filter Dropdown */}
         <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-slate-400" />
-          <span className="text-xs font-semibold text-slate-500">Period:</span>
+          <Calendar className="h-4 w-4 text-base-content/40" />
+          <span className="text-xs font-semibold text-base-content/70">Period:</span>
           <select
             aria-label="Select Date Period"
             value={selectedDayFilter}
@@ -517,7 +517,7 @@ export default function ExecutiveKpiBanner({
               const val = e.target.value;
               setSelectedDayFilter(val === "all" ? "all" : Number(val));
             }}
-            className="cursor-pointer rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-800 outline-none hover:bg-slate-100 focus:border-blue-500 transition-colors"
+            className="cursor-pointer rounded-lg border border-base-300 bg-base-200 px-3 py-1.5 text-xs font-bold text-base-content outline-none hover:bg-base-300 focus:border-primary transition-colors"
           >
             <option value="all">Full Month ({displayDays.length} Days)</option>
             {displayDays.map((d) => (
@@ -532,25 +532,25 @@ export default function ExecutiveKpiBanner({
       {/* 🌟 Creative Tim Chart Trio (col-lg-4 x 3) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Total Working Headcount (Smooth Curved Area Chart) */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-blue-300">
+        <div className="group relative overflow-hidden rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm transition-all hover:shadow-md hover:border-primary">
           <div className="flex items-center justify-between">
-            <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-sans">
+            <h5 className="text-[11px] font-bold uppercase tracking-wider text-base-content/60 font-sans">
               TOTAL WORKING STRENGTH
             </h5>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 text-primary">
               <Users className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-black tracking-tight text-slate-900 font-mono">
+              <span className="text-2xl font-black tracking-tight text-base-content font-mono">
                 {kpiStats.avgPresent.toLocaleString()}
               </span>
-              <span className="text-xs font-semibold text-slate-500">
+              <span className="text-xs font-semibold text-base-content/60">
                 {kpiStats.isSingleDay ? "OP" : "OP/D"}
               </span>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-mono font-bold text-blue-700 border border-blue-200">
+            <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-mono font-bold text-primary border border-primary/20">
               Pool: {kpiStats.avgRegister.toLocaleString()}
             </span>
           </div>
@@ -568,12 +568,12 @@ export default function ExecutiveKpiBanner({
         </div>
 
         {/* Card 2: Daily Attendance Rate (Clean Rounded Bar Chart) */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-emerald-300">
+        <div className="group relative overflow-hidden rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm transition-all hover:shadow-md hover:border-emerald-400">
           <div className="flex items-center justify-between">
-            <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-sans">
+            <h5 className="text-[11px] font-bold uppercase tracking-wider text-base-content/60 font-sans">
               DAILY ATTENDANCE RATE
             </h5>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-500">
               <UserCheck className="h-4 w-4" />
             </div>
           </div>
@@ -582,21 +582,21 @@ export default function ExecutiveKpiBanner({
               <span
                 className={`text-2xl font-black tracking-tight font-mono ${
                   kpiStats.attendanceRateNum >= 95
-                    ? "text-emerald-600"
+                    ? "text-emerald-500"
                     : kpiStats.attendanceRateNum >= 85
-                      ? "text-blue-600"
-                      : "text-rose-600"
+                      ? "text-primary"
+                      : "text-rose-500"
                 }`}
               >
                 {kpiStats.attendanceRateNum}%
               </span>
-              <span className="text-xs font-semibold text-slate-500">Benchmark: 95%</span>
+              <span className="text-xs font-semibold text-base-content/60">Benchmark: 95%</span>
             </div>
             <span
               className={`inline-flex items-center gap-0.5 rounded-md px-2 py-0.5 text-[10px] font-mono font-bold border ${
                 kpiStats.targetVariance >= 0
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-rose-50 text-rose-700 border-rose-200"
+                  ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/30"
+                  : "bg-rose-500/15 text-rose-500 border-rose-500/30"
               }`}
             >
               {kpiStats.targetVariance >= 0 ? (
@@ -623,23 +623,23 @@ export default function ExecutiveKpiBanner({
         </div>
 
         {/* Card 3: Overtime & Financial Exposure (Curved Line Chart) */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-amber-300">
+        <div className="group relative overflow-hidden rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm transition-all hover:shadow-md hover:border-amber-400">
           <div className="flex items-center justify-between">
-            <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-sans">
+            <h5 className="text-[11px] font-bold uppercase tracking-wider text-base-content/60 font-sans">
               OVERTIME EXPOSURE & COST
             </h5>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/15 text-amber-500">
               <Clock className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-black tracking-tight text-slate-900 font-mono">
+              <span className="text-2xl font-black tracking-tight text-base-content font-mono">
                 {kpiStats.totalOtHours.toLocaleString()}
               </span>
-              <span className="text-xs font-semibold text-slate-500">Hrs</span>
+              <span className="text-xs font-semibold text-base-content/60">Hrs</span>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-800 border border-amber-200">
+            <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-500 border border-amber-500/30">
               THB {(kpiStats.otCostEst / 1000).toFixed(1)}k Est.
             </span>
           </div>
@@ -649,7 +649,7 @@ export default function ExecutiveKpiBanner({
             <CreativeTimCurvedChart
               data={chartData.otTrend}
               displayDays={activeDays || displayDays || []}
-              color="#d97706"
+              color="#f59e0b"
               gradientId="kpi-ot-gradient"
               unit="Hrs"
             />

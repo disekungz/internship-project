@@ -40,8 +40,8 @@ const MatrixTableRow = React.memo(
   }) => {
     return (
       <tr
-        className={`transition-colors hover:bg-blue-50/50 ${
-          isCurrent ? "bg-blue-50/80 font-bold" : ""
+        className={`transition-colors hover:bg-primary/5 ${
+          isCurrent ? "bg-primary/15 font-bold" : ""
         }`}
       >
         <td className="py-3 px-4">
@@ -55,7 +55,7 @@ const MatrixTableRow = React.memo(
                     : "bg-rose-500"
               }`}
             />
-            <span className="text-sm font-bold text-slate-900">{item.line}</span>
+            <span className="text-sm font-bold text-base-content">{item.line}</span>
             {item.isAggregate ? (
               <span className="inline-flex items-center gap-1 rounded-md bg-indigo-950 px-2 py-0.5 text-[10px] font-mono font-bold text-indigo-300 border border-indigo-700/60 shadow-xs">
                 <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
@@ -67,22 +67,22 @@ const MatrixTableRow = React.memo(
                 SHIFT
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-mono font-bold text-slate-800 border border-slate-300">
+              <span className="inline-flex items-center gap-1 rounded-md bg-base-200 px-2 py-0.5 text-[10px] font-mono font-bold text-base-content/80 border border-base-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 LINE
               </span>
             )}
           </div>
         </td>
-        <td className="py-3 px-3 text-center font-bold text-slate-600">
+        <td className="py-3 px-3 text-center font-bold text-base-content/70">
           {item.avgRegister}
         </td>
-        <td className="py-3 px-3 text-center font-bold text-slate-900">
+        <td className="py-3 px-3 text-center font-bold text-base-content">
           {item.avgPresent}
         </td>
         <td className="py-3 px-4 text-center">
           <div className="inline-flex items-center justify-center gap-1.5">
-            <div className="w-16 h-2 rounded-full bg-slate-200 overflow-hidden">
+            <div className="w-16 h-2 rounded-full bg-base-300 overflow-hidden">
               <div
                 className={`h-full ${
                   item.attendanceRate >= 95
@@ -97,10 +97,10 @@ const MatrixTableRow = React.memo(
             <span
               className={`font-black text-xs ${
                 item.attendanceRate >= 95
-                  ? "text-emerald-700"
+                  ? "text-emerald-500"
                   : item.attendanceRate >= 90
-                    ? "text-amber-700"
-                    : "text-rose-700"
+                    ? "text-amber-500"
+                    : "text-rose-500"
               }`}
             >
               {item.attendanceRate}%
@@ -110,29 +110,29 @@ const MatrixTableRow = React.memo(
         <td className="py-3 px-3 text-center">
           <span
             className={`font-bold ${
-              item.absentRate > 5 ? "text-rose-600" : "text-slate-500"
+              item.absentRate > 5 ? "text-rose-500" : "text-base-content/50"
             }`}
           >
             {item.absentRate}%
           </span>
         </td>
-        <td className="py-3 px-3 text-center font-mono font-bold text-slate-700">
+        <td className="py-3 px-3 text-center font-mono font-bold text-base-content/80">
           {item.totalNormalHours.toLocaleString()}
         </td>
-        <td className="py-3 px-3 text-center font-mono font-bold text-amber-700">
+        <td className="py-3 px-3 text-center font-mono font-bold text-amber-500">
           {item.totalOtHours.toLocaleString()}
         </td>
-        <td className="py-3 px-3 text-center font-mono font-black text-blue-900">
+        <td className="py-3 px-3 text-center font-mono font-black text-primary">
           {item.totalManHours.toLocaleString()}
         </td>
         <td className="py-3 px-3 text-center">
           <span
             className={`font-bold px-2 py-0.5 rounded text-[11px] ${
               item.netHelp > 0
-                ? "bg-emerald-100 text-emerald-800"
+                ? "bg-emerald-500/15 text-emerald-500"
                 : item.netHelp < 0
-                  ? "bg-rose-100 text-rose-800"
-                  : "bg-slate-100 text-slate-600"
+                  ? "bg-rose-500/15 text-rose-500"
+                  : "bg-base-200 text-base-content/70"
             }`}
           >
             {item.netHelp > 0 ? `+${item.netHelp}h` : `${item.netHelp}h`}
@@ -142,7 +142,7 @@ const MatrixTableRow = React.memo(
           <button
             type="button"
             onClick={() => onSelectLine(item.line)}
-            className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-white px-2.5 py-1 text-xs font-bold text-blue-700 shadow-xs hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
+            className="inline-flex items-center gap-1 rounded-lg border border-base-300 bg-base-100 px-2.5 py-1 text-xs font-bold text-primary shadow-xs hover:bg-primary hover:text-primary-content transition-all cursor-pointer"
             title="เลือกดูรายละเอียดไลน์นี้"
           >
             <span>เจาะลึก</span>
@@ -408,14 +408,14 @@ export default function DepartmentMatrixView({
 
       {/* Category Segmented Controls & Quick Summary */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-        <div className="inline-flex items-center gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200">
+        <div className="inline-flex items-center gap-1 rounded-xl bg-base-200 p-1 border border-base-300">
           <button
             type="button"
             onClick={() => setLineCategoryFilter("all")}
             className={`px-3 py-1 text-xs font-black rounded-lg transition-all cursor-pointer ${
               lineCategoryFilter === "all"
-                ? "bg-white text-blue-900 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-base-100 text-primary shadow-sm"
+                : "text-base-content/70 hover:text-base-content"
             }`}
           >
             All ({tabLines.length})
@@ -425,12 +425,12 @@ export default function DepartmentMatrixView({
             onClick={() => setLineCategoryFilter("summary")}
             className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold rounded-lg transition-all cursor-pointer ${
               lineCategoryFilter === "summary"
-                ? "bg-indigo-700 text-white shadow-sm"
-                : "text-slate-600 hover:text-indigo-700 hover:bg-white/60"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-base-content/70 hover:text-indigo-400 hover:bg-base-100/60"
             }`}
           >
             <span>⬡ Summary</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${lineCategoryFilter === "summary" ? "bg-indigo-900 text-white" : "bg-slate-200 text-slate-700"}`}>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${lineCategoryFilter === "summary" ? "bg-indigo-900 text-white" : "bg-base-300 text-base-content"}`}>
               {summaryCount}
             </span>
           </button>
@@ -439,12 +439,12 @@ export default function DepartmentMatrixView({
             onClick={() => setLineCategoryFilter("subline")}
             className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold rounded-lg transition-all cursor-pointer ${
               lineCategoryFilter === "subline"
-                ? "bg-slate-800 text-white shadow-sm"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                ? "bg-base-content text-base-100 shadow-sm"
+                : "text-base-content/70 hover:text-base-content hover:bg-base-100/60"
             }`}
           >
             <span>⬢ Main Lines</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${lineCategoryFilter === "subline" ? "bg-slate-950 text-white" : "bg-slate-200 text-slate-700"}`}>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${lineCategoryFilter === "subline" ? "bg-base-200 text-base-content" : "bg-base-300 text-base-content"}`}>
               {sublineCount}
             </span>
           </button>
@@ -454,12 +454,12 @@ export default function DepartmentMatrixView({
               onClick={() => setLineCategoryFilter("shift")}
               className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold rounded-lg transition-all cursor-pointer ${
                 lineCategoryFilter === "shift"
-                  ? "bg-blue-800 text-white shadow-sm"
-                : "text-slate-600 hover:text-blue-900 hover:bg-white/60"
+                  ? "bg-sky-600 text-white shadow-sm"
+                : "text-base-content/70 hover:text-sky-400 hover:bg-base-100/60"
               }`}
             >
               <span>⏱️ Shifts (A/B/D)</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${lineCategoryFilter === "shift" ? "bg-blue-950 text-white" : "bg-slate-200 text-slate-700"}`}>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${lineCategoryFilter === "shift" ? "bg-sky-900 text-white" : "bg-base-300 text-base-content"}`}>
                 {shiftCount}
               </span>
             </button>
@@ -467,7 +467,7 @@ export default function DepartmentMatrixView({
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 font-semibold mr-1">
+          <span className="text-xs text-base-content/60 font-semibold mr-1">
             Showing {displayedLineSummaries.length} of {tabLines.length} lines
           </span>
           {onExportTabLines && (
@@ -485,11 +485,11 @@ export default function DepartmentMatrixView({
       </div>
 
       {/* Modern High-End Line Comparison Matrix Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-slate-700 font-black uppercase text-[11px] border-b border-slate-200">
+              <tr className="bg-base-200 text-base-content font-black uppercase text-[11px] border-b border-base-300">
                 <th className="py-3 px-4">Line Name</th>
                 <th className="py-3 px-3 text-center">
                   {selectedDayFilter === "all" ? "Avg Register" : "Register"}
@@ -506,7 +506,7 @@ export default function DepartmentMatrixView({
                 <th className="py-3 px-4 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+            <tbody className="divide-y divide-base-300 font-medium text-base-content">
               {displayedLineSummaries.map((item) => (
                 <MatrixTableRow
                   key={item.line}
