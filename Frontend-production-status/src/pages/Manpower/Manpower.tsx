@@ -2491,7 +2491,7 @@ export default function App() {
   };
 
   return (
-    <main role="main" aria-label="Manpower Dashboard" className="h-full w-full max-w-full min-w-0 bg-[#f8fafc] text-slate-800 font-sans antialiased flex flex-col overflow-hidden">
+    <main role="main" aria-label="Manpower Dashboard" className="h-full w-full max-w-full min-w-0 bg-base-200/40 text-base-content font-sans antialiased flex flex-col overflow-hidden">
       {Boolean(clearAllData) && null}
 
       {toastMessage && (
@@ -2563,7 +2563,7 @@ export default function App() {
         isLoading={isLoadingManhour}
       />
 
-      <div className="shrink-0 w-full bg-white flex flex-wrap items-center justify-between shadow-sm border-b border-slate-200 px-2 sm:px-4">
+      <div className="shrink-0 w-full bg-base-100 flex flex-wrap items-center justify-between shadow-xs border-b border-base-300 px-2 sm:px-4">
         {/* แถบเลือก Tab Group */}
         <div className="flex overflow-x-auto">
           {tabMenuList.map((tab) => {
@@ -2573,10 +2573,10 @@ export default function App() {
                 key={tab}
                 onClick={() => handleTabChange(tab)}
                 className={`
-                  px-5 sm:px-6 py-3 text-xs tracking-wider uppercase transition-all whitespace-nowrap flex items-center gap-2 font-black
+                  px-5 sm:px-6 py-3 text-xs tracking-wider uppercase transition-all whitespace-nowrap flex items-center gap-2 font-black cursor-pointer
                   ${isActive
                     ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white border-b-[3px] border-sky-300 shadow-sm"
-                    : "text-slate-600 hover:bg-blue-50 hover:text-blue-700 border-b-[3px] border-transparent"
+                    : "text-base-content/70 hover:bg-base-200 hover:text-primary border-b-[3px] border-transparent"
                   }
                 `}
               >
@@ -2588,19 +2588,19 @@ export default function App() {
 
         {/* Enterprise Executive Navigation & Telemetry Mode Switcher */}
         <div className="my-2 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 rounded-xl bg-slate-100 p-1 border border-slate-200/80 shadow-xs">
+          <div className="flex items-center gap-1.5 rounded-xl bg-base-200 p-1 border border-base-300 shadow-xs">
 
             <button
               type="button"
               onClick={() => setViewMode("split")}
               className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
                 viewMode === "split"
-                  ? "bg-white text-blue-700 shadow-sm border border-slate-200/60 font-black"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                  ? "bg-base-100 text-primary shadow-sm border border-base-300 font-black"
+                  : "text-base-content/70 hover:text-base-content hover:bg-base-100/60"
               }`}
               title="Workspace (Graph & Grid Analysis)"
             >
-              <LayoutGrid className={`h-3.5 w-3.5 ${viewMode === "split" ? "text-blue-600" : "text-slate-400"}`} />
+              <LayoutGrid className={`h-3.5 w-3.5 ${viewMode === "split" ? "text-primary" : "text-base-content/40"}`} />
               <span>Workspace Overview</span>
             </button>
             <button
@@ -2608,12 +2608,12 @@ export default function App() {
               onClick={() => setViewMode("matrix")}
               className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
                 viewMode === "matrix"
-                  ? "bg-white text-blue-700 shadow-sm border border-slate-200/60 font-black"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                  ? "bg-base-100 text-primary shadow-sm border border-base-300 font-black"
+                  : "text-base-content/70 hover:text-base-content hover:bg-base-100/60"
               }`}
               title="Cross-Line Comparative Matrix"
             >
-              <Building2 className={`h-3.5 w-3.5 ${viewMode === "matrix" ? "text-blue-600" : "text-slate-400"}`} />
+              <Building2 className={`h-3.5 w-3.5 ${viewMode === "matrix" ? "text-primary" : "text-base-content/40"}`} />
               <span>Cross-Line Matrix</span>
             </button>
 
@@ -2669,15 +2669,15 @@ export default function App() {
 
         {/* กราฟ Manpower (แสดงเมื่อไม่ใช่โหมด table, matrix หรือ deepdive) */}
         {viewMode !== "table" && viewMode !== "matrix" && viewMode !== "deepdive" && (
-        <section className="w-full max-w-full min-w-0 overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-6 space-y-5">
+        <section className="w-full max-w-full min-w-0 overflow-hidden bg-base-100 rounded-2xl border border-base-300 shadow-sm p-4 md:p-6 space-y-5">
           <div className="flex flex-col gap-4">
             <div className="min-w-0 max-w-full xl:max-w-[560px]">
-              <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">
+              <p className="text-xs font-bold text-primary uppercase tracking-wider">
                 {activeTab}
               </p>
               <div className="w-full min-w-0">
                 <h2
-                  className="w-full whitespace-nowrap text-lg md:text-xl font-black leading-tight text-slate-900"
+                  className="w-full whitespace-nowrap text-lg md:text-xl font-black leading-tight text-base-content"
                   title={
                     graphScope === "single"
                       ? selectedGraphLines.join(", ")
@@ -2694,17 +2694,17 @@ export default function App() {
             </div>
 
             <div className="flex w-full max-w-full flex-wrap items-center gap-2 overflow-visible">
-              <div className="flex shrink-0 flex-nowrap bg-slate-100 p-1 rounded-xl border border-slate-200 justify-center">
+              <div className="flex shrink-0 flex-nowrap bg-base-200 p-1 rounded-xl border border-base-300 justify-center">
                 <button
                   onClick={() => setGraphScope("all")}
-                  className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${graphScope === "all" ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${graphScope === "all" ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm" : "text-base-content/70 hover:text-base-content"}`}
                 >
                   <GraphControlIcon name="all" />
                   All Lines
                 </button>
                 <button
                   onClick={() => setGraphScope("single")}
-                  className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${graphScope === "single" ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${graphScope === "single" ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm" : "text-base-content/70 hover:text-base-content"}`}
                 >
                   <GraphControlIcon name="select" />
                   Select Line
@@ -2737,8 +2737,9 @@ export default function App() {
                         ...base,
                         minHeight: 36,
                         borderRadius: 12,
-                        borderColor: "#e2e8f0",
-                        backgroundColor: "#f1f5f9",
+                        borderColor: "var(--color-base-300, #e2e8f0)",
+                        backgroundColor: "var(--color-base-200, #f1f5f9)",
+                        color: "var(--color-base-content, #0f172a)",
                         fontSize: 12,
                         fontWeight: 700,
                         boxShadow: "none",
@@ -2746,17 +2747,19 @@ export default function App() {
                       menu: (base) => ({
                         ...base,
                         zIndex: 50,
+                        backgroundColor: "var(--color-base-100, #ffffff)",
+                        borderColor: "var(--color-base-300, #e2e8f0)",
                         fontSize: 12,
                         fontWeight: 700,
                       }),
                       option: (base, state) => ({
                         ...base,
                         backgroundColor: state.isSelected
-                          ? "#eff6ff"
+                          ? "var(--color-base-300, #eff6ff)"
                           : state.isFocused
-                            ? "#f8fafc"
-                            : "#ffffff",
-                        color: state.isSelected ? "#1d4ed8" : "#334155",
+                            ? "var(--color-base-200, #f8fafc)"
+                            : "transparent",
+                        color: "var(--color-base-content, #334155)",
                         cursor: "pointer",
                       }),
                     }}
@@ -2764,14 +2767,14 @@ export default function App() {
                 </div>
               )}
 
-              <div className="flex shrink-0 flex-nowrap bg-slate-100 p-1 rounded-xl border border-slate-200 justify-center">
+              <div className="flex shrink-0 flex-nowrap bg-base-200 p-1 rounded-xl border border-base-300 justify-center">
                 {GRAPH_AXIS_OPTIONS.map((option) => {
                   const isActive = graphAxis === option.key;
                   return (
                     <button
                       key={option.key}
                       onClick={() => setGraphAxis(option.key)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${isActive ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${isActive ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm" : "text-base-content/70 hover:text-base-content"}`}
                     >
                       <GraphControlIcon
                         name={option.key as "date" | "week" | "line"}
@@ -2784,17 +2787,17 @@ export default function App() {
 
               {graphAxis === "line" && (
                 <>
-                  <div className="flex shrink-0 flex-nowrap rounded-2xl border border-slate-200 bg-white/90 p-1 shadow-sm justify-center">
+                  <div className="flex shrink-0 flex-nowrap rounded-2xl border border-base-300 bg-base-200 p-1 shadow-sm justify-center">
                     <button
                       onClick={() => setGraphLineLevel("major")}
-                      className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${graphLineLevel === "major" ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${graphLineLevel === "major" ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm" : "text-base-content/70 hover:text-base-content"}`}
                     >
                       <GraphControlIcon name="major" />
                       Major Lines
                     </button>
                     <button
                       onClick={() => setGraphLineLevel("minor")}
-                      className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${graphLineLevel === "minor" ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${graphLineLevel === "minor" ? "bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-sm" : "text-base-content/70 hover:text-base-content"}`}
                     >
                       <GraphControlIcon name="minor" />
                       Minor Lines
@@ -2803,7 +2806,7 @@ export default function App() {
                   <select
                     value={graphDay}
                     onChange={(e) => setGraphDay(Number(e.target.value))}
-                    className="shrink-0 cursor-pointer rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black text-blue-800 shadow-sm shadow-blue-100/70 outline-none transition hover:bg-blue-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="shrink-0 cursor-pointer rounded-xl border border-base-300 bg-base-200 px-3 py-2 text-xs font-black text-base-content shadow-xs outline-none transition hover:bg-base-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   >
                     {displayDays.map((day) => (
                       <option key={day} value={day}>
@@ -2825,7 +2828,7 @@ export default function App() {
                       ?.key || graphMetric,
                   );
                 }}
-                className="h-9 shrink-0 cursor-pointer rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-black text-blue-800 shadow-sm shadow-blue-100/70 outline-none transition hover:bg-blue-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="h-9 shrink-0 cursor-pointer rounded-lg border border-base-300 bg-base-200 px-3 text-xs font-black text-base-content shadow-xs outline-none transition hover:bg-base-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
               >
                 {GRAPH_GROUPS.map((group) => (
                   <option key={group.key} value={group.key}>
@@ -2839,7 +2842,7 @@ export default function App() {
                   aria-label="Graph metric"
                   value={graphMetric}
                   onChange={(event) => setGraphMetric(event.target.value)}
-                  className="h-9 shrink-0 min-w-44 cursor-pointer rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-black text-blue-800 shadow-sm shadow-blue-100/70 outline-none transition hover:bg-blue-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="h-9 shrink-0 min-w-44 cursor-pointer rounded-lg border border-base-300 bg-base-200 px-3 text-xs font-black text-base-content shadow-xs outline-none transition hover:bg-base-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 >
                   {graphOptions.map((option) => (
                     <option key={option.key} value={option.key}>
@@ -2857,7 +2860,7 @@ export default function App() {
                     event.target.value ? [event.target.value] : [],
                   )
                 }
-                className="h-9 shrink-0 min-w-32 cursor-pointer rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-black text-blue-800 shadow-sm shadow-blue-100/70 outline-none transition hover:bg-blue-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="h-9 shrink-0 min-w-32 cursor-pointer rounded-lg border border-base-300 bg-base-200 px-3 text-xs font-black text-base-content shadow-xs outline-none transition hover:bg-base-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">All Status</option>
                 {statusTabs.map((item) => (
@@ -2895,7 +2898,7 @@ export default function App() {
                       </span>
                     ))
                   ) : (
-                    <span className="flex items-center gap-1 font-bold text-sky-700 dark:text-sky-400">
+                    <span className="flex items-center gap-1 font-bold text-sky-500">
                       <span className="h-3 w-3 bg-sky-500" />
                       {selectedStatuses.length === 1
                         ? `${selectedStatuses[0]} Present`
@@ -2908,7 +2911,7 @@ export default function App() {
                       ? `${selectedStatuses[0]} Absent`
                       : "Leave"}
                   </span>
-                  <span className="flex items-center gap-1.5 font-bold text-purple-600">
+                  <span className="flex items-center gap-1.5 font-bold text-purple-500">
                     <span className="h-3 w-3 rounded-xs bg-purple-500" />
                     Off / Holiday
                   </span>
@@ -2929,26 +2932,26 @@ export default function App() {
           </div>
 
           {!isGraphReady || isLoadingManhour ? (
-            <div className={`flex ${viewMode === "graph" ? "h-[680px]" : "h-[540px]"} w-full animate-pulse flex-col justify-end rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50/50 to-slate-100/30 p-6`}>
+            <div className={`flex ${viewMode === "graph" ? "h-[680px]" : "h-[540px]"} w-full animate-pulse flex-col justify-end rounded-2xl border border-base-300 bg-base-200/50 p-6`}>
               <div className="flex items-center justify-between mb-auto">
                 <div className="flex items-center gap-3">
-                  <div className="h-5 w-36 rounded-md bg-slate-200" />
-                  <div className="h-5 w-24 rounded-full bg-blue-100" />
+                  <div className="h-5 w-36 rounded-md bg-base-300" />
+                  <div className="h-5 w-24 rounded-full bg-primary/20" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-4 w-16 rounded bg-slate-200" />
-                  <div className="h-4 w-16 rounded bg-slate-200" />
-                  <div className="h-4 w-16 rounded bg-slate-200" />
+                  <div className="h-4 w-16 rounded bg-base-300" />
+                  <div className="h-4 w-16 rounded bg-base-300" />
+                  <div className="h-4 w-16 rounded bg-base-300" />
                 </div>
               </div>
 
               {/* Gridlines & Skeleton Bars */}
               <div className="relative h-[480px] w-full flex flex-col justify-end">
                 <div className="absolute inset-x-0 top-0 bottom-8 flex flex-col justify-between pointer-events-none opacity-50">
-                  <div className="border-b border-dashed border-slate-300 w-full" />
-                  <div className="border-b border-dashed border-slate-300 w-full" />
-                  <div className="border-b border-dashed border-slate-300 w-full" />
-                  <div className="border-b border-dashed border-slate-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
+                  <div className="border-b border-dashed border-base-300 w-full" />
                 </div>
 
                 <div className="flex items-end justify-between gap-3 sm:gap-4 h-full z-10 pt-8 pb-1">
@@ -2958,14 +2961,14 @@ export default function App() {
                         className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-blue-400/50 via-blue-300/40 to-blue-200/30 border-t-2 border-blue-400/40"
                         style={{ height: `${heightPct}%` }}
                       />
-                      <div className="h-3 w-8 sm:w-10 rounded-full bg-slate-200" />
+                      <div className="h-3 w-8 sm:w-10 rounded-full bg-base-300" />
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           ) : (
-            <div className={`manhour-graph-scroll ${viewMode === "graph" ? "h-[680px]" : "h-[540px]"} w-full max-w-full min-w-0 overflow-x-scroll overflow-y-hidden rounded-2xl border border-slate-200 bg-slate-50 p-3 md:p-5 transition-all duration-300`}>
+            <div className={`manhour-graph-scroll ${viewMode === "graph" ? "h-[680px]" : "h-[540px]"} w-full max-w-full min-w-0 overflow-x-scroll overflow-y-hidden rounded-2xl border border-base-300 bg-base-200/40 p-3 md:p-5 transition-all duration-300`}>
               <div
                 className="h-full min-h-[1px] min-w-[1px]"
                 style={{ width: `${graphChartWidth}px` }}
@@ -2994,17 +2997,17 @@ export default function App() {
           style={{ contentVisibility: "auto", containIntrinsicSize: "1200px" }}
           className="mt-2 space-y-2"
         >
-          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 shadow-sm">
-            <span className="bg-blue-100 text-blue-900 text-xs px-2.5 py-1 rounded font-mono font-black uppercase">
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-base-300 bg-base-100 px-3.5 py-2 shadow-sm">
+            <span className="bg-primary/15 text-primary text-xs px-2.5 py-1 rounded font-mono font-black uppercase">
               {activeTab}
             </span>
-            <span className="text-slate-300">/</span>
+            <span className="text-base-content/30">/</span>
             <select
               value={selectedLine}
               onChange={(e) => handleLineChange(e.target.value)}
               aria-label="Select Production Line"
               title="Select Production Line"
-              className="bg-slate-50 border border-slate-300 text-xs rounded-lg font-mono font-bold px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="bg-base-200 border border-base-300 text-xs rounded-lg font-mono font-bold px-3 py-1.5 text-base-content focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
             >
               {(searchTerm.trim() ? filteredLines : graphLines).map((lineName) => (
                 <option key={lineName} value={lineName}>
@@ -3013,7 +3016,7 @@ export default function App() {
               ))}
             </select>
             <div className="relative ml-0 w-full sm:ml-2 sm:w-72">
-              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400">
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-base-content/40">
                 <Search className="h-3.5 w-3.5" />
               </span>
               <input
@@ -3022,7 +3025,7 @@ export default function App() {
                 aria-label="Search Production Line"
                 value={searchTerm}
                 onChange={(e) => handleLineSearch(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 py-1.5 pl-8 pr-3 text-xs font-medium text-slate-800 placeholder:font-normal placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                className="w-full rounded-lg border border-base-300 bg-base-200 py-1.5 pl-8 pr-3 text-xs font-medium text-base-content placeholder:font-normal placeholder:text-base-content/40 focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
             {/* ปุ่มส่งออก Excel: คลิกแล้วเปิดหน้าต่าง Pop-up ให้เลือกอย่างชัดเจน */}
@@ -3038,7 +3041,7 @@ export default function App() {
               </button>
             </div>
           </div>
-          <div className="w-full overflow-x-auto border border-slate-200/90 shadow-sm bg-white rounded-xl">
+          <div className="w-full overflow-x-auto border border-base-300 shadow-sm bg-base-100 rounded-xl">
             <ManHourTable
               displayDays={displayDays}
               manhourCalendar={manhourCalendar}
@@ -3059,20 +3062,20 @@ export default function App() {
       {isExportModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
             onClick={() => setIsExportModalOpen(false)}
           />
-          <div className="relative z-10 w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150 space-y-4">
+          <div className="relative z-10 w-full max-w-xl rounded-2xl border border-base-300 bg-base-100 p-6 shadow-2xl animate-in zoom-in-95 duration-150 space-y-4 text-base-content">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-500">
                   <FileSpreadsheet className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">
+                  <h3 className="text-base font-black text-base-content">
                     เลือกรูปแบบการดาวน์โหลด Excel
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-base-content/60">
                     ประจำเดือน {selectedMonth}
                   </p>
                 </div>
@@ -3080,7 +3083,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setIsExportModalOpen(false)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
+                className="rounded-lg p-1.5 text-base-content/50 hover:bg-base-200 hover:text-base-content transition cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -3094,13 +3097,13 @@ export default function App() {
                   setIsExportModalOpen(false);
                   handleExportCurrentLine(selectedLine);
                 }}
-                className="w-full flex items-center gap-3.5 rounded-xl border-2 border-slate-200 px-4 py-3 text-left transition hover:border-blue-500 hover:bg-blue-50/50 cursor-pointer group"
+                className="w-full flex items-center gap-3.5 rounded-xl border-2 border-base-300 px-4 py-3 text-left transition hover:border-primary hover:bg-primary/10 cursor-pointer group"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 group-hover:bg-blue-600 group-hover:text-white transition">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content group-hover:bg-primary group-hover:text-primary-content transition">
                   <FileSpreadsheet className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-black text-slate-900 group-hover:text-blue-900 whitespace-nowrap">
+                  <div className="text-sm font-black text-base-content group-hover:text-primary whitespace-nowrap">
                     1. เฉพาะไลน์นี้ ({selectedLine})
                   </div>
                 </div>
@@ -3113,13 +3116,13 @@ export default function App() {
                   setIsExportModalOpen(false);
                   handleExportStackedTabLines(activeTab);
                 }}
-                className="w-full flex items-center gap-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-50/70 px-4 py-3 text-left transition hover:bg-emerald-100/70 hover:border-emerald-600 cursor-pointer group shadow-xs"
+                className="w-full flex items-center gap-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 px-4 py-3 text-left transition hover:bg-emerald-500/20 hover:border-emerald-600 cursor-pointer group shadow-xs"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
                   <Layers className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-black text-emerald-950 whitespace-nowrap">
+                  <div className="text-sm font-black text-base-content whitespace-nowrap">
                     2. ทั้งหมดในแท็บ {activeTab}
                   </div>
                 </div>
@@ -3132,13 +3135,13 @@ export default function App() {
                   setIsExportModalOpen(false);
                   handleExportStackedAllTabs();
                 }}
-                className="w-full flex items-center gap-3.5 rounded-xl border-2 border-slate-200 px-4 py-3 text-left transition hover:border-indigo-500 hover:bg-indigo-50/50 cursor-pointer group"
+                className="w-full flex items-center gap-3.5 rounded-xl border-2 border-base-300 px-4 py-3 text-left transition hover:border-indigo-500 hover:bg-indigo-500/10 cursor-pointer group"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content group-hover:bg-indigo-600 group-hover:text-white transition">
                   <Download className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0 pr-2">
-                  <div className="text-[13px] font-black text-slate-900 group-hover:text-indigo-900 whitespace-nowrap">
+                  <div className="text-[13px] font-black text-base-content group-hover:text-indigo-400 whitespace-nowrap">
                     3. ทั้งหมดทุกแท็บในระบบ (Macro PCN, FPC, SMT, QA, IND)
                   </div>
                 </div>
@@ -3149,7 +3152,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setIsExportModalOpen(false)}
-                className="rounded-xl px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 transition cursor-pointer"
+                className="rounded-xl px-4 py-2 text-xs font-bold text-base-content/60 hover:bg-base-200 transition cursor-pointer"
               >
                 ยกเลิก
               </button>

@@ -782,29 +782,29 @@ export default function LineDeepDiveView({
   }, [dailyRecords, filterSeverity]);
 
   return (
-    <div className="w-full space-y-4 font-sans text-slate-800 pb-12 animate-in fade-in zoom-in-98 duration-300">
+    <div className="w-full space-y-4 font-sans text-base-content pb-12 animate-in fade-in zoom-in-98 duration-300">
       {/* ─────────────────────────────────────────────────────────────
           ZONE 1: CLEAN ENTERPRISE EXECUTIVE BANNER
       ───────────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-white via-blue-50/30 to-sky-50/40 p-5 shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl border border-base-300 bg-gradient-to-br from-base-100 via-base-200/40 to-base-100 p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={onBackToMatrix}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-blue-600 hover:text-white hover:border-blue-600 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl border border-base-300 bg-base-200 px-3.5 py-1.5 text-xs font-bold text-base-content shadow-xs transition hover:bg-primary hover:text-primary-content hover:border-primary cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back to Cross-Line Matrix</span>
             </button>
 
-            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+            <div className="h-5 w-px bg-base-300 hidden sm:block" />
 
             <div className="flex items-center gap-2 text-xs">
-              <span className="font-bold text-slate-500">{activeTab}</span>
-              <span className="text-slate-300">/</span>
-              <span className="text-blue-600 font-bold">Line Cockpit</span>
-              <span className="text-slate-300">/</span>
+              <span className="font-bold text-base-content/60">{activeTab}</span>
+              <span className="text-base-content/30">/</span>
+              <span className="text-primary font-bold">Line Cockpit</span>
+              <span className="text-base-content/30">/</span>
               <span className="rounded-lg bg-gradient-to-r from-blue-600 to-sky-500 px-2.5 py-0.5 text-white font-black shadow-xs shadow-blue-300/40">
                 {selectedLine}
               </span>
@@ -812,10 +812,10 @@ export default function LineDeepDiveView({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-1.5 border border-slate-200 text-xs font-mono text-slate-600">
+            <div className="flex items-center gap-2 rounded-xl bg-base-200 px-3 py-1.5 border border-base-300 text-xs font-mono text-base-content/80">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>CYCLE TIME:</span>
-              <span className="text-slate-900 font-bold">
+              <span className="text-base-content font-bold">
                 {cockpitTime.toLocaleTimeString("en-GB", { hour12: false })}
               </span>
             </div>
@@ -824,10 +824,10 @@ export default function LineDeepDiveView({
               aria-label="Switch Line"
               value={selectedLine}
               onChange={(e) => onSelectLine(e.target.value)}
-              className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-blue-900 outline-none hover:bg-white hover:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              className="cursor-pointer rounded-xl border border-base-300 bg-base-200 px-3 py-1.5 text-xs font-bold text-base-content outline-none hover:bg-base-100 hover:border-primary focus:ring-2 focus:ring-primary/20"
             >
               {tabLines.map((line) => (
-                <option key={line} value={line}>
+                <option key={line} value={line} className="bg-base-100 text-base-content">
                   {line}
                 </option>
               ))}
@@ -847,44 +847,44 @@ export default function LineDeepDiveView({
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-slate-100 pt-4">
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-base-300/60 pt-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700 border border-blue-200">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold text-primary border border-primary/20">
                 <Cpu className="h-3 w-3" /> PRECISION LINE DIAGNOSTICS
               </span>
               {isAggregate ? (
-                <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-black text-indigo-700 border border-indigo-200">
+                <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-[11px] font-black text-indigo-500 border border-indigo-500/20">
                   SUMMARY AGGREGATE
                 </span>
               ) : isShift ? (
-                <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[11px] font-black text-sky-700 border border-sky-200">
+                <span className="rounded-md bg-sky-500/10 px-2 py-0.5 text-[11px] font-black text-sky-500 border border-sky-500/20">
                   SHIFT DEDICATED
                 </span>
               ) : (
-                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-black text-slate-700 border border-slate-200">
+                <span className="rounded-md bg-base-300 px-2 py-0.5 text-[11px] font-black text-base-content/80 border border-base-300">
                   MAIN LINE
                 </span>
               )}
             </div>
 
             <div className="mt-1 flex items-baseline gap-3">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-base-content">
                 {selectedLine}
               </h1>
-              <span className="text-xs font-bold text-slate-500">
+              <span className="text-xs font-bold text-base-content/60">
                 ({selectedMonth} • {lineStats.workingDaysCount} Working Days)
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50 to-slate-50 p-3 shadow-xs">
+          <div className="flex items-center gap-3 rounded-2xl border border-base-300 bg-base-200/70 p-3 shadow-xs">
             <div className="text-right">
-              <div className="text-[10px] font-bold tracking-widest text-blue-600/80 uppercase">
+              <div className="text-[10px] font-bold tracking-widest text-primary/80 uppercase">
                 OPS READINESS INDEX
               </div>
-              <div className="text-xs font-black text-slate-800">{lineStats.statusDesc}</div>
-              <div className="text-[10px] font-bold text-slate-500">Health Score: {lineStats.score}/100</div>
+              <div className="text-xs font-black text-base-content">{lineStats.statusDesc}</div>
+              <div className="text-[10px] font-bold text-base-content/60">Health Score: {lineStats.score}/100</div>
             </div>
             <div className={`flex h-12 w-12 items-center justify-center rounded-xl border-2 text-xl font-black shadow-xs ${lineStats.tierColor}`}>
               {lineStats.tier}
@@ -898,25 +898,25 @@ export default function LineDeepDiveView({
       ───────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {/* Attendance Reliability */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm overflow-hidden relative before:absolute before:inset-x-0 before:top-0 before:h-1 before:rounded-t-2xl before:bg-gradient-to-r before:from-emerald-400 before:to-teal-500">
+        <div className="rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm overflow-hidden relative before:absolute before:inset-x-0 before:top-0 before:h-1 before:rounded-t-2xl before:bg-gradient-to-r before:from-emerald-400 before:to-teal-500">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+            <span className="text-[11px] font-black uppercase tracking-wider text-base-content/60">
               Attendance Reliability
             </span>
-            <span className={`p-1.5 rounded-lg ${lineStats.overallAttRate >= 95 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
+            <span className={`p-1.5 rounded-lg ${lineStats.overallAttRate >= 95 ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"}`}>
               <Users className="h-4 w-4" />
             </span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-3xl font-black text-slate-900">
+            <span className="text-3xl font-black text-base-content">
               {lineStats.overallAttRate}%
             </span>
-            <span className="text-xs font-bold text-slate-500">
+            <span className="text-xs font-bold text-base-content/60">
               Avg {lineStats.avgPresent} / {lineStats.avgReg} ops
             </span>
           </div>
 
-          <div className="mt-3 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+          <div className="mt-3 h-2 w-full rounded-full bg-base-200 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
                 lineStats.overallAttRate >= 95 ? "bg-emerald-500" : lineStats.overallAttRate >= 90 ? "bg-amber-500" : "bg-rose-500"
@@ -925,103 +925,103 @@ export default function LineDeepDiveView({
             />
           </div>
           <div className="mt-2.5 flex items-center justify-between text-[11px] font-bold">
-            <span className="text-slate-400">Benchmark: 95.0%</span>
-            <span className={lineStats.overallAttRate >= 95 ? "text-emerald-600" : "text-rose-600"}>
+            <span className="text-base-content/50">Benchmark: 95.0%</span>
+            <span className={lineStats.overallAttRate >= 95 ? "text-emerald-500" : "text-rose-500"}>
               {lineStats.overallAttRate >= 95 ? "✓ Optimal" : "⚠ Under Benchmark"}
             </span>
           </div>
         </div>
 
         {/* Absence Leakage */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm overflow-hidden relative before:absolute before:inset-x-0 before:top-0 before:h-1 before:rounded-t-2xl before:bg-gradient-to-r before:from-rose-400 before:to-pink-500">
+        <div className="rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm overflow-hidden relative before:absolute before:inset-x-0 before:top-0 before:h-1 before:rounded-t-2xl before:bg-gradient-to-r before:from-rose-400 before:to-pink-500">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+            <span className="text-[11px] font-black uppercase tracking-wider text-base-content/60">
               Absence Leakage
             </span>
-            <span className={`p-1.5 rounded-lg ${lineStats.overallLeaveRate <= 5 ? "bg-blue-50 text-blue-600" : "bg-rose-50 text-rose-600"}`}>
+            <span className={`p-1.5 rounded-lg ${lineStats.overallLeaveRate <= 5 ? "bg-blue-500/10 text-blue-500" : "bg-rose-500/10 text-rose-500"}`}>
               <Activity className="h-4 w-4" />
             </span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className={`text-3xl font-black ${lineStats.overallLeaveRate > 5 ? "text-rose-600" : "text-slate-900"}`}>
+            <span className={`text-3xl font-black ${lineStats.overallLeaveRate > 5 ? "text-rose-500" : "text-base-content"}`}>
               {lineStats.overallLeaveRate}%
             </span>
-            <span className="text-xs font-bold text-slate-500">
+            <span className="text-xs font-bold text-base-content/60">
               {lineStats.sumAbsent} total leaves
             </span>
           </div>
 
-          <div className="mt-3 flex items-center justify-between rounded-lg bg-rose-50/70 p-2 border border-rose-100 text-xs font-mono">
-            <span className="text-rose-700 font-bold">Unplanned:</span>
-            <span className="font-black text-rose-900">{lineStats.sumAbsent} person-days</span>
+          <div className="mt-3 flex items-center justify-between rounded-lg bg-rose-500/10 p-2 border border-rose-500/20 text-xs font-mono">
+            <span className="text-rose-500 font-bold">Unplanned:</span>
+            <span className="font-black text-rose-600 dark:text-rose-400">{lineStats.sumAbsent} person-days</span>
           </div>
           <div className="mt-2.5 flex items-center justify-between text-[11px] font-bold">
-            <span className="text-slate-400">Target: &lt;5.0%</span>
-            <span className={lineStats.overallLeaveRate <= 5 ? "text-emerald-600" : "text-rose-600"}>
+            <span className="text-base-content/50">Target: &lt;5.0%</span>
+            <span className={lineStats.overallLeaveRate <= 5 ? "text-emerald-500" : "text-rose-500"}>
               {lineStats.overallLeaveRate <= 5 ? "Controlled" : `Alert (${lineStats.anomalyCount} anomaly days)`}
             </span>
           </div>
         </div>
 
         {/* OT Stress */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm overflow-hidden relative before:absolute before:inset-x-0 before:top-0 before:h-1 before:rounded-t-2xl before:bg-gradient-to-r before:from-amber-400 before:to-orange-500">
+        <div className="rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm overflow-hidden relative before:absolute before:inset-x-0 before:top-0 before:h-1 before:rounded-t-2xl before:bg-gradient-to-r before:from-amber-400 before:to-orange-500">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+            <span className="text-[11px] font-black uppercase tracking-wider text-base-content/60">
               OT Reliance Load
             </span>
-            <span className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+            <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
               <Clock className="h-4 w-4" />
             </span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-3xl font-black text-amber-600">
+            <span className="text-3xl font-black text-amber-500">
               {lineStats.otReliancePct}%
             </span>
-            <span className="text-xs font-bold text-slate-500">
+            <span className="text-xs font-bold text-base-content/60">
               {lineStats.sumOtHr.toLocaleString()} OT hrs
             </span>
           </div>
 
-          <div className="mt-3 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+          <div className="mt-3 h-2 w-full rounded-full bg-base-200 overflow-hidden">
             <div
               className="h-full rounded-full bg-amber-500"
               style={{ width: `${Math.min(lineStats.otReliancePct * 2.5, 100)}%` }}
             />
           </div>
           <div className="mt-2.5 flex items-center justify-between text-[11px] font-bold">
-            <span className="text-slate-400">Total: {lineStats.totalManHours.toLocaleString()}h</span>
-            <span className={lineStats.otReliancePct > 25 ? "text-amber-600" : "text-slate-600"}>
+            <span className="text-base-content/50">Total: {lineStats.totalManHours.toLocaleString()}h</span>
+            <span className={lineStats.otReliancePct > 25 ? "text-amber-500" : "text-base-content/70"}>
               {lineStats.otReliancePct > 25 ? "High OT Load" : "Controlled"}
             </span>
           </div>
         </div>
 
         {/* Net Help Mobility */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm overflow-hidden relative before:absolute before:inset-x-0 before:top-0 before:h-1 before:rounded-t-2xl before:bg-gradient-to-r before:from-blue-400 before:to-violet-500">
+        <div className="rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm overflow-hidden relative before:absolute before:inset-x-0 before:top-0 before:h-1 before:rounded-t-2xl before:bg-gradient-to-r before:from-blue-400 before:to-violet-500">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+            <span className="text-[11px] font-black uppercase tracking-wider text-base-content/60">
               Mobility Balance (Net Help)
             </span>
-            <span className={`p-1.5 rounded-lg ${lineStats.netHelp >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-purple-50 text-purple-600"}`}>
+            <span className={`p-1.5 rounded-lg ${lineStats.netHelp >= 0 ? "bg-emerald-500/10 text-emerald-500" : "bg-purple-500/10 text-purple-500"}`}>
               <Zap className="h-4 w-4" />
             </span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className={`text-3xl font-black ${lineStats.netHelp > 0 ? "text-emerald-600" : lineStats.netHelp < 0 ? "text-rose-600" : "text-slate-900"}`}>
+            <span className={`text-3xl font-black ${lineStats.netHelp > 0 ? "text-emerald-500" : lineStats.netHelp < 0 ? "text-rose-500" : "text-base-content"}`}>
               {lineStats.netHelp > 0 ? `+${lineStats.netHelp}` : lineStats.netHelp}h
             </span>
-            <span className="text-xs font-bold text-slate-500">
+            <span className="text-xs font-bold text-base-content/60">
               Net balance
             </span>
           </div>
 
-          <div className="mt-3 flex items-center justify-between text-xs font-mono bg-slate-50 rounded-lg p-1.5 border border-slate-200/60">
-            <span className="text-emerald-700 font-bold">IN: +{lineStats.sumHelpIn}h</span>
-            <span className="text-rose-700 font-bold">OUT: -{lineStats.sumHelpOut}h</span>
+          <div className="mt-3 flex items-center justify-between text-xs font-mono bg-base-200 rounded-lg p-1.5 border border-base-300">
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold">IN: +{lineStats.sumHelpIn}h</span>
+            <span className="text-rose-600 dark:text-rose-400 font-bold">OUT: -{lineStats.sumHelpOut}h</span>
           </div>
           <div className="mt-2.5 flex items-center justify-between text-[11px] font-bold">
-            <span className="text-slate-400">Status:</span>
-            <span className="text-slate-800">
+            <span className="text-base-content/50">Status:</span>
+            <span className="text-base-content/90 font-semibold">
               {lineStats.netHelp > 0 ? "Net Receiver (รับคน)" : lineStats.netHelp < 0 ? "Net Supplier (ส่งคน)" : "Balanced Cell"}
             </span>
           </div>
@@ -1029,42 +1029,42 @@ export default function LineDeepDiveView({
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          ZONE 3: 📈 ECHARTS INTERACTIVE CHRONO HORIZON (CLEAN WHITE)
+          ZONE 3: 📈 ECHARTS INTERACTIVE CHRONO HORIZON
       ───────────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+      <div className="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-blue-600" />
-              <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              <h2 className="text-sm font-black uppercase tracking-wider text-base-content">
                 Operational Telemetry Horizon // {selectedLine}
               </h2>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-base-content/60 mt-0.5">
               Daily operational trends across the month — hover over data points for detailed diagnostics
             </p>
           </div>
 
           {/* Metric Selector Tabs */}
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold">
+          <div className="inline-flex rounded-xl bg-base-200 p-1 border border-base-300 text-xs font-bold">
             <button
               type="button"
               onClick={() => setActiveMetricTab("headcount")}
               className={`rounded-lg px-3.5 py-1.5 transition cursor-pointer ${
                 activeMetricTab === "headcount"
-                  ? "bg-white text-blue-900 font-black shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-base-100 text-primary font-black shadow-xs"
+                  : "text-base-content/70 hover:text-base-content"
               }`}
             >
-              👥 Headcount & Leave Rate
+              👥 Headcount &amp; Leave Rate
             </button>
             <button
               type="button"
               onClick={() => setActiveMetricTab("hours")}
               className={`rounded-lg px-3.5 py-1.5 transition cursor-pointer ${
                 activeMetricTab === "hours"
-                  ? "bg-white text-blue-900 font-black shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-base-100 text-primary font-black shadow-xs"
+                  : "text-base-content/70 hover:text-base-content"
               }`}
             >
               ⏱️ Workload (Normal vs OT)
@@ -1074,8 +1074,8 @@ export default function LineDeepDiveView({
               onClick={() => setActiveMetricTab("leaves")}
               className={`rounded-lg px-3.5 py-1.5 transition cursor-pointer ${
                 activeMetricTab === "leaves"
-                  ? "bg-white text-blue-900 font-black shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-base-100 text-primary font-black shadow-xs"
+                  : "text-base-content/70 hover:text-base-content"
               }`}
             >
               📈 Performance Rates %
@@ -1084,7 +1084,7 @@ export default function LineDeepDiveView({
         </div>
 
         {/* ECharts Canvas Container */}
-        <div className="w-full rounded-xl bg-slate-50/50 p-2 border border-slate-200">
+        <div className="w-full rounded-xl bg-base-200/40 p-2 border border-base-300">
           <div ref={trendChartRef} className="w-full h-80 sm:h-96" />
         </div>
       </div>
@@ -1096,18 +1096,18 @@ export default function LineDeepDiveView({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
         {/* Left: Attendance Heatmap Calendar */}
-        <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col gap-3">
+        <div className="lg:col-span-5 rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm flex flex-col gap-3">
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-blue-600" />
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                <CalendarDays className="h-4 w-4 text-primary" />
+                <h3 className="text-xs font-black uppercase tracking-wider text-base-content">
                   Daily Attendance Heatmap
                 </h3>
               </div>
-              <span className="text-[10px] font-bold text-slate-500 font-mono">{selectedMonth}</span>
+              <span className="text-[10px] font-bold text-base-content/60 font-mono">{selectedMonth}</span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-base-content/60 mt-0.5">
               Color per day by attendance rate — click any day for deep inspection
             </p>
           </div>
@@ -1126,21 +1126,21 @@ export default function LineDeepDiveView({
                   <div
                     key={rec.day}
                     title={`Day ${rec.day}: No data yet`}
-                    className="relative flex h-9 w-9 flex-col items-center justify-center rounded-lg text-[10px] font-black border border-dashed border-slate-200 bg-slate-50/50 text-slate-300 cursor-default"
+                    className="relative flex h-9 w-9 flex-col items-center justify-center rounded-lg text-[10px] font-black border border-dashed border-base-300 bg-base-200/40 text-base-content/30 cursor-default"
                   >
-                    <span className="leading-none text-slate-400">{rec.day}</span>
-                    <span className="text-[7px] font-medium text-slate-300 leading-none mt-0.5">-</span>
+                    <span className="leading-none text-base-content/40">{rec.day}</span>
+                    <span className="text-[7px] font-medium text-base-content/30 leading-none mt-0.5">-</span>
                   </div>
                 );
               }
 
-              let bg = "bg-slate-100 text-slate-400";
+              let bg = "bg-base-300 text-base-content/60";
               let tooltip = `Day ${rec.day}: Holiday — Click to inspect`;
               if (!isHoliday) {
                 if (rate >= 95) { bg = "bg-emerald-500 text-white"; }
-                else if (rate >= 90) { bg = "bg-emerald-300 text-emerald-900"; }
-                else if (rate >= 85) { bg = "bg-amber-400 text-amber-900"; }
-                else if (rate >= 80) { bg = "bg-orange-400 text-white"; }
+                else if (rate >= 90) { bg = "bg-emerald-400 text-slate-900"; }
+                else if (rate >= 85) { bg = "bg-amber-400 text-slate-900"; }
+                else if (rate >= 80) { bg = "bg-orange-500 text-white"; }
                 else { bg = "bg-rose-500 text-white"; }
                 tooltip = `Day ${rec.day}: ${rate}% (${rec.present}/${rec.reg}) — Click to inspect`;
               }
@@ -1152,12 +1152,12 @@ export default function LineDeepDiveView({
                   onClick={() => setSelectedDayDetail(selectedDayDetail === rec.day ? null : rec.day)}
                   title={tooltip}
                   className={`relative flex h-9 w-9 flex-col items-center justify-center rounded-lg text-[10px] font-black shadow-xs cursor-pointer transition-all hover:scale-110 active:scale-95 ${bg} ${
-                    isSelected ? "ring-3 ring-blue-600 ring-offset-2 scale-110 z-10 shadow-md" : ""
+                    isSelected ? "ring-3 ring-primary ring-offset-2 ring-offset-base-100 scale-110 z-10 shadow-md" : ""
                   }`}
                 >
                   <span className="leading-none">{rec.day}</span>
                   {!isHoliday && (
-                    <span className="text-[8px] font-bold opacity-80 leading-none">{rate}%</span>
+                    <span className="text-[8px] font-bold opacity-90 leading-none">{rate}%</span>
                   )}
                   {rec.hasAnomaly && (
                     <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-red-600 border border-white" />
@@ -1169,17 +1169,17 @@ export default function LineDeepDiveView({
 
           {/* Interactive Day Inspector (Quick Flyout when clicked) */}
           {selectedDayRecord && (
-            <div className="mt-1 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50/70 via-white to-sky-50/50 p-3 shadow-xs space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="flex items-center justify-between border-b border-blue-100 pb-2">
+            <div className="mt-1 rounded-xl border border-base-300 bg-base-200/70 p-3 shadow-xs space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-center justify-between border-b border-base-300/80 pb-2">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-600 text-xs font-black text-white">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-xs font-black text-primary-content">
                     {selectedDayRecord.day}
                   </span>
                   <div>
-                    <span className="text-xs font-black text-slate-900">
+                    <span className="text-xs font-black text-base-content">
                       Day {selectedDayRecord.day} Performance Deep-Dive
                     </span>
-                    <span className="ml-2 text-[10px] font-bold text-slate-500 font-mono">
+                    <span className="ml-2 text-[10px] font-bold text-base-content/60 font-mono">
                       {selectedMonth}-{String(selectedDayRecord.day).padStart(2, "0")}
                     </span>
                   </div>
@@ -1187,7 +1187,7 @@ export default function LineDeepDiveView({
                 <button
                   type="button"
                   onClick={() => setSelectedDayDetail(null)}
-                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+                  className="rounded-lg p-1 text-base-content/50 hover:bg-base-300 hover:text-base-content cursor-pointer"
                   title="Close Inspector"
                 >
                   <X className="h-4 w-4" />
@@ -1196,42 +1196,42 @@ export default function LineDeepDiveView({
 
               {/* Day Metrics 4-grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
-                <div className="rounded-lg bg-white p-2 border border-slate-200/80 shadow-2xs">
-                  <span className="text-[10px] text-slate-400 block font-sans">Active / Register</span>
-                  <span className="text-sm font-black text-slate-900">
-                    {selectedDayRecord.present} <span className="text-xs font-normal text-slate-400">/ {selectedDayRecord.reg}</span>
+                <div className="rounded-lg bg-base-100 p-2 border border-base-300 shadow-2xs">
+                  <span className="text-[10px] text-base-content/50 block font-sans">Active / Register</span>
+                  <span className="text-sm font-black text-base-content">
+                    {selectedDayRecord.present} <span className="text-xs font-normal text-base-content/50">/ {selectedDayRecord.reg}</span>
                   </span>
-                  <span className={`text-[10px] font-bold block mt-0.5 ${selectedDayRecord.attRate >= 95 ? "text-emerald-600" : "text-amber-600"}`}>
+                  <span className={`text-[10px] font-bold block mt-0.5 ${selectedDayRecord.attRate >= 95 ? "text-emerald-500" : "text-amber-500"}`}>
                     Att. {selectedDayRecord.attRate}%
                   </span>
                 </div>
 
-                <div className="rounded-lg bg-white p-2 border border-slate-200/80 shadow-2xs">
-                  <span className="text-[10px] text-slate-400 block font-sans">Absences</span>
-                  <span className="text-sm font-black text-rose-600">
-                    {selectedDayRecord.absent} <span className="text-xs font-normal text-slate-400">persons</span>
+                <div className="rounded-lg bg-base-100 p-2 border border-base-300 shadow-2xs">
+                  <span className="text-[10px] text-base-content/50 block font-sans">Absences</span>
+                  <span className="text-sm font-black text-rose-500">
+                    {selectedDayRecord.absent} <span className="text-xs font-normal text-base-content/50">persons</span>
                   </span>
-                  <span className="text-[10px] font-bold text-rose-600 block mt-0.5">
+                  <span className="text-[10px] font-bold text-rose-500 block mt-0.5">
                     Leave {selectedDayRecord.leaveRate}%
                   </span>
                 </div>
 
-                <div className="rounded-lg bg-white p-2 border border-slate-200/80 shadow-2xs">
-                  <span className="text-[10px] text-slate-400 block font-sans">Normal / OT Hrs</span>
-                  <span className="text-sm font-black text-slate-900">
-                    {selectedDayRecord.normalHr}h <span className="text-xs font-bold text-amber-600">+{selectedDayRecord.otHr}h</span>
+                <div className="rounded-lg bg-base-100 p-2 border border-base-300 shadow-2xs">
+                  <span className="text-[10px] text-base-content/50 block font-sans">Normal / OT Hrs</span>
+                  <span className="text-sm font-black text-base-content">
+                    {selectedDayRecord.normalHr}h <span className="text-xs font-bold text-amber-500">+{selectedDayRecord.otHr}h</span>
                   </span>
-                  <span className="text-[10px] font-bold text-slate-500 block mt-0.5">
+                  <span className="text-[10px] font-bold text-base-content/60 block mt-0.5">
                     Total {selectedDayRecord.totalManHours}h
                   </span>
                 </div>
 
-                <div className="rounded-lg bg-white p-2 border border-slate-200/80 shadow-2xs">
-                  <span className="text-[10px] text-slate-400 block font-sans">Mobility (Help)</span>
-                  <span className={`text-sm font-black ${selectedDayRecord.netHelp > 0 ? "text-emerald-600" : selectedDayRecord.netHelp < 0 ? "text-purple-600" : "text-slate-800"}`}>
+                <div className="rounded-lg bg-base-100 p-2 border border-base-300 shadow-2xs">
+                  <span className="text-[10px] text-base-content/50 block font-sans">Mobility (Help)</span>
+                  <span className={`text-sm font-black ${selectedDayRecord.netHelp > 0 ? "text-emerald-500" : selectedDayRecord.netHelp < 0 ? "text-purple-500" : "text-base-content"}`}>
                     {selectedDayRecord.netHelp > 0 ? `+${selectedDayRecord.netHelp}h` : `${selectedDayRecord.netHelp}h`}
                   </span>
-                  <span className="text-[10px] text-slate-500 block mt-0.5">
+                  <span className="text-[10px] text-base-content/60 block mt-0.5">
                     +{selectedDayRecord.helpIn}h / -{selectedDayRecord.helpOut}h
                   </span>
                 </div>
@@ -1239,14 +1239,14 @@ export default function LineDeepDiveView({
 
               {/* Anomaly banner if any */}
               {selectedDayRecord.hasAnomaly ? (
-                <div className="flex items-center gap-2 rounded-lg bg-rose-50 border border-rose-200 p-2 text-xs text-rose-700">
-                  <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600" />
+                <div className="flex items-center gap-2 rounded-lg bg-rose-500/10 border border-rose-500/20 p-2 text-xs text-rose-500">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-rose-500" />
                   <span className="font-bold">Alert Detected:</span>
-                  <span className="font-medium">{selectedDayRecord.anomalyReasons.join(" • ")}</span>
+                  <span className="font-medium text-rose-600 dark:text-rose-400">{selectedDayRecord.anomalyReasons.join(" • ")}</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-2 py-1 text-xs text-emerald-700">
-                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 text-xs text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
                   <span className="font-bold text-[11px]">Normal Operations: Attendance and workload within standard limits.</span>
                 </div>
               )}
@@ -1254,32 +1254,32 @@ export default function LineDeepDiveView({
           )}
 
           {/* Legend */}
-          <div className="flex items-center flex-wrap gap-2 border-t border-slate-100 pt-2 text-[10px] font-bold">
+          <div className="flex items-center flex-wrap gap-2 border-t border-base-300 pt-2 text-[10px] font-bold text-base-content/70">
             <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-emerald-500 inline-block" /> ≥95%</span>
-            <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-emerald-300 inline-block" /> 90–94%</span>
+            <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-emerald-400 inline-block" /> 90–94%</span>
             <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-amber-400 inline-block" /> 85–89%</span>
-            <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-orange-400 inline-block" /> 80–84%</span>
+            <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-orange-500 inline-block" /> 80–84%</span>
             <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-rose-500 inline-block" /> &lt;80%</span>
-            <span className="flex items-center gap-1"><span className="h-3 w-3 rounded border border-dashed border-slate-300 bg-slate-50 inline-block" /> No Data</span>
-            <span className="flex items-center gap-1 ml-auto text-red-600"><span className="h-2 w-2 rounded-full bg-red-600 inline-block" /> Anomaly</span>
+            <span className="flex items-center gap-1"><span className="h-3 w-3 rounded border border-dashed border-base-300 bg-base-200 inline-block" /> No Data</span>
+            <span className="flex items-center gap-1 ml-auto text-rose-500"><span className="h-2 w-2 rounded-full bg-rose-500 inline-block" /> Anomaly</span>
           </div>
         </div>
 
         {/* Right: Detailed 3-Way Reconciliation */}
-        <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between space-y-3">
+        <div className="lg:col-span-7 rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm flex flex-col justify-between space-y-3">
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-blue-600" />
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                <Layers className="h-4 w-4 text-primary" />
+                <h3 className="text-xs font-black uppercase tracking-wider text-base-content">
                   Headcount Reconciliation Breakdown
                 </h3>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-slate-500">
-                  Base: <b className="text-slate-800">{lineStats.sumReg.toLocaleString()}</b> Man-Days
+                <span className="text-xs font-bold text-base-content/60">
+                  Base: <b className="text-base-content">{lineStats.sumReg.toLocaleString()}</b> Man-Days
                 </span>
-                <span className="text-[10px] font-bold bg-blue-50 border border-blue-200 px-2 py-0.5 rounded text-blue-800">
+                <span className="text-[10px] font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded text-primary">
                   100% Accounted
                 </span>
               </div>
@@ -1288,7 +1288,7 @@ export default function LineDeepDiveView({
 
           {/* Modern Thick Executive Segmented Bar */}
           <div className="space-y-3 pt-1">
-            <div className="flex h-10 w-full overflow-hidden rounded-2xl bg-slate-100 p-1 border border-slate-200 shadow-sm">
+            <div className="flex h-10 w-full overflow-hidden rounded-2xl bg-base-200 p-1 border border-base-300 shadow-sm">
               {/* Segment 1: Present */}
               <div
                 className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-full rounded-l-xl transition-all flex items-center justify-center px-2 shadow-xs shrink-0"
@@ -1332,16 +1332,16 @@ export default function LineDeepDiveView({
             </div>
 
             {/* Quick Stat Indicators */}
-            <div className="flex items-center justify-between text-xs font-mono font-bold px-1 text-slate-500">
+            <div className="flex items-center justify-between text-xs font-mono font-bold px-1 text-base-content/60">
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                <span>Active: <b>{lineStats.sumPresent.toLocaleString()}</b> ops</span>
+                <span>Active: <b className="text-base-content">{lineStats.sumPresent.toLocaleString()}</b> ops</span>
               </span>
-              <span className="flex items-center gap-1.5 text-rose-600">
+              <span className="flex items-center gap-1.5 text-rose-500">
                 <span className="h-2 w-2 rounded-full bg-rose-500" />
                 <span>Absences: <b>{lineStats.sumAbsent}</b> persons</span>
               </span>
-              <span className="flex items-center gap-1.5 text-slate-600">
+              <span className="flex items-center gap-1.5 text-base-content/70">
                 <span className="h-2 w-2 rounded-full bg-slate-500" />
                 <span>Scheduled Off: <b>{lineStats.shiftOffPct}%</b></span>
               </span>
@@ -1350,32 +1350,32 @@ export default function LineDeepDiveView({
 
           {/* 3 Explanation Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3">
-              <div className="flex items-center justify-between text-emerald-800 font-bold">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+              <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 font-bold">
                 <span>Active On-Line</span>
                 <span>{lineStats.overallAttRate}%</span>
               </div>
-              <p className="text-[11px] text-emerald-700/90 mt-1">
+              <p className="text-[11px] text-emerald-600/90 dark:text-emerald-400/80 mt-1">
                 Employees clocked-in on line ({lineStats.sumPresent.toLocaleString()} person-days)
               </p>
             </div>
 
-            <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-3">
-              <div className="flex items-center justify-between text-rose-800 font-bold">
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3">
+              <div className="flex items-center justify-between text-rose-600 dark:text-rose-400 font-bold">
                 <span>Unplanned Leaves</span>
                 <span>{lineStats.overallLeaveRate}%</span>
               </div>
-              <p className="text-[11px] text-rose-700/90 mt-1">
+              <p className="text-[11px] text-rose-600/90 dark:text-rose-400/80 mt-1">
                 {lineStats.sumAbsent} person-days ({lineStats.anomalyCount} days exceeded 8% limit)
               </p>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <div className="flex items-center justify-between text-slate-800 font-bold">
+            <div className="rounded-xl border border-base-300 bg-base-200 p-3">
+              <div className="flex items-center justify-between text-base-content font-bold">
                 <span>Scheduled Off</span>
                 <span>{lineStats.shiftOffPct}%</span>
               </div>
-              <p className="text-[11px] text-slate-600 mt-1">
+              <p className="text-[11px] text-base-content/60 mt-1">
                 Rotation day-off &amp; Help-Out — not counted as absence
               </p>
             </div>
@@ -1387,72 +1387,72 @@ export default function LineDeepDiveView({
       {/* ─────────────────────────────────────────────────────────────
           SMART EXECUTIVE INSIGHTS & ACTIONABLE RECOMMENDATIONS
       ───────────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-slate-50/80 via-white to-blue-50/30">
+      <div className="rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-base-200/50 via-base-100 to-base-200/30">
         <div className="flex items-start gap-3">
-          <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-xs shrink-0 mt-0.5">
+          <div className="p-2.5 rounded-xl bg-primary text-primary-content shadow-xs shrink-0 mt-0.5">
             <Sparkles className="h-5 w-5" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
+              <h3 className="text-xs font-black uppercase tracking-wider text-base-content">
                 Executive Diagnostics &amp; Operational Health
               </h3>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${lineStats.tierColor}`}>
                 TIER {lineStats.tier} · {lineStats.score}/100
               </span>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-base-content/70 leading-relaxed">
               {lineStats.overallAttRate >= 95 ? (
-                <span>• Line attendance is robust at <b className="text-emerald-700 font-bold">{lineStats.overallAttRate}%</b>, fully meeting the 95% threshold.</span>
+                <span>• Line attendance is robust at <b className="text-emerald-600 dark:text-emerald-400 font-bold">{lineStats.overallAttRate}%</b>, fully meeting the 95% threshold.</span>
               ) : (
-                <span>• Attendance is at <b className="text-rose-700 font-bold">{lineStats.overallAttRate}%</b> (below 95% target). Recommend workforce replenishment.</span>
+                <span>• Attendance is at <b className="text-rose-600 dark:text-rose-400 font-bold">{lineStats.overallAttRate}%</b> (below 95% target). Recommend workforce replenishment.</span>
               )}
               {" "}
               {lineStats.overallLeaveRate <= 5 ? (
-                <span>• Unplanned leave rate is healthy (<b className="text-emerald-700">{lineStats.overallLeaveRate}%</b>).</span>
+                <span>• Unplanned leave rate is healthy (<b className="text-emerald-600 dark:text-emerald-400">{lineStats.overallLeaveRate}%</b>).</span>
               ) : (
-                <span>• Elevated unplanned leaves (<b className="text-rose-700">{lineStats.overallLeaveRate}%</b> &gt; 5% target) across <b className="text-rose-700">{lineStats.anomalyCount} days</b>.</span>
+                <span>• Elevated unplanned leaves (<b className="text-rose-600 dark:text-rose-400">{lineStats.overallLeaveRate}%</b> &gt; 5% target) across <b className="text-rose-600 dark:text-rose-400">{lineStats.anomalyCount} days</b>.</span>
               )}
               {" "}
               {lineStats.otReliancePct > 25 ? (
-                <span>• High overtime reliance (<b className="text-amber-700">{lineStats.otReliancePct}%</b> of total {lineStats.totalManHours.toLocaleString()}h). Monitor operator fatigue.</span>
+                <span>• High overtime reliance (<b className="text-amber-600 dark:text-amber-400">{lineStats.otReliancePct}%</b> of total {lineStats.totalManHours.toLocaleString()}h). Monitor operator fatigue.</span>
               ) : (
-                <span>• OT workload is balanced (<b className="text-slate-800">{lineStats.otReliancePct}%</b>).</span>
+                <span>• OT workload is balanced (<b className="text-base-content font-bold">{lineStats.otReliancePct}%</b>).</span>
               )}
               {" "}
               <span>
-                • Mobility status: <b className="text-slate-800">{lineStats.netHelp > 0 ? `Net Receiver (+${lineStats.sumHelpIn}h borrowed)` : lineStats.netHelp < 0 ? `Net Supplier (-${lineStats.sumHelpOut}h loaned)` : "Self-sufficient (0h net)"}</b>.
+                • Mobility status: <b className="text-base-content font-bold">{lineStats.netHelp > 0 ? `Net Receiver (+${lineStats.sumHelpIn}h borrowed)` : lineStats.netHelp < 0 ? `Net Supplier (-${lineStats.sumHelpOut}h loaned)` : "Self-sufficient (0h net)"}</b>.
               </span>
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0 self-end md:self-center text-xs font-mono">
-          <div className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-2xs text-right">
-            <span className="text-[9px] text-slate-400 block font-sans uppercase">Mobility Balance</span>
-            <span className={`font-black ${lineStats.netHelp > 0 ? "text-emerald-600" : lineStats.netHelp < 0 ? "text-purple-600" : "text-slate-700"}`}>
+          <div className="rounded-xl border border-base-300 bg-base-100 px-3 py-1.5 shadow-2xs text-right">
+            <span className="text-[9px] text-base-content/50 block font-sans uppercase">Mobility Balance</span>
+            <span className={`font-black ${lineStats.netHelp > 0 ? "text-emerald-500" : lineStats.netHelp < 0 ? "text-purple-500" : "text-base-content/70"}`}>
               {lineStats.netHelp > 0 ? `+${lineStats.netHelp}h` : `${lineStats.netHelp}h`}
             </span>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 shadow-2xs text-right">
-            <span className="text-[9px] text-slate-400 block font-sans uppercase">Yield Status</span>
-            <span className="font-black text-slate-900">{lineStats.statusDesc.split("/")[0].trim()}</span>
+          <div className="rounded-xl border border-base-300 bg-base-100 px-3 py-1.5 shadow-2xs text-right">
+            <span className="text-[9px] text-base-content/50 block font-sans uppercase">Yield Status</span>
+            <span className="font-black text-base-content">{lineStats.statusDesc.split("/")[0].trim()}</span>
           </div>
         </div>
       </div>
 
 
       {/* ─────────────────────────────────────────────────────────────
-          ZONE 5: AUDIT LOG GRID WITH SMART FILTERS (CLEAN WHITE)
+          ZONE 5: AUDIT LOG GRID WITH SMART FILTERS
       ───────────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="border-b border-slate-200 bg-slate-50/80 px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div className="rounded-2xl border border-base-300 bg-base-100 shadow-sm overflow-hidden">
+        <div className="border-b border-base-300 bg-base-200/80 px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Workflow className="h-4 w-4 text-blue-600" />
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
+            <Workflow className="h-4 w-4 text-primary" />
+            <h3 className="text-xs font-black uppercase tracking-wider text-base-content">
               Precision Chrono Audit Log // {selectedMonth}
             </h3>
-            <span className="rounded bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+            <span className="rounded bg-base-300 px-2 py-0.5 text-[10px] font-bold text-base-content/80">
               {displayedDailyRecords.length} records
             </span>
           </div>
@@ -1463,7 +1463,7 @@ export default function LineDeepDiveView({
               type="button"
               onClick={() => setFilterSeverity("all")}
               className={`rounded-lg px-2.5 py-1 transition cursor-pointer ${
-                filterSeverity === "all" ? "bg-blue-600 text-white shadow-xs" : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200"
+                filterSeverity === "all" ? "bg-primary text-primary-content shadow-xs" : "bg-base-100 text-base-content/70 hover:text-base-content border border-base-300"
               }`}
             >
               ALL DAYS
@@ -1472,7 +1472,7 @@ export default function LineDeepDiveView({
               type="button"
               onClick={() => setFilterSeverity("anomaly")}
               className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 transition cursor-pointer ${
-                filterSeverity === "anomaly" ? "bg-rose-600 text-white shadow-xs" : "bg-white text-rose-600 hover:bg-rose-50 border border-rose-200"
+                filterSeverity === "anomaly" ? "bg-rose-600 text-white shadow-xs" : "bg-base-100 text-rose-500 hover:bg-rose-500/10 border border-rose-500/30"
               }`}
             >
               <AlertTriangle className="h-3 w-3" />
@@ -1482,7 +1482,7 @@ export default function LineDeepDiveView({
               type="button"
               onClick={() => setFilterSeverity("weekend")}
               className={`rounded-lg px-2.5 py-1 transition cursor-pointer ${
-                filterSeverity === "weekend" ? "bg-slate-800 text-white shadow-xs" : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200"
+                filterSeverity === "weekend" ? "bg-base-300 text-base-content shadow-xs" : "bg-base-100 text-base-content/70 hover:text-base-content border border-base-300"
               }`}
             >
               HOLIDAYS
@@ -1492,7 +1492,7 @@ export default function LineDeepDiveView({
 
         <div className="overflow-x-auto max-h-96 overflow-y-auto">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="sticky top-0 bg-slate-100 text-slate-700 font-black text-[11px] border-b border-slate-200 z-10 uppercase tracking-wider">
+            <thead className="sticky top-0 bg-base-200 text-base-content font-black text-[11px] border-b border-base-300 z-10 uppercase tracking-wider">
               <tr>
                 <th className="py-2.5 px-3 text-center">Date</th>
                 <th className="py-2.5 px-3 text-center">Status</th>
@@ -1507,62 +1507,62 @@ export default function LineDeepDiveView({
                 <th className="py-2.5 px-3 text-center">Help Net</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-700 font-mono">
+            <tbody className="divide-y divide-base-300 font-medium text-base-content/90 font-mono">
               {displayedDailyRecords.map((r) => (
                 <tr
                   key={r.day}
-                  className={`transition-colors hover:bg-blue-50/50 ${
+                  className={`transition-colors hover:bg-base-200/50 ${
                     r.isHoliday
-                      ? "bg-slate-50/80 text-slate-400"
+                      ? "bg-base-200/30 text-base-content/40"
                       : r.hasAnomaly
-                        ? "bg-rose-50/40"
+                        ? "bg-rose-500/10"
                         : ""
                   }`}
                 >
-                  <td className="py-2.5 px-3 text-center font-bold text-slate-900">
+                  <td className="py-2.5 px-3 text-center font-bold text-base-content">
                     Day {r.day}
                   </td>
                   <td className="py-2.5 px-3 text-center">
                     {r.isHoliday ? (
-                      <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 font-sans font-bold">HOLIDAY</span>
+                      <span className="rounded bg-base-300 px-1.5 py-0.5 text-[10px] text-base-content/60 font-sans font-bold">HOLIDAY</span>
                     ) : r.hasAnomaly ? (
                       <div className="flex flex-col items-center gap-0.5">
-                        <span className="rounded bg-rose-100 border border-rose-200 px-2 py-0.5 text-[10px] font-black text-rose-700 shadow-xs">
+                        <span className="rounded bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 text-[10px] font-black text-rose-500 shadow-xs">
                           ⚠ ANOMALY
                         </span>
-                        <span className="text-[9px] text-rose-600 font-sans font-bold leading-tight text-center max-w-[150px]">
+                        <span className="text-[9px] text-rose-500 font-sans font-bold leading-tight text-center max-w-[150px]">
                           {r.anomalyReasons.join(" • ")}
                         </span>
                       </div>
                     ) : (
-                      <span className="rounded bg-emerald-100 border border-emerald-200 px-1.5 py-0.5 text-[10px] font-black text-emerald-700">
+                      <span className="rounded bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 text-[10px] font-black text-emerald-600 dark:text-emerald-400">
                         NOMINAL
                       </span>
                     )}
                   </td>
-                  <td className="py-2.5 px-3 text-center text-slate-600">{r.reg}</td>
-                  <td className="py-2.5 px-3 text-center font-bold text-slate-900">{r.present}</td>
+                  <td className="py-2.5 px-3 text-center text-base-content/70">{r.reg}</td>
+                  <td className="py-2.5 px-3 text-center font-bold text-base-content">{r.present}</td>
                   <td className="py-2.5 px-3 text-center">
-                    <span className={`font-bold ${r.attRate >= 95 ? "text-emerald-600" : r.attRate >= 90 ? "text-amber-600" : "text-rose-600"}`}>
+                    <span className={`font-bold ${r.attRate >= 95 ? "text-emerald-500" : r.attRate >= 90 ? "text-amber-500" : "text-rose-500"}`}>
                       {r.attRate}%
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-center text-slate-600">{r.absent}</td>
+                  <td className="py-2.5 px-3 text-center text-base-content/70">{r.absent}</td>
                   <td className="py-2.5 px-3 text-center">
-                    <span className={`font-bold ${r.leaveRate > 5 ? "text-rose-600" : "text-slate-600"}`}>
+                    <span className={`font-bold ${r.leaveRate > 5 ? "text-rose-500" : "text-base-content/70"}`}>
                       {r.leaveRate}%
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-center text-slate-700">{r.normalHr.toLocaleString()}</td>
-                  <td className="py-2.5 px-3 text-center font-bold text-amber-700">{r.otHr.toLocaleString()}</td>
-                  <td className="py-2.5 px-3 text-center font-black text-blue-900">{r.totalManHours.toLocaleString()}</td>
+                  <td className="py-2.5 px-3 text-center text-base-content/80">{r.normalHr.toLocaleString()}</td>
+                  <td className="py-2.5 px-3 text-center font-bold text-amber-500">{r.otHr.toLocaleString()}</td>
+                  <td className="py-2.5 px-3 text-center font-black text-primary">{r.totalManHours.toLocaleString()}</td>
                   <td className="py-2.5 px-3 text-center">
                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                       r.netHelp > 0
-                        ? "bg-emerald-100 text-emerald-800"
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                         : r.netHelp < 0
-                          ? "bg-rose-100 text-rose-800"
-                          : "text-slate-500"
+                          ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                          : "text-base-content/50"
                     }`}>
                       {r.netHelp > 0 ? `+${r.netHelp}` : r.netHelp}h
                     </span>

@@ -408,12 +408,12 @@ export default function ManHourChart({
         type: 'category',
         data: labels,
         axisLine: {
-          lineStyle: { color: '#cbd5e1' },
+          lineStyle: { color: '#94a3b8' },
         },
         axisTick: { show: false },
         axisLabel: {
           formatter: (val: string) => isLine ? shortenGraphLineLabel(val) : val,
-          color: '#000000',
+          color: '#94a3b8',
           fontSize: isLine ? 10 : 11,
           interval: 0,
           rotate: isLine ? -28 : 0,
@@ -424,12 +424,12 @@ export default function ManHourChart({
         min: 0,
         axisLine: {
           show: true,
-          lineStyle: { color: '#cbd5e1' },
+          lineStyle: { color: '#94a3b8' },
         },
         axisTick: { show: false },
         splitLine: { show: false },
         axisLabel: {
-          color: '#475569',
+          color: '#94a3b8',
           fontSize: 11,
         },
       },
@@ -497,7 +497,7 @@ export default function ManHourChart({
 
       {isTooltipActive && activePoint && (
         <div
-          className="pointer-events-auto absolute z-50 flex max-h-[450px] w-[360px] max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-3 text-xs shadow-xl transition-all duration-75"
+          className="pointer-events-auto absolute z-50 flex max-h-[450px] w-[360px] max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 p-3 text-xs shadow-xl transition-all duration-75 text-base-content"
           style={{
             left: tooltipX,
             top: 16,
@@ -511,29 +511,29 @@ export default function ManHourChart({
           onMouseMove={event => event.stopPropagation()}
           onWheel={event => event.stopPropagation()}
         >
-          <div className="mb-2 font-black text-slate-700">{heading}</div>
+          <div className="mb-2 font-black text-base-content">{heading}</div>
           {graphGroup === 'persons' ? (
             <div className="mb-2 space-y-1">
-              <div className="flex justify-between gap-4 text-sky-600">
+              <div className="flex justify-between gap-4 text-sky-500 font-bold">
                 <span>{selectedStatuses.length === 1 ? `${selectedStatuses[0]} Present` : 'Working'}</span>
                 <span className="font-black">{Number(activePoint.working || 0).toLocaleString()} Persons</span>
               </div>
-              <div className="flex justify-between gap-4 text-rose-500">
+              <div className="flex justify-between gap-4 text-rose-500 font-bold">
                 <span>{selectedStatuses.length === 1 ? `${selectedStatuses[0]} Absent` : 'Leave'}</span>
                 <span className="font-black">{Number(activePoint.leave || 0).toLocaleString()} Persons</span>
               </div>
               {Number(activePoint.leaveRate || 0) > 0 && (
-                <div className="flex justify-between gap-4 text-rose-500">
+                <div className="flex justify-between gap-4 text-rose-500 font-bold">
                   <span>{selectedStatuses.length === 1 ? `${selectedStatuses[0]} absent rate` : 'Leave rate'}</span>
                   <span className="font-black">{Number(activePoint.leaveRate).toFixed(1)}%</span>
                 </div>
               )}
               {isSplitWorkingByLine && (
-                <div className="space-y-1 border-t border-slate-100 pt-2">
+                <div className="space-y-1 border-t border-base-200 pt-2">
                   {selectedGraphLines.map((lineName, index) => (
                     <div
                       key={lineName}
-                      className="flex min-w-0 justify-between gap-3"
+                      className="flex min-w-0 justify-between gap-3 font-semibold"
                       style={{ color: MULTI_LINE_WORKING_COLORS[index % MULTI_LINE_WORKING_COLORS.length] }}
                     >
                       <span className="min-w-0 truncate" title={lineName}>{lineName}</span>
@@ -553,24 +553,24 @@ export default function ManHourChart({
               </span>
             </div>
           )}
-          <div className="flex min-h-0 flex-1 flex-col border-t border-slate-100 pt-2">
-            <div className="mb-1 shrink-0 font-black text-slate-700">Status (Persons)</div>
+          <div className="flex min-h-0 flex-1 flex-col border-t border-base-200 pt-2">
+            <div className="mb-1 shrink-0 font-black text-base-content">Status (Persons)</div>
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain pr-1 [scrollbar-gutter:stable]">
               {statuses.length > 0 ? (
                 statuses.map(item => (
-                  <div key={item.status} className="text-slate-600">
+                  <div key={item.status} className="text-base-content/80">
                     <div className="flex justify-between gap-4">
                       <span>{item.status}</span>
-                      <span className="font-black text-violet-600">{item.count.toLocaleString()}</span>
+                      <span className="font-black text-primary">{item.count.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-[11px] font-semibold">
-                      <span className="text-sky-600">Present {item.present.toLocaleString()}</span>
+                      <span className="text-sky-500">Present {item.present.toLocaleString()}</span>
                       <span className="text-rose-500">Absent {item.absent.toLocaleString()}</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-slate-400">
+                <div className="text-base-content/40">
                   {manhourRecordsCount === 0 ? 'Loading status details...' : 'No status details for this selection'}
                 </div>
               )}
