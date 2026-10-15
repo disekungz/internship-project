@@ -21,6 +21,7 @@ echarts.use([
   CanvasRenderer,
 ]);
 import { ChartRow } from "../types";
+import { getThemeColors, observeThemeChanges } from "@/themeUtils";
 
 export interface LeadTimeGroupColor {
   name: string;
@@ -305,8 +306,19 @@ const WipEChartComponent: React.FC<WipEChartProps> = ({
 
   const showDeferredLabels = true;
 
+  // ติดตามการเปลี่ยนธีมของเว็บ (daisyUI data-theme)
+  const [themeColors, setThemeColors] = useState<any>(() => getThemeColors());
+  useEffect(() => {
+    const update = () => setThemeColors(getThemeColors());
+    update();
+    const ob = observeThemeChanges(update);
+    return () => ob.disconnect();
+  }, []);
+
   // สร้างอ็อบเจ็กต์ Option สำหรับ ECharts
   const option = useMemo<echarts.EChartsOption>(() => {
+    const axisTextColor = themeColors["base-content"] || "#64748b";
+    const axisLineColor = themeColors["base-300"] || "#e2e8f0";
     const isThisChartSelected = selectedChartId === chartId;
 
     // รายการ Series ข้อมูลกราฟ
@@ -664,12 +676,12 @@ const WipEChartComponent: React.FC<WipEChartProps> = ({
         max: yAxisMax,
         axisLine: {
           show: !hideYAxisLabels,
-          lineStyle: { color: "#e2e8f0", width: 1 },
+          lineStyle: { color: axisLineColor, width: 1 },
         },
         axisTick: { show: false },
         axisLabel: {
           show: !hideYAxisLabels,
-          color: "#64748b",
+          color: axisTextColor,
           fontSize: 11,
           margin: 8,
           formatter: (val: number) => val.toLocaleString(),
@@ -677,7 +689,7 @@ const WipEChartComponent: React.FC<WipEChartProps> = ({
         splitLine: {
           show: true,
           lineStyle: {
-            color: "#e2e8f0",
+            color: axisLineColor,
             type: "dashed",
             dashOffset: 3,
           },
@@ -694,7 +706,7 @@ const WipEChartComponent: React.FC<WipEChartProps> = ({
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: {
-          color: "#64748b",
+          color: axisTextColor,
           fontSize: 11,
           margin: 8,
           formatter: (val: number) => val.toLocaleString(),
@@ -723,7 +735,7 @@ const WipEChartComponent: React.FC<WipEChartProps> = ({
         axisTick: { show: false },
         axisLabel: {
           rotate: 90,
-          color: "#64748b",
+          color: axisTextColor,
           fontSize: 11,
           interval: 0,
           margin: 12,
@@ -753,6 +765,7 @@ const WipEChartComponent: React.FC<WipEChartProps> = ({
     showDeferredLabels,
     hideYAxisLabels,
     enableScroll,
+    themeColors,
   ]);
 
   const [activeTooltip, setActiveTooltip] = useState<{

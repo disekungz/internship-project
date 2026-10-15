@@ -1017,26 +1017,26 @@ const Page = () => {
   const renderLoadingSkeleton = () => (
     <div className="animate-pulse space-y-6">
       {/* Skeleton กราฟหลัก */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="h-5 w-36 rounded-md bg-slate-200" />
+            <div className="h-5 w-36 rounded-md bg-base-300" />
             <div className="h-5 w-24 rounded-full bg-blue-100" />
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-4 w-16 rounded bg-slate-200" />
-            <div className="h-4 w-16 rounded bg-slate-200" />
-            <div className="h-4 w-16 rounded bg-slate-200" />
+            <div className="h-4 w-16 rounded bg-base-300" />
+            <div className="h-4 w-16 rounded bg-base-300" />
+            <div className="h-4 w-16 rounded bg-base-300" />
           </div>
         </div>
 
         {/* กราฟจำลอง ขนาดใหญ่ขึ้น แท่งชัดเจน */}
-        <div className="relative h-[560px] w-full rounded-2xl bg-gradient-to-b from-slate-50/60 to-slate-100/40 p-6 flex flex-col justify-end">
+        <div className="relative h-[560px] w-full rounded-2xl bg-base-200 p-6 flex flex-col justify-end">
           <div className="absolute inset-x-6 top-8 bottom-12 flex flex-col justify-between pointer-events-none opacity-50">
-            <div className="border-b border-dashed border-slate-300 w-full" />
-            <div className="border-b border-dashed border-slate-300 w-full" />
-            <div className="border-b border-dashed border-slate-300 w-full" />
-            <div className="border-b border-dashed border-slate-300 w-full" />
+            <div className="border-b border-dashed border-base-300 w-full" />
+            <div className="border-b border-dashed border-base-300 w-full" />
+            <div className="border-b border-dashed border-base-300 w-full" />
+            <div className="border-b border-dashed border-base-300 w-full" />
           </div>
 
           {/* แท่ง Skeleton Bars ขนาดใหญ่และหนาขึ้น */}
@@ -1047,7 +1047,7 @@ const Page = () => {
                   className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-blue-400/50 via-blue-300/40 to-blue-200/30 border-t-2 border-blue-400/40"
                   style={{ height: `${heightPct}%` }}
                 />
-                <div className="h-3 w-8 sm:w-10 rounded-full bg-slate-200" />
+                <div className="h-3 w-8 sm:w-10 rounded-full bg-base-300" />
               </div>
             ))}
           </div>
@@ -1057,19 +1057,19 @@ const Page = () => {
       {/* Skeleton กราฟย่อยด้านล่าง */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {[1, 2].map((cardIdx) => (
-          <div key={cardIdx} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div key={cardIdx} className="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <div className="h-5 w-28 rounded-md bg-slate-200" />
-              <div className="h-4 w-20 rounded-full bg-slate-100" />
+              <div className="h-5 w-28 rounded-md bg-base-300" />
+              <div className="h-4 w-20 rounded-full bg-base-200" />
             </div>
-            <div className="h-[320px] w-full rounded-2xl bg-slate-50 flex items-end justify-between gap-3 p-4">
+            <div className="h-[320px] w-full rounded-2xl bg-base-200 flex items-end justify-between gap-3 p-4">
               {[50, 70, 40, 85, 60, 75, 90, 65, 55].map((h, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
                   <div
                     className="w-full max-w-[32px] rounded-t-md bg-gradient-to-t from-blue-300/50 to-blue-200/40"
                     style={{ height: `${h}%` }}
                   />
-                  <div className="h-2.5 w-6 rounded-full bg-slate-200" />
+                  <div className="h-2.5 w-6 rounded-full bg-base-300" />
                 </div>
               ))}
             </div>
@@ -1103,7 +1103,7 @@ const Page = () => {
       aria-label="WIP History Dashboard"
       className={`h-full w-full ${
         drillDownModalOpen ? "overflow-hidden" : "overflow-y-auto"
-      } overflow-x-hidden bg-slate-50 p-4 sm:p-6 pb-12`}
+      } overflow-x-hidden bg-base-200 p-4 sm:p-6 pb-12`}
     >
       <style>{`.recharts-wrapper, .recharts-wrapper *, .recharts-wrapper:focus, .recharts-wrapper:focus-visible, .recharts-surface, .recharts-surface:focus { outline: none !important; border: none !important; box-shadow: none !important; } .recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line { stroke: transparent !important; }`}</style>
       <h1 className="mb-4 flex items-center gap-3 rounded-xl bg-gradient-to-br from-blue-900 to-blue-500 px-4 py-5 text-2xl font-bold text-white shadow-sm">
@@ -1135,8 +1135,8 @@ const Page = () => {
           marginBottom: 20,
           padding: 16,
           borderRadius: 16,
-          border: "1px solid #e2e8f0",
-          background: "#fff",
+          border: "1px solid var(--color-base-300)",
+          background: "var(--color-base-100)",
           boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
           width: "100%",
           maxWidth: "100%",
@@ -1167,9 +1167,9 @@ const Page = () => {
         />
 
         {/* สถานะ Lot ในรูปแบบ Checkbox */}
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50">
-          <Tags size={16} className="text-slate-400 shrink-0" />
-          <span className="text-sm font-semibold text-slate-700 mr-1 select-none">
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-base-300 bg-base-200">
+          <Tags size={16} className="text-base-content/60 shrink-0" />
+          <span className="text-sm font-semibold text-base-content mr-1 select-none">
             Lot Status:
           </span>
           <div className="flex items-center gap-3">
@@ -1181,7 +1181,7 @@ const Page = () => {
                   className={`flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none px-2 py-1 rounded-lg transition-all ${
                     isChecked
                       ? "bg-blue-600 text-white shadow-sm"
-                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                      : "bg-base-100 text-base-content border border-base-300 hover:bg-base-300"
                   }`}
                 >
                   <input
@@ -1364,7 +1364,7 @@ const Page = () => {
       </div>
 
       <div
-        className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-2xl border border-slate-200 bg-white shadow-xs"
+        className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-2xl border border-base-300 bg-base-100 shadow-xs"
         style={{
           width: "100%",
           maxWidth: "100%",
@@ -1374,7 +1374,7 @@ const Page = () => {
       >
         {" "}
         {/* ป้ายคำอธิบายสีกลุ่ม Lead Time */}
-        <span className="text-xs font-black uppercase tracking-wider text-slate-500 shrink-0 mr-1">
+        <span className="text-xs font-black uppercase tracking-wider text-base-content/60 shrink-0 mr-1">
           Lead Time :
         </span>
         {leadTimeGroupList.map((group) => (
@@ -1393,11 +1393,11 @@ const Page = () => {
                 boxShadow: `0 0 0 2px ${group.color}25`,
               }}
             />
-            <span style={{ color: "#334155" }}>{group.name}</span>
+            <span style={{ color: "var(--color-base-content)" }}>{group.name}</span>
           </div>
         ))}
         {/* Divider */}
-        <span className="w-px h-5 bg-slate-200 mx-1 shrink-0" />
+        <span className="w-px h-5 bg-base-300 mx-1 shrink-0" />
         {/* ป้ายคำอธิบายเส้น Total Target */}
         <div
           className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border border-rose-200 bg-rose-50/60 shadow-xs"
@@ -1461,20 +1461,20 @@ const Page = () => {
         ) : viewMode === "process" ? (
           <>
             <div
-              className="rounded-3xl border border-slate-200 bg-white p-4"
+              className="rounded-3xl border border-base-300 bg-base-100 p-4"
               style={{
                 boxShadow:
                   "0 10px 40px -4px rgba(0,0,0,0.18), 0 4px 16px -2px rgba(0,0,0,0.10)",
               }}
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-semibold text-slate-700">
+                <div className="text-sm font-semibold text-base-content">
                   WIP History
                 </div>
                 {selectedDate && selectedChartId === "main" && (
                   <button
                     onClick={clearStackSelection}
-                    className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                    className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-base-content bg-base-200 hover:bg-base-300 rounded-lg transition"
                   >
                     <span>Clear Selection</span>
                     <span>×</span>
@@ -1532,12 +1532,12 @@ const Page = () => {
                   : (selectedRow.total ?? 0);
 
                 return (
-                  <div className="mb-4 rounded-2xl border-2 border-indigo-100 bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30 p-4 shadow-sm transition-all animate-fadeIn">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                  <div className="mb-4 rounded-2xl border-2 border-base-300 bg-base-200 p-4 shadow-sm transition-all animate-fadeIn">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-base-300 pb-3">
                       <div className="flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-black uppercase tracking-wider text-slate-400">Date:</span>
-                          <span className="text-sm font-black text-slate-800">{selectedRow.label}</span>
+                          <span className="text-xs font-black uppercase tracking-wider text-base-content/60">Date:</span>
+                          <span className="text-sm font-black text-base-content">{selectedRow.label}</span>
                         </div>
                         {selectedGroup ? (
                           <span
@@ -1554,7 +1554,7 @@ const Page = () => {
                             {selectedGroup.name}
                           </span>
                         ) : (
-                          <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-base-200 text-base-content border border-base-300">
                             All Stacks (Whole Day)
                           </span>
                         )}
@@ -1584,7 +1584,7 @@ const Page = () => {
                     {leadTimeItems.length > 0 && (
                       <div className="mt-3">
                         <div className="flex items-center justify-between mb-1.5">
-                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                          <div className="text-[10px] font-black uppercase tracking-wider text-base-content/60">
                             {selectedStackKey ? "Selected Lead Time Group" : "Lead Time Breakdown (All Groups)"}
                           </div>
                           <span className="text-[10px] font-bold text-indigo-500 italic">
@@ -1610,8 +1610,8 @@ const Page = () => {
                                   boxShadow: `0 0 0 2px ${item.color}35`,
                                 }}
                               />
-                              <span style={{ color: "#1e293b" }}>{item.name}:</span>
-                              <span className="font-black text-slate-900">{item.value.toLocaleString()}</span>
+                              <span style={{ color: "var(--color-base-content)" }}>{item.name}:</span>
+                              <span className="font-black text-base-content">{item.value.toLocaleString()}</span>
                             </div>
                           ))}
                         </div>
@@ -1620,16 +1620,16 @@ const Page = () => {
 
                     {/* Process Breakdown */}
                     {processItems.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-slate-100">
+                      <div className="mt-3 pt-3 border-t border-base-300">
                         <div className="flex items-center justify-between mb-1.5">
-                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                          <div className="text-[10px] font-black uppercase tracking-wider text-base-content/60">
                             {selectedStackKey ? `Process in ${selectedGroup?.name || "Group"}` : "Process Breakdown"}
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold text-indigo-500 italic">
                               💡 Click process to view Lots & Aging details
                             </span>
-                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                            <span className="text-[10px] font-bold text-base-content/60 bg-base-200 px-2 py-0.5 rounded">
                               {processItems.length} items
                             </span>
                           </div>
@@ -1661,8 +1661,8 @@ const Page = () => {
                                     boxShadow: `0 0 0 2.5px ${ringStyle}`,
                                   }}
                                 />
-                                <span style={{ color: "#1e293b" }}>{item.name}:</span>
-                                <span className="font-black text-slate-900">{item.value.toLocaleString()}</span>
+                                <span style={{ color: "var(--color-base-content)" }}>{item.name}:</span>
+                                <span className="font-black text-base-content">{item.value.toLocaleString()}</span>
                               </div>
                             );
                           })}
@@ -1674,7 +1674,7 @@ const Page = () => {
               })()}
 
               {visibleChartData.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-16 text-center text-sm font-medium text-slate-500">
+                <div className="rounded-2xl border border-dashed border-base-300 bg-base-200 px-4 py-16 text-center text-sm font-medium text-base-content/60">
                   No data matching filters
                 </div>
               ) : (
@@ -1703,7 +1703,7 @@ const Page = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        background: "#fff",
+                        background: "var(--color-base-100)",
                       }}
                     >
                       <div
@@ -1711,7 +1711,7 @@ const Page = () => {
                           writingMode: "vertical-rl",
                           transform: "rotate(180deg)",
                           fontSize: 12,
-                          color: "#475569",
+                          color: "var(--color-base-content)",
                           fontWeight: 600,
                           letterSpacing: "0.06em",
                         }}
@@ -1817,20 +1817,20 @@ const Page = () => {
                 return (
                   <div
                     key={group}
-                    className="rounded-3xl border border-slate-200 bg-white p-4"
+                    className="rounded-3xl border border-base-300 bg-base-100 p-4"
                     style={{
                       boxShadow:
                         "0 10px 40px -4px rgba(0,0,0,0.18), 0 4px 16px -2px rgba(0,0,0,0.10)",
                     }}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm font-semibold text-slate-700">
+                      <div className="text-sm font-semibold text-base-content">
                         {group}
                       </div>
                       {isSelected && (
                         <button
                           onClick={clearStackSelection}
-                          className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                          className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-base-content bg-base-200 hover:bg-base-300 rounded-lg transition"
                         >
                           <span>Clear Selection</span>
                           <span>×</span>
@@ -1888,12 +1888,12 @@ const Page = () => {
                         : (selectedRow.total ?? 0);
 
                       return (
-                        <div className="mb-4 rounded-2xl border-2 border-indigo-100 bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30 p-4 shadow-sm transition-all animate-fadeIn">
-                          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div className="mb-4 rounded-2xl border-2 border-base-300 bg-base-200 p-4 shadow-sm transition-all animate-fadeIn">
+                          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-base-300 pb-3">
                             <div className="flex flex-wrap items-center gap-3">
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-black uppercase tracking-wider text-slate-400">Date:</span>
-                                <span className="text-sm font-black text-slate-800">{selectedRow.label}</span>
+                                <span className="text-xs font-black uppercase tracking-wider text-base-content/60">Date:</span>
+                                <span className="text-sm font-black text-base-content">{selectedRow.label}</span>
                               </div>
                               {selectedGroup ? (
                                 <span
@@ -1910,7 +1910,7 @@ const Page = () => {
                                   {selectedGroup.name}
                                 </span>
                               ) : (
-                                <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-base-200 text-base-content border border-base-300">
                                   All Stacks (Whole Day)
                                 </span>
                               )}
@@ -1934,7 +1934,7 @@ const Page = () => {
                           {leadTimeItems.length > 0 && (
                             <div className="mt-3">
                               <div className="flex items-center justify-between mb-1.5">
-                                <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                <div className="text-[10px] font-black uppercase tracking-wider text-base-content/60">
                                   {selectedStackKey ? "Selected Lead Time Group" : "Lead Time Breakdown (All Groups)"}
                                 </div>
                                 <span className="text-[10px] font-bold text-indigo-500 italic">
@@ -1960,8 +1960,8 @@ const Page = () => {
                                         boxShadow: `0 0 0 2px ${item.color}35`,
                                       }}
                                     />
-                                    <span style={{ color: "#1e293b" }}>{item.name}:</span>
-                                    <span className="font-black text-slate-900">{item.value.toLocaleString()}</span>
+                                    <span style={{ color: "var(--color-base-content)" }}>{item.name}:</span>
+                                    <span className="font-black text-base-content">{item.value.toLocaleString()}</span>
                                   </div>
                                 ))}
                               </div>
@@ -1970,16 +1970,16 @@ const Page = () => {
 
                           {/* Process Breakdown */}
                           {processItems.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-slate-100">
+                            <div className="mt-3 pt-3 border-t border-base-300">
                               <div className="flex items-center justify-between mb-1.5">
-                                <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                <div className="text-[10px] font-black uppercase tracking-wider text-base-content/60">
                                   {selectedStackKey ? `Process in ${selectedGroup?.name || "Group"}` : "Process Breakdown"}
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-[10px] font-bold text-indigo-500 italic">
                                     💡 Click process to view Lots & Aging details
                                   </span>
-                                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                                  <span className="text-[10px] font-bold text-base-content/60 bg-base-200 px-2 py-0.5 rounded">
                                     {processItems.length} items
                                   </span>
                                 </div>
@@ -2011,8 +2011,8 @@ const Page = () => {
                                           boxShadow: `0 0 0 2.5px ${ringStyle}`,
                                         }}
                                       />
-                                      <span style={{ color: "#1e293b" }}>{item.name}:</span>
-                                      <span className="font-black text-slate-900">{item.value.toLocaleString()}</span>
+                                      <span style={{ color: "var(--color-base-content)" }}>{item.name}:</span>
+                                      <span className="font-black text-base-content">{item.value.toLocaleString()}</span>
                                     </div>
                                   );
                                 })}
@@ -2024,7 +2024,7 @@ const Page = () => {
                     })()}
 
                     {data.length === 0 ? (
-                      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                      <div className="rounded-2xl border border-dashed border-base-300 bg-base-200 px-4 py-10 text-center text-sm text-base-content/60">
                         No data for {group}
                       </div>
                     ) : (
@@ -2053,7 +2053,7 @@ const Page = () => {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              background: "#fff",
+                              background: "var(--color-base-100)",
                             }}
                           >
                             <div
@@ -2061,7 +2061,7 @@ const Page = () => {
                                 writingMode: "vertical-rl",
                                 transform: "rotate(180deg)",
                                 fontSize: 12,
-                                color: "#475569",
+                                color: "var(--color-base-content)",
                                 fontWeight: 600,
                                 letterSpacing: "0.06em",
                               }}
@@ -2175,20 +2175,20 @@ const Page = () => {
               return (
                 <div
                   key={semiGroup}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 min-h-[588px]"
+                  className="rounded-2xl border border-base-300 bg-base-100 p-4 min-h-[588px]"
                   style={{
                     boxShadow:
                       "0 10px 40px -4px rgba(0,0,0,0.18), 0 4px 16px -2px rgba(0,0,0,0.10)",
                   }}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-sm font-semibold text-slate-700">
+                    <div className="text-sm font-semibold text-base-content">
                       {semiGroup}
                     </div>
                     {isSelected && (
                       <button
                         onClick={clearStackSelection}
-                        className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                        className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-base-content bg-base-200 hover:bg-base-300 rounded-lg transition"
                       >
                         <span>Clear Selection</span>
                         <span>×</span>
@@ -2246,12 +2246,12 @@ const Page = () => {
                       : (selectedRow.total ?? 0);
 
                     return (
-                      <div className="mb-4 rounded-2xl border-2 border-indigo-100 bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30 p-4 shadow-sm transition-all animate-fadeIn">
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                      <div className="mb-4 rounded-2xl border-2 border-base-300 bg-base-200 p-4 shadow-sm transition-all animate-fadeIn">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-base-300 pb-3">
                           <div className="flex flex-wrap items-center gap-3">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-black uppercase tracking-wider text-slate-400">Date:</span>
-                              <span className="text-sm font-black text-slate-800">{selectedRow.label}</span>
+                              <span className="text-xs font-black uppercase tracking-wider text-base-content/60">Date:</span>
+                              <span className="text-sm font-black text-base-content">{selectedRow.label}</span>
                             </div>
                             {selectedGroup ? (
                               <span
@@ -2268,7 +2268,7 @@ const Page = () => {
                                 {selectedGroup.name}
                               </span>
                             ) : (
-                              <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                              <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-base-200 text-base-content border border-base-300">
                                 All Stacks (Whole Day)
                               </span>
                             )}
@@ -2292,7 +2292,7 @@ const Page = () => {
                         {leadTimeItems.length > 0 && (
                           <div className="mt-3">
                             <div className="flex items-center justify-between mb-1.5">
-                              <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                              <div className="text-[10px] font-black uppercase tracking-wider text-base-content/60">
                                 {selectedStackKey ? "Selected Lead Time Group" : "Lead Time Breakdown (All Groups)"}
                               </div>
                               <span className="text-[10px] font-bold text-indigo-500 italic">
@@ -2318,8 +2318,8 @@ const Page = () => {
                                       boxShadow: `0 0 0 2px ${item.color}35`,
                                     }}
                                   />
-                                  <span style={{ color: "#1e293b" }}>{item.name}:</span>
-                                  <span className="font-black text-slate-900">{item.value.toLocaleString()}</span>
+                                  <span style={{ color: "var(--color-base-content)" }}>{item.name}:</span>
+                                  <span className="font-black text-base-content">{item.value.toLocaleString()}</span>
                                 </div>
                               ))}
                             </div>
@@ -2328,16 +2328,16 @@ const Page = () => {
 
                         {/* Process Breakdown */}
                         {processItems.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-slate-100">
+                          <div className="mt-3 pt-3 border-t border-base-300">
                             <div className="flex items-center justify-between mb-1.5">
-                              <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                              <div className="text-[10px] font-black uppercase tracking-wider text-base-content/60">
                                 {selectedStackKey ? `Process in ${selectedGroup?.name || "Group"}` : "Process Breakdown"}
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-bold text-indigo-500 italic">
                                   💡 Click process to view Lots & Aging details
                                 </span>
-                                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                                <span className="text-[10px] font-bold text-base-content/60 bg-base-200 px-2 py-0.5 rounded">
                                   {processItems.length} items
                                 </span>
                               </div>
@@ -2369,8 +2369,8 @@ const Page = () => {
                                         boxShadow: `0 0 0 2.5px ${ringStyle}`,
                                       }}
                                     />
-                                    <span style={{ color: "#1e293b" }}>{item.name}:</span>
-                                    <span className="font-black text-slate-900">{item.value.toLocaleString()}</span>
+                                    <span style={{ color: "var(--color-base-content)" }}>{item.name}:</span>
+                                    <span className="font-black text-base-content">{item.value.toLocaleString()}</span>
                                   </div>
                                 );
                               })}
@@ -2382,7 +2382,7 @@ const Page = () => {
                   })()}
 
                   {!data || !data.length ? (
-                    <div className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
+                    <div className="rounded-xl border border-dashed border-base-300 bg-base-100 px-4 py-10 text-center text-sm text-base-content/60">
                       No data for this group
                     </div>
                   ) : (
@@ -2411,7 +2411,7 @@ const Page = () => {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            background: "#fff",
+                            background: "var(--color-base-100)",
                           }}
                         >
                           <div
@@ -2419,7 +2419,7 @@ const Page = () => {
                               writingMode: "vertical-rl",
                               transform: "rotate(180deg)",
                               fontSize: 12,
-                              color: "#475569",
+                              color: "var(--color-base-content)",
                               fontWeight: 600,
                               letterSpacing: "0.06em",
                             }}
@@ -2482,9 +2482,9 @@ const Page = () => {
       </div>
       {isExportDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-lg rounded-2xl bg-base-100 p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-slate-800">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-base-content">
                 <FileSpreadsheet size={20} className="text-emerald-600" />
                 Export WIP History
               </h2>
@@ -2492,18 +2492,18 @@ const Page = () => {
                 type="button"
                 aria-label="Close export dialog"
                 onClick={() => setIsExportDialogOpen(false)}
-                className="text-slate-400 hover:text-slate-700"
+                className="text-base-content/60 hover:text-base-content"
               >
                 <X size={20} />
               </button>
             </div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
+            <label className="mb-2 block text-sm font-semibold text-base-content">
               Graph
             </label>
             <select
               value={exportGraph}
               onChange={(event) => setExportGraph(event.target.value)}
-              className="mb-5 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              className="mb-5 w-full rounded-xl border border-base-300 px-3 py-2 text-sm"
             >
               <option value="main">WIP History (Main)</option>
               <option value="efpc">E-FPC Summary</option>
@@ -2514,7 +2514,7 @@ const Page = () => {
                 </option>
               ))}
             </select>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
+            <label className="mb-2 block text-sm font-semibold text-base-content">
               Period
             </label>
             <select
@@ -2524,7 +2524,7 @@ const Page = () => {
                   event.target.value as "current" | "day" | "month",
                 )
               }
-              className="mb-3 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              className="mb-3 w-full rounded-xl border border-base-300 px-3 py-2 text-sm"
             >
               <option value="current">Current filter range</option>
               <option value="day">Specific day</option>
@@ -2535,7 +2535,7 @@ const Page = () => {
                 type="date"
                 value={exportDate}
                 onChange={(event) => setExportDate(event.target.value)}
-                className="mb-5 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                className="mb-5 w-full rounded-xl border border-base-300 px-3 py-2 text-sm"
               />
             )}
             {exportPeriod === "month" && (
@@ -2543,14 +2543,14 @@ const Page = () => {
                 type="month"
                 value={exportMonth}
                 onChange={(event) => setExportMonth(event.target.value)}
-                className="mb-5 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                className="mb-5 w-full rounded-xl border border-base-300 px-3 py-2 text-sm"
               />
             )}
             <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setIsExportDialogOpen(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600"
+                className="rounded-xl border border-base-300 px-4 py-2 text-sm font-semibold text-base-content"
               >
                 Cancel
               </button>

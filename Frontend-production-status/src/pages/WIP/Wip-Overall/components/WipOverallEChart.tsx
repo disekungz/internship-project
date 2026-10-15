@@ -1,6 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import * as echarts from "echarts";
 import { BaseEChart } from "@/components/common/BaseEChart";
+import { getThemeColors, observeThemeChanges } from "@/themeUtils";
 
 /** โครงสร้างข้อมูลแต่ละ Process ในกราฟ */
 interface ChartDataItem {
@@ -39,7 +40,20 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
   onProcessToggle,
   maxAxisY,
 }) => {
+  // ติดตามการเปลี่ยนธีมของเว็บ (daisyUI data-theme)
+  const [themeColors, setThemeColors] = useState<any>(() => getThemeColors());
+  useEffect(() => {
+    const update = () => setThemeColors(getThemeColors());
+    update();
+    const ob = observeThemeChanges(update);
+    return () => ob.disconnect();
+  }, []);
+
   const option = useMemo(() => {
+    const textColor = themeColors["base-content"] || "#334155";
+    const lineColor = themeColors["base-300"] || "#e2e8f0";
+    const panelColor = themeColors["base-200"] || "#f8fafc";
+    const accentColor = themeColors["primary"] || "#4338ca";
     const processNames = data.map((d) => d.name);
     const less1Data = data.map((d) => d.less1);
     // แปลงค่าความสูงขั้นต่ำ 5px ให้อยู่ในหน่วยข้อมูล เพื่อให้แท่งขนาดเล็กยังมองเห็นได้
@@ -147,13 +161,13 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
         boundaryGap: true,
         axisLine: {
           lineStyle: {
-            color: "#e2e8f0",
+            color: lineColor,
           },
         },
         axisTick: {
           alignWithLabel: true,
           lineStyle: {
-            color: "#cbd5e1",
+            color: lineColor,
           },
         },
         axisLabel: {
@@ -163,7 +177,7 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
           fontSize: 10.5,
           fontWeight: 800,
           color: (value: string) =>
-            selectedProcesses.includes(value) ? "#4338ca" : "#334155",
+            selectedProcesses.includes(value) ? accentColor : textColor,
           formatter: (value: string) => value,
         },
       },
@@ -174,7 +188,7 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
         nameLocation: "middle",
         nameGap: 45,
         nameTextStyle: {
-          color: "#334155",
+          color: textColor,
           fontWeight: 900,
           fontSize: 11,
           letterSpacing: 1,
@@ -182,19 +196,19 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
         axisLine: {
           show: true,
           lineStyle: {
-            color: "#cbd5e1",
+            color: lineColor,
           },
         },
         splitLine: {
           lineStyle: {
             type: "dashed",
-            color: "#e2e8f0",
+            color: lineColor,
           },
         },
         axisLabel: {
           fontSize: 11,
           fontWeight: 800,
-          color: "#334155",
+          color: textColor,
         },
       },
       series: [
@@ -281,7 +295,7 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
               y: point[1] - 6,
               style: {
                 text: rawTotal.toLocaleString(),
-                fill: isSelected ? "#4338ca" : "#1e293b",
+                fill: isSelected ? accentColor : textColor,
                 font: `900 11px system-ui, -apple-system, sans-serif`,
                 textAlign: "center",
                 textVerticalAlign: "bottom",
@@ -315,8 +329,8 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
                 height: 36,
               },
               style: {
-                fill: "rgba(248, 250, 252, 0.9)",
-                stroke: "#cbd5e1",
+                fill: panelColor,
+                stroke: lineColor,
                 lineWidth: 1,
               },
             });
@@ -345,7 +359,7 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
                     y2: gridBottom + 36,
                   },
                   style: {
-                    stroke: "#94a3b8",
+                    stroke: lineColor,
                     lineWidth: 1.5,
                   },
                 });
@@ -358,7 +372,7 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
                 y: gridBottom + 18,
                 style: {
                   text: gb.group,
-                  fill: "#475569",
+                  fill: textColor,
                   font: "bold 11px Inter, sans-serif",
                   textAlign: "center",
                   textVerticalAlign: "middle",
@@ -376,7 +390,7 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
         },
       ],
     };
-  }, [data, selectedProcesses, maxAxisY, groupBoundaries]);
+  }, [data, selectedProcesses, maxAxisY, groupBoundaries, themeColors]);
 
   const onEvents = useMemo(
     () => ({
@@ -400,7 +414,7 @@ export const WipOverallEChart: React.FC<WipOverallEChartProps> = ({
           lazyUpdate={true}
         />
       </div>
-      <div className="w-full text-center font-bold text-slate-500 text-sm mt-3">
+      <div className="w-full text-center font-bold text-base-content/60 text-sm mt-3">
         Process
       </div>
     </div>

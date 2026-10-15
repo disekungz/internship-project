@@ -586,10 +586,10 @@ const Page = () => {
   };
 
   return (
-    <main role="main" aria-label="WIP Overall Dashboard" className="h-full w-full overflow-y-auto overflow-x-hidden bg-slate-50 p-4 sm:p-6 text-slate-800">
+    <main role="main" aria-label="WIP Overall Dashboard" className="h-full w-full overflow-y-auto overflow-x-hidden bg-base-200 p-4 sm:p-6 text-base-content">
       <div className="w-full space-y-5 pb-8">
         {/* ================= ส่วนหัวหน้าจอ (Header Section) ================= */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 bg-gradient-to-br from-blue-900 to-blue-500">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-100 p-4 rounded-xl shadow-sm border border-base-300 bg-gradient-to-br from-blue-900 to-blue-500">
           <div>
             <h1 className="flex items-center gap-3 text-2xl font-extrabold tracking-tight text-white">
               <img
@@ -603,7 +603,7 @@ const Page = () => {
             </h1>
           </div>
 
-          <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1 gap-1 select-none">
+          <div className="flex items-center bg-base-200 border border-base-300 rounded-lg p-1 gap-1 select-none">
             {(
               [
                 { key: "9", label: "P1" },
@@ -613,7 +613,7 @@ const Page = () => {
               <button
                 key={opt.key}
                 onClick={() => setSelectedFactory(opt.key)}
-                className={`px-4 py-2 rounded-xl text-sm font-extrabold shadow-lg transition-all duration-300 border-2 ${selectedFactory === opt.key ? "bg-gradient-to-br from-indigo-600 via-blue-700 to-indigo-900 text-white border-indigo-300 shadow-indigo-300/40 scale-110 ring-2 ring-indigo-200" : "bg-gradient-to-br from-slate-50 to-slate-200 text-slate-600 border-slate-200 hover:from-indigo-50 hover:to-blue-100 hover:text-indigo-600 hover:border-indigo-200 hover:shadow-md"}`}
+                className={`px-4 py-2 rounded-xl text-sm font-extrabold shadow-lg transition-all duration-300 border-2 ${selectedFactory === opt.key ? "bg-gradient-to-br from-indigo-600 via-blue-700 to-indigo-900 text-white border-indigo-300 shadow-indigo-300/40 scale-110 ring-2 ring-indigo-200" : "bg-base-100 text-base-content border-base-300 hover:bg-base-300 hover:text-primary hover:border-primary/40 hover:shadow-md"}`}
               >
                 {opt.label}
               </button>
@@ -652,11 +652,11 @@ const Page = () => {
         </div>
 
         {/* ================= ส่วนแผงตัวกรอง (Filters Grid Section) ================= */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-end">
+        <div className="bg-base-100 p-4 rounded-xl shadow-sm border border-base-300 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 items-end">
           <div className="w-full">
             <SearchableSelect
               label="Lot ID"
-              icon={<Filter size={13} className="text-slate-600" />}
+              icon={<Filter size={13} className="text-base-content" />}
               options={lotOptions}
               selectedValue={selectedLot}
               onSelect={setSelectedLot}
@@ -665,7 +665,7 @@ const Page = () => {
           <div className="w-full">
             <MultiSearchableSelect
               label="Product Name"
-              icon={<Filter size={13} className="text-slate-600" />}
+              icon={<Filter size={13} className="text-base-content" />}
               options={productOptions}
               selectedValues={selectedProducts}
               onChange={setSelectedProducts}
@@ -674,7 +674,7 @@ const Page = () => {
           <div className="w-full">
             <MultiSearchableSelect
               label="Process"
-              icon={<Filter size={13} className="text-slate-600" />}
+              icon={<Filter size={13} className="text-base-content" />}
               options={processOptions}
               selectedValues={selectedProcesses}
               onChange={setSelectedProcesses}
@@ -683,18 +683,18 @@ const Page = () => {
           <div className="w-full">
             <MultiSearchableSelect
               label="Customer Group"
-              icon={<Filter size={13} className="text-slate-600" />}
+              icon={<Filter size={13} className="text-base-content" />}
               options={customerOptions}
               selectedValues={selectedCustomers}
               onChange={setSelectedCustomers}
             />
           </div>
           <div className="w-full">
-            <label className="text-[12px] font-bold text-slate-700 mb-1 flex items-center gap-1.5 select-none">
-              <Filter size={13} className="text-slate-600" />
+            <label className="text-[12px] font-bold text-base-content mb-1 flex items-center gap-1.5 select-none">
+              <Filter size={13} className="text-base-content" />
               <span>Lot Status</span>
             </label>
-            <div className="flex items-center justify-center gap-1.5 h-[38px] px-1.5 rounded-xl border border-slate-200 bg-slate-50">
+            <div className="flex items-center justify-center gap-1.5 h-[38px] px-1.5 rounded-xl border border-base-300 bg-base-200">
               {lotStatusOptions.map((status) => {
                 const isChecked = selectedLotStatus.includes(status);
                 return (
@@ -703,7 +703,7 @@ const Page = () => {
                     className={`flex-1 flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer select-none py-1 px-1.5 rounded-lg transition-all ${
                       isChecked
                         ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                        : "bg-base-100 text-base-content border border-base-300 hover:bg-base-200"
                     }`}
                   >
                     <input
@@ -728,7 +728,7 @@ const Page = () => {
           <div className="w-full">
             <SearchableSelect
               label="Group"
-              icon={<Filter size={13} className="text-slate-600" />}
+              icon={<Filter size={13} className="text-base-content" />}
               options={processGroupOptions}
               selectedValue={selectedProcessGroup}
               onSelect={setSelectedProcessGroup}
@@ -737,7 +737,7 @@ const Page = () => {
           <div className="w-full">
             <SearchableSelect
               label="Lead Time Wip"
-              icon={<Filter size={13} className="text-slate-600" />}
+              icon={<Filter size={13} className="text-base-content" />}
               options={leadTimeOptions}
               selectedValue={selectedLeadTimeGroup}
               onSelect={setSelectedLeadTimeGroup}
@@ -752,17 +752,18 @@ const Page = () => {
                 setEndDate(end);
               }}
               label="WIP Scan In"
+              align="right"
             />
           </div>
         </div>
 
         {/* ================= ส่วนกราฟแท่งแบบ STACKED BAR ================= */}
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+        <div className="bg-base-100 p-5 rounded-xl shadow-sm border border-base-300">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
-            <h2 className="text-base font-bold text-slate-700">
+            <h2 className="text-base font-bold text-base-content">
               Count of lot by Group, Process and Lead Time Group
             </h2>
-            <div className="flex gap-6 text-sm font-semibold text-slate-600">
+            <div className="flex gap-6 text-sm font-semibold text-base-content">
               <div className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded-full bg-gradient-to-b from-sky-400 to-blue-600 shadow-md shadow-sky-200/40"></span>
                 Less 1 Day
@@ -784,20 +785,20 @@ const Page = () => {
                 {Array.from({ length: 16 }).map((_, i) => (
                   <div
                     key={i}
-                    className="w-full bg-slate-100 animate-pulse rounded-t-lg"
+                    className="w-full bg-base-200 animate-pulse rounded-t-lg"
                     style={{
                       height: `${25 + (i * 17) % 70}%`,
                     }}
                   />
                 ))}
               </div>
-              <div className="flex justify-center items-center gap-2 text-slate-400 text-xs mt-4">
+              <div className="flex justify-center items-center gap-2 text-base-content/60 text-xs mt-4">
                 <span className="inline-block w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
                 <span>Loading Data WIP Overall...</span>
               </div>
             </div>
           ) : sortedChartData.length === 0 ? (
-            <div className="h-80 flex flex-col items-center justify-center text-slate-400 text-sm gap-2">
+            <div className="h-80 flex flex-col items-center justify-center text-base-content/60 text-sm gap-2">
               <span className="text-2xl">📦</span>
               <span>No data found for the selection.</span>
             </div>
@@ -813,8 +814,8 @@ const Page = () => {
         </div>
 
         {/* ================= ส่วนตารางแสดงข้อมูล (Data Table Section) ================= */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-4 border-b border-slate-200 bg-gradient-to-br from-blue-900 to-blue-500">
+        <div className="bg-base-100 rounded-xl shadow-sm border border-base-300 overflow-hidden">
+          <div className="p-4 border-b border-base-300 bg-gradient-to-br from-blue-900 to-blue-500">
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
               <Layers size={16} className="text-white" /> WIP Data
             </h3>
@@ -904,7 +905,7 @@ const Page = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-base-300 bg-base-100">
                 {paginatedTasks.map((task, index) => {
                   const isProductSelected = selectedProducts.includes(
                     task.text,
@@ -921,9 +922,9 @@ const Page = () => {
                   return (
                     <tr
                       key={`${task.lot}-${task.process}-${index}`}
-                      className="hover:bg-slate-50 transition-colors"
+                      className="hover:bg-base-200 transition-colors"
                     >
-                      <td className="p-3 text-center font-bold text-slate-500">
+                      <td className="p-3 text-center font-bold text-base-content/60">
                         {task.factory === "9"
                           ? "P1"
                           : task.factory === "E"
@@ -933,12 +934,12 @@ const Page = () => {
                       <td className="p-3 text-center font-bold text-indigo-600">
                         {task.lot || "-"}
                       </td>
-                      <td className="p-3 text-center font-bold text-slate-500">
+                      <td className="p-3 text-center font-bold text-base-content/60">
                         {task.lot_count}
                       </td>
                       <td
                         onClick={() => handleCellClick("product", task.text)}
-                        className={`p-3 text-center cursor-pointer max-w-[150px] truncate ${isProductSelected ? "bg-sky-100 font-bold text-sky-800 rounded" : "font-bold text-slate-700 hover:bg-slate-100"}`}
+                        className={`p-3 text-center cursor-pointer max-w-[150px] truncate ${isProductSelected ? "bg-sky-100 font-bold text-sky-800 rounded" : "font-bold text-base-content hover:bg-base-200"}`}
                       >
                         {task.text || "-"}
                       </td>
@@ -949,7 +950,7 @@ const Page = () => {
                             task.customer_group || "Other",
                           )
                         }
-                        className={`p-3 text-center cursor-pointer font-bold ${isCustomerSelected ? "bg-pink-100 text-pink-800 rounded" : "text-slate-700 hover:bg-slate-100"}`}
+                        className={`p-3 text-center cursor-pointer font-bold ${isCustomerSelected ? "bg-pink-100 text-pink-800 rounded" : "text-base-content hover:bg-base-200"}`}
                       >
                         {task.customer_group || "Other"}
                       </td>
@@ -960,7 +961,7 @@ const Page = () => {
                           {task.lot_status || "WIP"}
                         </span>
                       </td>
-                      <td className="p-3 text-left text-slate-600 font-medium min-w-[150px] max-w-[220px] whitespace-normal break-words leading-tight">
+                      <td className="p-3 text-left text-base-content font-medium min-w-[150px] max-w-[220px] whitespace-normal break-words leading-tight">
                         {task.pending_remark || "-"}
                       </td>
                       <td
@@ -989,17 +990,17 @@ const Page = () => {
                       </td>
                       <td
                         onClick={() => handleCellClick("process", task.process)}
-                        className={`p-3 text-center cursor-pointer font-bold ${isProcessSelected ? "bg-purple-100 text-purple-800 rounded" : "text-slate-700 hover:bg-slate-100"}`}
+                        className={`p-3 text-center cursor-pointer font-bold ${isProcessSelected ? "bg-purple-100 text-purple-800 rounded" : "text-base-content hover:bg-base-200"}`}
                       >
                         {task.process || "-"}
                       </td>
                       <td className="p-3 text-center font-bold">
                         {task.input_qty?.toLocaleString() || 0}
                       </td>
-                      <td className="p-3 text-center text-slate-500 font-medium">
+                      <td className="p-3 text-center text-base-content/60 font-medium">
                         {scanInRaw}
                       </td>
-                      <td className="p-3 text-center text-slate-500 font-bold">
+                      <td className="p-3 text-center text-base-content/60 font-bold">
                         {task.wip_by_date}
                       </td>
                       <td className="p-3 text-center">
@@ -1016,7 +1017,7 @@ const Page = () => {
 
           {/* ================= PAGINATION BAR ================= */}
           {filteredWipTasks.length > 0 && (
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-4 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-600 select-none">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-4 py-3 bg-base-200 border-t border-base-300 text-xs text-base-content select-none">
               <div className="flex items-center gap-2">
                 <span>Show</span>
                 <select
@@ -1026,7 +1027,7 @@ const Page = () => {
                     setPageSize(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="bg-white border border-slate-300 rounded px-2 py-1 font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="bg-base-100 border border-base-300 rounded px-2 py-1 font-semibold text-base-content focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value={25}>25</option>
                   <option value={50}>50</option>
@@ -1034,7 +1035,7 @@ const Page = () => {
                   <option value={200}>200</option>
                 </select>
                 <span>entries</span>
-                <span className="text-slate-400">|</span>
+                <span className="text-base-content/60">|</span>
                 <span>
                   Showing <b>{Math.min((currentPage - 1) * pageSize + 1, filteredWipTasks.length)}</b> to{" "}
                   <b>{Math.min(currentPage * pageSize, filteredWipTasks.length)}</b> of{" "}
@@ -1048,11 +1049,11 @@ const Page = () => {
                   aria-label="Previous page"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed font-medium text-slate-700 flex items-center gap-1"
+                  className="px-2.5 py-1.5 rounded-lg border border-base-300 bg-base-100 hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed font-medium text-base-content flex items-center gap-1"
                 >
                   <ChevronLeft size={14} /> Prev
                 </button>
-                <div className="px-3 py-1 font-bold text-slate-700">
+                <div className="px-3 py-1 font-bold text-base-content">
                   Page {currentPage} of {totalPages}
                 </div>
                 <button
@@ -1060,7 +1061,7 @@ const Page = () => {
                   aria-label="Next page"
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed font-medium text-slate-700 flex items-center gap-1"
+                  className="px-2.5 py-1.5 rounded-lg border border-base-300 bg-base-100 hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed font-medium text-base-content flex items-center gap-1"
                 >
                   Next <ChevronRight size={14} />
                 </button>
