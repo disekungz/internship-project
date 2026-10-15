@@ -1005,11 +1005,6 @@ const Page: React.FC = () => {
         </span>
         <div className="text-xs font-medium text-base-content/70 truncate hidden sm:flex flex-col justify-center">
           <span className="truncate">{row.process_name}</span>
-          {row.mc_line && (
-            <span className="text-[10px] text-base-content/50 font-normal truncate mt-0.5">
-              MC: {row.mc_line}
-            </span>
-          )}
         </div>
         <div className="flex-1 flex items-center justify-end gap-4 min-w-0 pr-2">
           {unitMode !== "Lot" && (
@@ -1051,13 +1046,6 @@ const Page: React.FC = () => {
   const renderLotPanel = (row: ProductOutput, isSel: boolean) => {
     const entry = lotCache[getLotCacheKey(row)];
     const lots = entry?.rows || [];
-    // ตาราง lot ไม่มี mc_line — ถ้า product+process เดียวกันมีหลาย MC line ให้แจ้งว่าไม่ได้แยก
-    const mcLineCount = new Set(
-      (selectedDayDetail?.rows || [])
-        .filter(r => getLotCacheKey(r) === getLotCacheKey(row))
-        .map(r => r.mc_line)
-        .filter(Boolean)
-    ).size;
 
     return (
       <div className={`border border-t-0 rounded-b-lg px-3 py-2 ${isSel ? "border-primary/40 bg-primary/5" : "border-base-200 bg-base-200/20"}`}>
@@ -1090,11 +1078,6 @@ const Page: React.FC = () => {
                 {lot.lot}
               </span>
             ))}
-            {mcLineCount > 1 && (
-              <span className="basis-full text-[10px] text-base-content/45 mt-0.5">
-                Lots from all {mcLineCount} MC lines (lot data is not split by MC line)
-              </span>
-            )}
           </div>
         )}
       </div>
@@ -1565,7 +1548,7 @@ const Page: React.FC = () => {
                 <input
                   type="text"
                   className="grow"
-                  placeholder="Search product, process, MC line, customer..."
+                  placeholder="Search product, process, customer..."
                   value={detailSearchQuery}
                   onChange={(e) => setDetailSearchQuery(e.target.value)}
                 />
@@ -1640,7 +1623,7 @@ const Page: React.FC = () => {
                               </span>
                             </div>
                             <span className="text-[11px] text-base-content/55 truncate">
-                              {group.customerGroup} · {group.entries.length} entries · {group.processCount} processes · {group.mcLineCount} MC lines
+                              {group.customerGroup} · {group.entries.length} entries · {group.processCount} processes
                             </span>
                           </div>
                           <div className="hidden md:flex items-center gap-5 text-right">
