@@ -5,6 +5,7 @@ const router = express.Router();
 const { pool_smart } = require("../../../../config");
 const query = (text, params) => pool_smart.query(text, params);
 const { getCached, setCache } = require("../../../../../../Utility/apiCache");
+const { GATE_PAIRS_CTE, gateExists } = require("./gateProcess");
 
 // ----------------------------------------------------------------------------
 // GET /available-months
@@ -81,7 +82,8 @@ router.get("/lines", async (req, res) => {
 router.get("/dashboard-lots", async (req, res) => {
   try {
     const { month, date, startDate, endDate, line, _t } = req.query;
-    const cacheKey = `dashboard-lots:${startDate}:${endDate}:${date}:${month}:${line}`;
+    const gateOnly = req.query.gateOnly === "1";
+    const cacheKey = `dashboard-lots:${startDate}:${endDate}:${date}:${month}:${line}:${gateOnly ? "gate" : "all"}`;
 
     const cached = getCached(cacheKey);
     if (cached) {
@@ -114,9 +116,13 @@ router.get("/dashboard-lots", async (req, res) => {
       conditions.push(`TRIM(mc_line) = $${values.length}`);
     }
 
+    // เฉพาะคู่ product + process ที่เป็น gate (gate_proc = 'Y')
+    if (gateOnly) conditions.push(gateExists());
+
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const sqlStatement = `
+      ${gateOnly ? `WITH ${GATE_PAIRS_CTE}` : ""}
       SELECT
         TO_CHAR(output_date, 'YYYY-MM-DD') AS output_date,
         proc_disp AS process_name,
@@ -177,10 +183,14 @@ router.get("/dashboard-mcline", async (req, res) => {
       conditions.push(`proc_disp = $${values.length}`);
     }
 
+    const gateOnly = req.query.gateOnly === "1";
+    if (gateOnly) conditions.push(gateExists());
+
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const sqlStatement = `
-      SELECT 
+      ${gateOnly ? `WITH ${GATE_PAIRS_CTE}` : ""}
+      SELECT
         mc_line,
         SUM(COALESCE(pcs_qty, 0)) AS actual_pcs_qty,
         SUM(COALESCE(sht_qty, 0)) AS actual_sht_qty,
@@ -466,6 +476,83 @@ router.get("/lots", async (req, res) => {
 });
 
 // ----------------------------------------------------------------------------
+// GET /process-lots?process=FOST&startDate=YYYY-MM-DD[&endDate=YYYY-MM-DD]
+// Fetch every lot that left one process within the production day(s)
+// Source: smart.smart_fpc_output_by_lot (out_time is varchar 'DD/MM/YYYY HH24:MI')
+// Production day cutoff: startDate 08:00 -> (endDate + 1 day) 08:00
+// Cached for 60 seconds
+// ----------------------------------------------------------------------------
+router.get("/process-lots", async (req, res) => {
+  try {
+    const { process, startDate, _t } = req.query;
+    const endDate = req.query.endDate || startDate;
+    const isDate = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+    if (!process || !isDate(startDate) || !isDate(endDate) || endDate < startDate) {
+      return res.status(400).json({ error: "process and startDate (YYYY-MM-DD) are required; endDate must be >= startDate" });
+    }
+
+    const processName = String(process).trim();
+    const cacheKey = `processlots:gate:${processName}:${startDate}:${endDate}`;
+    if (!_t) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        res.setHeader("X-Cache", "HIT");
+        return res.status(200).json(cached);
+      }
+    }
+
+    // ตัดรอบวันผลิต 08:00 ถึง 08:00 ของวันถัดจาก endDate
+    const end = new Date(`${endDate}T00:00:00Z`);
+    const endPlusOne = new Date(end.getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const fromTs = `${startDate} 08:00`;
+    const toTs = `${endPlusOne} 08:00`;
+    const values = [processName, fromTs, toTs];
+
+    // out_time เป็น varchar — แปลงเฉพาะแถวที่รูปแบบถูกต้อง เพื่อไม่ให้แถวเสียทำให้ทั้ง query error
+    // หน้า Output by Process แสดงเฉพาะ gate process — lot จึงกรองเฉพาะ product ที่ process นี้เป็น gate
+    const sqlStatement = `
+      WITH ${GATE_PAIRS_CTE},
+      parsed AS (
+        SELECT
+          lot, wo, cat, prd_name, proc_disp, plan_date, in_time, out_time,
+          input_qty, factory_desc, prbm_problem_name,
+          CASE WHEN TRIM(out_time) ~ '^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}'
+               THEN TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI')
+          END AS out_ts
+        FROM smart.smart_fpc_output_by_lot
+        WHERE TRIM(proc_disp) = $1
+          AND ${gateExists()}
+      )
+      SELECT
+        lot,
+        wo,
+        cat,
+        prd_name AS product_name,
+        proc_disp AS process_name,
+        TO_CHAR(plan_date, 'YYYY-MM-DD') AS plan_date,
+        in_time,
+        out_time,
+        input_qty,
+        factory_desc,
+        prbm_problem_name
+      FROM parsed
+      WHERE out_ts >= $2::timestamp
+        AND out_ts < $3::timestamp
+      ORDER BY out_ts ASC, lot ASC
+    `;
+    const result = await query(sqlStatement, values);
+
+    setCache(cacheKey, result.rows, 60_000);
+    res.setHeader("X-Cache", "MISS");
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("[OutputByProcess] Error fetching process-lots:", error.message);
+    res.status(500).json({ error: "Cannot fetch lot data" });
+  }
+});
+
+// ----------------------------------------------------------------------------
 // GET /processes
 // Fetch distinct process names from WIP table (factory 9 and E only)
 // ----------------------------------------------------------------------------
@@ -531,6 +618,78 @@ router.get("/products", async (req, res) => {
   } catch (error) {
     console.error("[OutputByProcess] Error fetching products:", error.message);
     res.status(500).json({ error: "Cannot fetch product names" });
+  }
+});
+
+// ----------------------------------------------------------------------------
+// GET /process-products?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD[&process=A,B]
+// Output grouped by date, product, process and MC Line — for the Output by Process page
+// Same data as /outputbyproduct/dashboard-products plus is_gate (gate_proc = 'Y'),
+// kept here so this page does not depend on the Output by Product API
+// Cached for 60 seconds
+// ----------------------------------------------------------------------------
+router.get("/process-products", async (req, res) => {
+  try {
+    const { startDate, endDate, process, _t } = req.query;
+    const isDate = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+    if (!isDate(startDate) || !isDate(endDate) || endDate < startDate) {
+      return res.status(400).json({ error: "startDate and endDate (YYYY-MM-DD) are required; endDate must be >= startDate" });
+    }
+
+    const cacheKey = `process-products:${startDate}:${endDate}:${process || ""}`;
+    if (!_t) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        res.setHeader("X-Cache", "HIT");
+        return res.status(200).json(cached);
+      }
+    }
+
+    const values = [];
+    const conditions = [];
+
+    if (process && process !== "All processes") {
+      const placeholders = String(process).split(",").map((p) => {
+        values.push(p);
+        return `$${values.length}`;
+      }).join(",");
+      conditions.push(`proc_disp IN (${placeholders})`);
+    }
+
+    // ใช้ช่วงวันที่แบบ >= start AND < end เพื่อให้ใช้ index ของ output_date ได้
+    const endPlusOne = new Date(new Date(`${endDate}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000)
+      .toISOString().split("T")[0];
+    values.push(startDate);
+    conditions.push(`output_date >= $${values.length}`);
+    values.push(endPlusOne);
+    conditions.push(`output_date < $${values.length}`);
+
+    // is_gate: คู่ product + process นี้เป็น gate หรือไม่ — ไม่ตัดแถวทิ้ง เพราะมุมมอง By Line ยังใช้ทุกแถว
+    const sqlStatement = `
+      WITH ${GATE_PAIRS_CTE}
+      SELECT
+        TO_CHAR(output_date, 'YYYY-MM-DD') AS output_date,
+        prd_name AS product_name,
+        proc_disp AS process_name,
+        mc_line,
+        ${gateExists()} AS is_gate,
+        SUM(COALESCE(pcs_qty, 0)) AS actual_pcs_qty,
+        SUM(COALESCE(sht_qty, 0)) AS actual_sht_qty,
+        SUM(COALESCE(lot_qty, 0)) AS actual_lot_qty
+      FROM smart.smart_fpc_process_output_detail
+      WHERE ${conditions.join(" AND ")}
+      GROUP BY TO_CHAR(output_date, 'YYYY-MM-DD'), prd_name, proc_disp, mc_line
+      ORDER BY output_date ASC
+    `;
+    const result = await query(sqlStatement, values);
+
+    setCache(cacheKey, result.rows, 60_000);
+    res.setHeader("X-Cache", "MISS");
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("[OutputByProcess] Error fetching process-products:", error.message);
+    res.status(500).json({ error: "Cannot fetch process product data" });
   }
 });
 
