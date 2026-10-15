@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { getCustomerGroup, getProductProcessType, CHART_COLORS } from "./components/utils";
+import { getCustomerGroup, getProductProcessType, getProcessType, CHART_COLORS } from "./components/utils";
 import ProductNameChart from "./ProductNameChart";
 import * as XLSX from "xlsx";
 import { ExportModal } from "../../../components/ExportModal";
@@ -16,6 +16,7 @@ interface ProductOutput {
   actual_sht_qty: number;
   actual_lot_qty: number;
   output_value?: number; // Used for dynamic unit mode selection
+  product_type?: "SMT" | "FPC" | null; // from smart_fpc_output_detail.prd_item_code (95 = SMT, 94 = FPC)
 }
 
 // One lot record from smart.smart_fpc_output_by_lot (via /outputbyproduct/lots)
@@ -412,6 +413,23 @@ const Page: React.FC = () => {
     setEndDate(tempEndDate);
   };
 
+  // Product type (SMT / FPC) from the API (prd_item_code 95 = SMT, 94 = FPC)
+  const productTypeMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    [productsData, previousProductsData].forEach(list => {
+      (Array.isArray(list) ? list : []).forEach(item => {
+        if (item?.product_name && item.product_type) map[item.product_name] = item.product_type;
+      });
+    });
+    return map;
+  }, [productsData, previousProductsData]);
+
+  // Falls back to the name rule (4th char = Z) when the product has no prd_item_code
+  const getProductType = useCallback(
+    (productName: string) => productTypeMap[productName] || getProductProcessType(productName),
+    [productTypeMap]
+  );
+
   // Process data with selected Unit Mode
   const processedData = useMemo(() => {
     const list = Array.isArray(productsData) ? productsData : [];
@@ -745,7 +763,7 @@ const Page: React.FC = () => {
           ? (stats.topProduct.output_value || 0) / stats.total * 100
           : 0,
         isAdaptive: false,
-        processType: stats.topProduct ? getProductProcessType(stats.topProduct.product_name) : ""
+        processType: stats.topProduct ? getProductType(stats.topProduct.product_name) : ""
       };
     }
 
@@ -766,7 +784,7 @@ const Page: React.FC = () => {
     const productTotal = productItems.reduce((sum, item) => sum + (item.output_value || 0), 0);
     const share = stats.total > 0 ? (productTotal / stats.total * 100) : 0;
 
-    const processType = finalName ? getProductProcessType(finalName) : "";
+    const processType = finalName ? getProductType(finalName) : "";
 
     return {
       title: selectedProduct ? "Selected Product" : "Searched Product",
@@ -776,7 +794,7 @@ const Page: React.FC = () => {
       isAdaptive: true,
       processType: processType
     };
-  }, [selectedProduct, productSearchQuery, processedData, stats]);
+  }, [selectedProduct, productSearchQuery, processedData, stats, getProductType]);
 
   // Clicking a bar opens the inline daily-detail panel for that date.
   const handleBarClick = (rawDate: string) => {
@@ -870,7 +888,7 @@ const Page: React.FC = () => {
       const processName = row.process_name || "";
       const mcLine = row.mc_line || "";
       const customerGroup = getCustomerGroup(productName);
-      const processType = getProductProcessType(productName);
+      const processType = getProcessType(processName);
 
       if (query && !`${productName} ${processName} ${mcLine} ${customerGroup}`.toLowerCase().includes(query)) return false;
       if (detailProcessFilter !== "All Processes" && processName !== detailProcessFilter) return false;
@@ -894,7 +912,7 @@ const Page: React.FC = () => {
         groupMap.set(row.product_name, {
           product_name: row.product_name,
           customerGroup: getCustomerGroup(row.product_name),
-          processType: getProductProcessType(row.product_name),
+          processType: getProductType(row.product_name),
           entries: [row],
           processCount: 0,
           mcLineCount: 0,
@@ -924,10 +942,10 @@ const Page: React.FC = () => {
       return map;
     }, new Map<string, number>()).entries()).sort((a, b) => b[1] - a[1])[0];
     const fpcTotal = rows
-      .filter(row => getProductProcessType(row.product_name) === "FPC")
+      .filter(row => getProcessType(row.process_name) === "FPC")
       .reduce((sum, row) => sum + (row.output_value || 0), 0);
     const smtTotal = rows
-      .filter(row => getProductProcessType(row.product_name) === "SMT")
+      .filter(row => getProcessType(row.process_name) === "SMT")
       .reduce((sum, row) => sum + (row.output_value || 0), 0);
 
     return {
@@ -946,12 +964,12 @@ const Page: React.FC = () => {
       fpcTotal,
       smtTotal
     };
-  }, [selectedChartDate, chartFilteredData, filterProcess, detailSearchQuery, detailProcessFilter, detailCustomerFilter, detailTypeFilter, detailSortMode, granularity]);
+  }, [selectedChartDate, chartFilteredData, filterProcess, detailSearchQuery, detailProcessFilter, detailCustomerFilter, detailTypeFilter, detailSortMode, granularity, getProductType]);
 
   const renderDetailEntry = (row: ProductOutput, total: number, compact = false, index = 0) => {
     const color = getProductColor(row.product_name);
     const isSel = selectedProduct === row.product_name;
-    const pType = getProductProcessType(row.product_name);
+    const pType = getProcessType(row.process_name);
     // ไม่มี lot และ routing บอกว่าไม่ใช่ gate process (gate_proc = 'N') — ไม่ต้องแสดงแผง lot
     const lotEntry = lotCache[getLotCacheKey(row)];
     const isLotPanelHidden = lotEntry?.status === "ok" && lotEntry.rows.length === 0 && lotEntry.nonGate === true;
@@ -1455,7 +1473,7 @@ const Page: React.FC = () => {
               setProductSearchQuery={setProductSearchQuery}
               allProductNames={allProductNames}
               activeProductName={activeProductName}
-              activeProductType={getProductProcessType(activeProductName)}
+              activeProductType={getProductType(activeProductName)}
               onBarClick={handleBarClick}
               selectedDate={selectedChartDate}
               filterCustomerGroup={filterCustomerGroup}

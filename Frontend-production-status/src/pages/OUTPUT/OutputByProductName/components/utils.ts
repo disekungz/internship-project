@@ -72,6 +72,11 @@ export const getProductProcessType = (productName: string): string => {
   return productName.charAt(3).toUpperCase() === 'Z' ? "SMT" : "FPC";
 };
 
+// Process-level type: process names starting with "M" are SMT, everything else is FPC
+export const getProcessType = (processName?: string): string => {
+  return (processName || "").trim().toUpperCase().startsWith("M") ? "SMT" : "FPC";
+};
+
 export const formatDate = (dateStr: string) => {
   if (!dateStr) return "";
   const [y, m, d] = dateStr.split('-');
