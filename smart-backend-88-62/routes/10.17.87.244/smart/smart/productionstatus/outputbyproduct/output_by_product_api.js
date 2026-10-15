@@ -84,6 +84,9 @@ router.get("/dashboard-products", async (req, res) => {
 
     let conditions = [];
     const values = [];
+    // ช่วงวันที่ (start รวม, end ไม่รวม) ใช้กรองตาราง lot ด้วย
+    let rangeStart = null;
+    let rangeEnd = null;
 
     if (process && process !== "All processes") {
       const procs = process.split(",");
@@ -102,6 +105,8 @@ router.get("/dashboard-products", async (req, res) => {
       conditions.push(`output_date >= $${values.length}`);
       values.push(endPlusOne);
       conditions.push(`output_date < $${values.length}`);
+      rangeStart = startDate;
+      rangeEnd = endPlusOne;
     } else if (date) {
       const end = new Date(new Date(`${date}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000)
         .toISOString().split("T")[0];
@@ -109,6 +114,8 @@ router.get("/dashboard-products", async (req, res) => {
       conditions.push(`output_date >= $${values.length}`);
       values.push(end);
       conditions.push(`output_date < $${values.length}`);
+      rangeStart = date;
+      rangeEnd = end;
     } else if (month) {
       const [y, m] = month.split("-").map(Number);
       const start = `${month}-01`;
@@ -117,23 +124,53 @@ router.get("/dashboard-products", async (req, res) => {
       conditions.push(`output_date >= $${values.length}`);
       values.push(end);
       conditions.push(`output_date < $${values.length}`);
+      rangeStart = start;
+      rangeEnd = end;
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+    // แสดงเฉพาะแถวที่มีเลข lot ในตาราง smart_fpc_output_by_lot
+    // วันผลิตของ lot = out_time ช่วง 08:00 ถึง 08:00 วันถัดไป (ตรงกับ /lots) จึงลบ 8 ชม. ก่อนแปลงเป็นวันที่
+    let lotRangeClause = "";
+    if (rangeStart && rangeEnd) {
+      values.push(`${rangeStart} 08:00`);
+      lotRangeClause = `AND TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') >= $${values.length}::timestamp`;
+      values.push(`${rangeEnd} 08:00`);
+      lotRangeClause += ` AND TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') < $${values.length}::timestamp`;
+    }
+
     const sqlStatement = `
-      SELECT 
-        TO_CHAR(output_date, 'YYYY-MM-DD') AS output_date,
-        prd_name AS product_name,
-        proc_disp AS process_name,
-        mc_line,
-        SUM(COALESCE(pcs_qty, 0)) AS actual_pcs_qty,
-        SUM(COALESCE(sht_qty, 0)) AS actual_sht_qty,
-        SUM(COALESCE(lot_qty, 0)) AS actual_lot_qty
-      FROM smart.smart_fpc_process_output_detail
-      ${whereClause}
-      GROUP BY TO_CHAR(output_date, 'YYYY-MM-DD'), prd_name, proc_disp, mc_line
-      ORDER BY output_date ASC
+      WITH lot_days AS (
+        SELECT DISTINCT
+          REPLACE(TRIM(prd_name), '-', '') AS prd,
+          TRIM(proc_disp) AS proc,
+          (TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') - INTERVAL '8 hours')::date AS prod_date
+        FROM smart.smart_fpc_output_by_lot
+        WHERE out_time IS NOT NULL ${lotRangeClause}
+      ),
+      agg AS (
+        SELECT
+          TO_CHAR(output_date, 'YYYY-MM-DD') AS output_date,
+          prd_name AS product_name,
+          proc_disp AS process_name,
+          mc_line,
+          SUM(COALESCE(pcs_qty, 0)) AS actual_pcs_qty,
+          SUM(COALESCE(sht_qty, 0)) AS actual_sht_qty,
+          SUM(COALESCE(lot_qty, 0)) AS actual_lot_qty
+        FROM smart.smart_fpc_process_output_detail
+        ${whereClause}
+        GROUP BY TO_CHAR(output_date, 'YYYY-MM-DD'), prd_name, proc_disp, mc_line
+      )
+      SELECT a.*
+      FROM agg a
+      WHERE EXISTS (
+        SELECT 1 FROM lot_days ld
+        WHERE ld.prd = REPLACE(TRIM(a.product_name), '-', '')
+          AND ld.proc = TRIM(a.process_name)
+          AND ld.prod_date = a.output_date::date
+      )
+      ORDER BY a.output_date ASC
     `;
     const result = await query(sqlStatement, values);
 
@@ -148,9 +185,12 @@ router.get("/dashboard-products", async (req, res) => {
 
 // ----------------------------------------------------------------------------
 // GET /lots
-// Fetch lot-level output records for one product + process on one day
-// Source: smart.smart_fpc_output_by_lot (prd_name matched ignoring '-', out_time is varchar)
+// Fetch lot-level output records for one product + process on one production day
+// (08:00 of `date` to 08:00 of the next day, based on out_time)
+// Source: smart.smart_fpc_output_by_lot (prd_name matched ignoring '-', out_time is varchar 'DD/MM/YYYY HH24:MI')
 // Note: table has no mc_line, so lots are not split by MC line
+// Response: { lots: [...], non_gate } — non_gate is true when no lots were found and
+// smart.smart_pln_product_routing_list marks this process gate_proc = 'N' (null if unknown)
 // Cached for 60 seconds
 // ----------------------------------------------------------------------------
 router.get("/lots", async (req, res) => {
@@ -173,15 +213,11 @@ router.get("/lots", async (req, res) => {
     // prd_name ในตาราง lot อาจเก็บแบบไม่มีขีด (เช่น CAK236W0A) จึงตัด '-' ออกทั้งสองฝั่งก่อนเทียบ
     const productCode = String(product).trim().replace(/-/g, "");
 
-    // out_time เป็น varchar — รองรับหลายรูปแบบวันที่ที่อาจพบ
-    const [y, m, d] = date.split("-");
-    const datePatterns = [
-      `${y}-${m}-${d}%`,
-      `${y}/${m}/${d}%`,
-      `${d}/${m}/${y}%`,
-      `${d}-${m}-${y}%`,
-      `${y}${m}${d}%`,
-    ];
+    // วันผลิตนับ 08:00 ถึง 08:00 ของวันถัดไป (out_time เป็น varchar 'DD/MM/YYYY HH24:MI')
+    const nextDate = new Date(new Date(`${date}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000)
+      .toISOString().split("T")[0];
+    const shiftStart = `${date} 08:00`;
+    const shiftEnd = `${nextDate} 08:00`;
 
     const sqlStatement = `
       SELECT
@@ -199,14 +235,30 @@ router.get("/lots", async (req, res) => {
       FROM smart.smart_fpc_output_by_lot
       WHERE REPLACE(TRIM(prd_name), '-', '') = $1
         AND TRIM(proc_disp) = $2
-        AND TRIM(out_time) LIKE ANY($3::text[])
-      ORDER BY out_time ASC, lot ASC
+        AND TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') >= $3::timestamp
+        AND TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') <  $4::timestamp
+      ORDER BY TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') ASC, lot ASC
     `;
-    const result = await query(sqlStatement, [productCode, String(process).trim(), datePatterns]);
+    const processName = String(process).trim();
+    const result = await query(sqlStatement, [productCode, processName, shiftStart, shiftEnd]);
 
-    setCache(cacheKey, result.rows, 60_000);
+    // ถ้าไม่มี lot ให้ดู routing ว่า process นี้เป็น gate process ไหม (gate_proc = 'N' คือไม่ใช่ ไม่ต้องแสดงข้อความ)
+    // routing มีได้หลายแถว (หลาย prd_item/category) — มีแถวไหนเป็น 'N' ก็ถือว่าไม่ใช่ gate
+    let nonGate = null;
+    if (result.rows.length === 0) {
+      const routing = await query(`
+        SELECT BOOL_OR(UPPER(TRIM(gate_proc)) = 'N') AS non_gate
+        FROM smart.smart_pln_product_routing_list
+        WHERE REPLACE(TRIM(prd_name), '-', '') = $1
+          AND TRIM(proc_disp) = $2
+      `, [productCode, processName]);
+      nonGate = routing.rows[0]?.non_gate ?? null;
+    }
+
+    const data = { lots: result.rows, non_gate: nonGate };
+    setCache(cacheKey, data, 60_000);
     res.setHeader("X-Cache", "MISS");
-    res.status(200).json(result.rows);
+    res.status(200).json(data);
   } catch (error) {
     console.error("[OutputByProduct] Error fetching lots:", error.message);
     res.status(500).json({ error: "Cannot fetch lot data" });
