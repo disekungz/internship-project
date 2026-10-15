@@ -5,7 +5,7 @@ import * as XLSX from "xlsx";
 import { ExportModal } from "../../../components/ExportModal";
 import { getApiBaseUrl } from "../../../utils/apiConfig";
 import { getGranularityDateInfo, isDateInPeriod, OutputGranularity } from "../utils/outputDateUtils";
-import { CalendarDays, RefreshCcw, Download, Layers, Package, Award, Building2, BarChart3, MousePointerClick, ArrowLeft, X, Search, Sparkles, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { CalendarDays, RefreshCcw, Download, Layers, Package, Award, Building2, BarChart3, MousePointerClick, ArrowLeft, X, Search, Sparkles, TrendingUp, TrendingDown, Minus, ChevronDown, ChevronRight, Crosshair } from "lucide-react";
 
 interface ProductOutput {
   product_name: string;
@@ -16,6 +16,24 @@ interface ProductOutput {
   actual_sht_qty: number;
   actual_lot_qty: number;
   output_value?: number; // Used for dynamic unit mode selection
+}
+
+// One lot record from smart.smart_fpc_output_by_lot (via /outputbyproduct/lots)
+interface LotDetail {
+  lot: string;
+  wo: string | null;
+  cat: string | null;
+  plan_date: string | null;
+  in_time: string | null;
+  out_time: string;
+  input_qty: number | string | null;
+  factory_desc: string | null;
+  prbm_problem_name: string | null;
+}
+
+interface LotCacheEntry {
+  status: "loading" | "ok" | "error";
+  rows: LotDetail[];
 }
 
 type UnitMode = "Piece" | "Sheet" | "Lot";
@@ -161,6 +179,8 @@ const Page: React.FC = () => {
   const [detailSortMode, setDetailSortMode] = useState<DetailSortMode>("OutputDesc");
   const [expandedDetailProducts, setExpandedDetailProducts] = useState<string[]>([]);
   const [detailPage, setDetailPage] = useState(1);
+  const [expandedLotEntries, setExpandedLotEntries] = useState<string[]>([]);
+  const [lotCache, setLotCache] = useState<Record<string, LotCacheEntry>>({});
 
   // Defer chart rendering to prevent page stutter on load
   useEffect(() => {
@@ -181,6 +201,8 @@ const Page: React.FC = () => {
     setDetailSortMode("OutputDesc");
     setExpandedDetailProducts([]);
     setDetailPage(1);
+    setExpandedLotEntries([]);
+    setLotCache({});
   }, [selectedChartDate]);
 
   useEffect(() => {
@@ -299,6 +321,8 @@ const Page: React.FC = () => {
     setDetailSortMode("OutputDesc");
     setExpandedDetailProducts([]);
     setDetailPage(1);
+    setExpandedLotEntries([]);
+    setLotCache({});
     setGranularity("daily");
 
     const start = getStartOfMonth();
@@ -786,6 +810,43 @@ const Page: React.FC = () => {
     );
   };
 
+  // Lot drill-down: lots are keyed by date + product + process (the lot table has no mc_line)
+  const getLotCacheKey = (row: ProductOutput) => `${row.output_date || ""}|${row.product_name}|${row.process_name || ""}`;
+  const getLotEntryKey = (row: ProductOutput) => `${getLotCacheKey(row)}|${row.mc_line || ""}`;
+
+  const loadLots = async (row: ProductOutput, force = false) => {
+    const cacheKey = getLotCacheKey(row);
+    if (!force && lotCache[cacheKey] && lotCache[cacheKey].status !== "error") return;
+    if (!row.output_date || !row.process_name) {
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
+      return;
+    }
+
+    setLotCache(prev => ({ ...prev, [cacheKey]: { status: "loading", rows: [] } }));
+    try {
+      const params = new URLSearchParams({
+        date: row.output_date,
+        product: row.product_name,
+        process: row.process_name
+      });
+      if (force) params.append("_t", String(Date.now()));
+      const res = await fetch(`${getApiBaseUrl()}/outputbyproduct/lots?${params.toString()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: LotDetail[] = await res.json();
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: Array.isArray(data) ? data : [] } }));
+    } catch (error) {
+      console.error("Failed to fetch lot detail", error);
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
+    }
+  };
+
+  const toggleLotEntry = (row: ProductOutput) => {
+    const entryKey = getLotEntryKey(row);
+    const isOpen = expandedLotEntries.includes(entryKey);
+    setExpandedLotEntries(prev => (isOpen ? prev.filter(item => item !== entryKey) : [...prev, entryKey]));
+    if (!isOpen) loadLots(row);
+  };
+
   // Breakdown of every product produced on the selected day (process + qty + share)
   const selectedDayDetail = useMemo(() => {
     if (!selectedChartDate) return null;
@@ -888,24 +949,49 @@ const Page: React.FC = () => {
     const color = getProductColor(row.product_name);
     const isSel = selectedProduct === row.product_name;
     const pType = getProductProcessType(row.product_name);
+    const isLotOpen = expandedLotEntries.includes(getLotEntryKey(row));
 
     return (
+      <div key={`${row.product_name}_${row.process_name}_${row.mc_line || "line"}_${index}`} className="flex flex-col">
       <div
-        key={`${row.product_name}_${row.process_name}_${row.mc_line || "line"}_${index}`}
-        onClick={() => setSelectedProduct(isSel ? null : row.product_name)}
-        title="Click to focus this product"
+        onClick={() => toggleLotEntry(row)}
+        title={isLotOpen ? "Click to hide lot numbers" : "Click to show lot numbers"}
         role="button"
         tabIndex={0}
+        aria-expanded={isLotOpen}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") setSelectedProduct(isSel ? null : row.product_name);
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleLotEntry(row);
+          }
         }}
-        className={`w-full min-h-[58px] cursor-pointer text-left grid grid-cols-[auto_minmax(180px,1.4fr)_auto_minmax(120px,0.9fr)_minmax(180px,1fr)_96px] items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${compact ? "bg-base-100" : ""} ${isSel ? "bg-primary/10 border-primary/40" : "bg-base-200/30 border-base-200 hover:bg-base-200/60"
+        className={`w-full min-h-[58px] cursor-pointer text-left grid grid-cols-[auto_minmax(180px,1.4fr)_auto_minmax(120px,0.9fr)_minmax(180px,1fr)_96px] items-center gap-3 px-3 py-2.5 border transition-colors ${isLotOpen ? "rounded-t-lg" : "rounded-lg"} ${compact ? "bg-base-100" : ""} ${isSel ? "bg-primary/10 border-primary/40" : "bg-base-200/30 border-base-200 hover:bg-base-200/60"
           }`}
       >
-        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }}></span>
-        <div className="flex flex-col min-w-0">
-          <span className="font-semibold text-sm truncate text-base-content/90">{row.product_name}</span>
-          <span className="text-[11px] text-base-content/50 truncate">{getCustomerGroup(row.product_name)}</span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {isLotOpen
+            ? <ChevronDown className="w-3.5 h-3.5 text-base-content/50" />
+            : <ChevronRight className="w-3.5 h-3.5 text-base-content/50" />}
+          <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }}></span>
+        </div>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex flex-col min-w-0">
+            <span className="font-semibold text-sm truncate text-base-content/90">{row.product_name}</span>
+            <span className="text-[11px] text-base-content/50 truncate">{getCustomerGroup(row.product_name)}</span>
+          </div>
+          <button
+            type="button"
+            title={isSel ? "Clear product focus" : "Focus this product in chart"}
+            aria-label={isSel ? "Clear product focus" : "Focus this product in chart"}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedProduct(isSel ? null : row.product_name);
+            }}
+            onKeyDown={(e) => e.stopPropagation()}
+            className={`btn btn-ghost btn-xs btn-square shrink-0 ${isSel ? "text-primary" : "text-base-content/40 hover:text-primary"}`}
+          >
+            <Crosshair className="w-3.5 h-3.5" />
+          </button>
         </div>
         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${pType === "SMT" ? "bg-rose-500/15 text-rose-600 border-rose-500/20" : "bg-sky-500/15 text-sky-600 border-sky-500/20"
           }`}>
@@ -950,6 +1036,61 @@ const Page: React.FC = () => {
             </span>
           )}
         </div>
+      </div>
+      {isLotOpen && renderLotPanel(row, isSel)}
+      </div>
+    );
+  };
+
+  const renderLotPanel = (row: ProductOutput, isSel: boolean) => {
+    const entry = lotCache[getLotCacheKey(row)];
+    const lots = entry?.rows || [];
+    // ตาราง lot ไม่มี mc_line — ถ้า product+process เดียวกันมีหลาย MC line ให้แจ้งว่าไม่ได้แยก
+    const mcLineCount = new Set(
+      (selectedDayDetail?.rows || [])
+        .filter(r => getLotCacheKey(r) === getLotCacheKey(row))
+        .map(r => r.mc_line)
+        .filter(Boolean)
+    ).size;
+
+    return (
+      <div className={`border border-t-0 rounded-b-lg px-3 py-2 ${isSel ? "border-primary/40 bg-primary/5" : "border-base-200 bg-base-200/20"}`}>
+        {!entry || entry.status === "loading" ? (
+          <div className="flex items-center gap-2 py-2 text-xs text-base-content/60">
+            <span className="loading loading-spinner loading-xs"></span>
+            Loading lots...
+          </div>
+        ) : entry.status === "error" ? (
+          <div className="flex items-center gap-2 py-2 text-xs text-error">
+            Cannot load lot data.
+            <button type="button" className="btn btn-xs btn-ghost" onClick={() => loadLots(row, true)}>
+              Retry
+            </button>
+          </div>
+        ) : lots.length === 0 ? (
+          <div className="py-2 text-xs text-base-content/50">
+            No lot records for {row.process_name} on {formatDate(row.output_date || "")}.
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-base-content/45 mr-1">
+              Lot No. ({lots.length.toLocaleString()})
+            </span>
+            {lots.map((lot, i) => (
+              <span
+                key={`${lot.lot}_${lot.out_time}_${i}`}
+                className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-primary/25 bg-primary/10 text-primary"
+              >
+                {lot.lot}
+              </span>
+            ))}
+            {mcLineCount > 1 && (
+              <span className="basis-full text-[10px] text-base-content/45 mt-0.5">
+                Lots from all {mcLineCount} MC lines (lot data is not split by MC line)
+              </span>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -1540,7 +1681,7 @@ const Page: React.FC = () => {
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-base-content/50">
                 <span className="flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3 text-primary/70" />
-                  Showing {detailStartIndex + 1}-{detailEndIndex} of {detailTotalItems}. Click a product row to expand process details.
+                  Showing {detailStartIndex + 1}-{detailEndIndex} of {detailTotalItems}. Click a product row to expand processes; click a process row to see lot numbers.
                 </span>
                 <div className="flex items-center gap-2">
                   {(detailSearchQuery || detailProcessFilter !== "All Processes" || detailCustomerFilter !== "All Customers" || detailTypeFilter !== "All" || detailSortMode !== "OutputDesc") && (

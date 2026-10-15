@@ -146,4 +146,71 @@ router.get("/dashboard-products", async (req, res) => {
   }
 });
 
+// ----------------------------------------------------------------------------
+// GET /lots
+// Fetch lot-level output records for one product + process on one day
+// Source: smart.smart_fpc_output_by_lot (prd_name matched ignoring '-', out_time is varchar)
+// Note: table has no mc_line, so lots are not split by MC line
+// Cached for 60 seconds
+// ----------------------------------------------------------------------------
+router.get("/lots", async (req, res) => {
+  try {
+    const { date, product, process, _t } = req.query;
+
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !product || !process) {
+      return res.status(400).json({ error: "date (YYYY-MM-DD), product and process are required" });
+    }
+
+    const cacheKey = `productname:lots:${date}:${product}:${process}`;
+    if (!_t) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        res.setHeader("X-Cache", "HIT");
+        return res.status(200).json(cached);
+      }
+    }
+
+    // prd_name ในตาราง lot อาจเก็บแบบไม่มีขีด (เช่น CAK236W0A) จึงตัด '-' ออกทั้งสองฝั่งก่อนเทียบ
+    const productCode = String(product).trim().replace(/-/g, "");
+
+    // out_time เป็น varchar — รองรับหลายรูปแบบวันที่ที่อาจพบ
+    const [y, m, d] = date.split("-");
+    const datePatterns = [
+      `${y}-${m}-${d}%`,
+      `${y}/${m}/${d}%`,
+      `${d}/${m}/${y}%`,
+      `${d}-${m}-${y}%`,
+      `${y}${m}${d}%`,
+    ];
+
+    const sqlStatement = `
+      SELECT
+        lot,
+        wo,
+        cat,
+        prd_name AS product_name,
+        proc_disp AS process_name,
+        TO_CHAR(plan_date, 'YYYY-MM-DD') AS plan_date,
+        in_time,
+        out_time,
+        input_qty,
+        factory_desc,
+        prbm_problem_name
+      FROM smart.smart_fpc_output_by_lot
+      WHERE REPLACE(TRIM(prd_name), '-', '') = $1
+        AND TRIM(proc_disp) = $2
+        AND TRIM(out_time) LIKE ANY($3::text[])
+      ORDER BY out_time ASC, lot ASC
+    `;
+    const result = await query(sqlStatement, [productCode, String(process).trim(), datePatterns]);
+
+    setCache(cacheKey, result.rows, 60_000);
+    res.setHeader("X-Cache", "MISS");
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("[OutputByProduct] Error fetching lots:", error.message);
+    res.status(500).json({ error: "Cannot fetch lot data" });
+  }
+});
+
 module.exports = router;
