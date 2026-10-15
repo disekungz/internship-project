@@ -7,6 +7,35 @@ const query = (text, params) => pool_smart.query(text, params);
 const { getCached, setCache } = require("../../../../../../Utility/apiCache");
 
 // ----------------------------------------------------------------------------
+// Product type map (SMT / FPC) from smart.smart_fpc_output_detail.prd_item_code
+// prd_item_code '95' = SMT, '94' = FPC — key is prd_name without '-'
+// Cached for 1 hour
+// ----------------------------------------------------------------------------
+async function getProductTypeMap() {
+  const cacheKey = "productname:product-types";
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+
+  const result = await query(`
+    SELECT
+      REPLACE(TRIM(prd_prd_name), '-', '') AS prd,
+      CASE
+        WHEN BOOL_OR(TRIM(prd_item_code) = '95') THEN 'SMT'
+        WHEN BOOL_OR(TRIM(prd_item_code) = '94') THEN 'FPC'
+      END AS product_type
+    FROM smart.smart_fpc_output_detail
+    WHERE prd_prd_name IS NOT NULL
+    GROUP BY REPLACE(TRIM(prd_prd_name), '-', '')
+  `);
+  const map = {};
+  result.rows.forEach((row) => {
+    if (row.product_type) map[row.prd] = row.product_type;
+  });
+  setCache(cacheKey, map, 60 * 60_000);
+  return map;
+}
+
+// ----------------------------------------------------------------------------
 // GET /processes
 // Fetch distinct process names that have actual output records (non-zero qty)
 // Cached for 5 minutes
@@ -174,11 +203,20 @@ router.get("/dashboard-products", async (req, res) => {
       )
       ORDER BY a.output_date ASC
     `;
-    const result = await query(sqlStatement, values);
+    const [result, productTypeMap] = await Promise.all([
+      query(sqlStatement, values),
+      getProductTypeMap(),
+    ]);
 
-    setCache(cacheKey, result.rows, 60_000);
+    // product_type: SMT / FPC จาก prd_item_code (null ถ้าไม่พบใน smart_fpc_output_detail)
+    const rows = result.rows.map((row) => ({
+      ...row,
+      product_type: productTypeMap[String(row.product_name || "").trim().replace(/-/g, "")] || null,
+    }));
+
+    setCache(cacheKey, rows, 60_000);
     res.setHeader("X-Cache", "MISS");
-    res.status(200).json(result.rows);
+    res.status(200).json(rows);
   } catch (error) {
     console.error("[OutputByProduct] Error fetching dashboard-products:", error.message);
     res.status(500).json({ error: "Cannot fetch dashboard product data" });
