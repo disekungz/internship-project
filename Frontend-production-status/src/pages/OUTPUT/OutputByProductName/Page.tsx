@@ -34,6 +34,7 @@ interface LotDetail {
 interface LotCacheEntry {
   status: "loading" | "ok" | "error";
   rows: LotDetail[];
+  nonGate?: boolean; // routing gate_proc = 'N' (only set when no lots were found)
 }
 
 type UnitMode = "Piece" | "Sheet" | "Lot";
@@ -832,8 +833,10 @@ const Page: React.FC = () => {
       if (force) params.append("_t", String(Date.now()));
       const res = await fetch(`${getApiBaseUrl()}/outputbyproduct/lots?${params.toString()}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: LotDetail[] = await res.json();
-      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: Array.isArray(data) ? data : [] } }));
+      const data: { lots?: LotDetail[]; non_gate?: boolean | null } | LotDetail[] = await res.json();
+      const rows = Array.isArray(data) ? data : (Array.isArray(data?.lots) ? data.lots : []);
+      const nonGate = !Array.isArray(data) && data?.non_gate === true;
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows, nonGate } }));
     } catch (error) {
       console.error("Failed to fetch lot detail", error);
       setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
@@ -949,7 +952,10 @@ const Page: React.FC = () => {
     const color = getProductColor(row.product_name);
     const isSel = selectedProduct === row.product_name;
     const pType = getProductProcessType(row.product_name);
-    const isLotOpen = expandedLotEntries.includes(getLotEntryKey(row));
+    // ไม่มี lot และ routing บอกว่าไม่ใช่ gate process (gate_proc = 'N') — ไม่ต้องแสดงแผง lot
+    const lotEntry = lotCache[getLotCacheKey(row)];
+    const isLotPanelHidden = lotEntry?.status === "ok" && lotEntry.rows.length === 0 && lotEntry.nonGate === true;
+    const isLotOpen = expandedLotEntries.includes(getLotEntryKey(row)) && !isLotPanelHidden;
 
     return (
       <div key={`${row.product_name}_${row.process_name}_${row.mc_line || "line"}_${index}`} className="flex flex-col">
