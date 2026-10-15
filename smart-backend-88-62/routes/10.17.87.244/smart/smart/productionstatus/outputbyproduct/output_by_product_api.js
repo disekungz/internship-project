@@ -64,7 +64,8 @@ router.get("/products", async (req, res) => {
 
 // ----------------------------------------------------------------------------
 // GET /dashboard-products
-// Fetch aggregated output data grouped by date, product, process, and MC Line
+// Fetch aggregated output data grouped by date, product, and process (MC lines merged)
+// Only rows that have lot numbers in smart.smart_fpc_output_by_lot are returned
 // Supports: startDate+endDate, date, or month query params
 // Uses index-friendly range comparisons (>= start AND < end) instead of TO_CHAR
 // Cached for 60 seconds
@@ -149,18 +150,19 @@ router.get("/dashboard-products", async (req, res) => {
         FROM smart.smart_fpc_output_by_lot
         WHERE out_time IS NOT NULL ${lotRangeClause}
       ),
+      -- ไม่แยก MC: รวมทุก mc_line ของ product + process เดียวกันในวันเดียวกันเป็นแถวเดียว
+      -- (ตาราง lot ไม่มี MC จึงจับคู่เลข lot ได้ตรงระดับ product + process เท่านั้น)
       agg AS (
         SELECT
           TO_CHAR(output_date, 'YYYY-MM-DD') AS output_date,
           prd_name AS product_name,
           proc_disp AS process_name,
-          mc_line,
           SUM(COALESCE(pcs_qty, 0)) AS actual_pcs_qty,
           SUM(COALESCE(sht_qty, 0)) AS actual_sht_qty,
           SUM(COALESCE(lot_qty, 0)) AS actual_lot_qty
         FROM smart.smart_fpc_process_output_detail
         ${whereClause}
-        GROUP BY TO_CHAR(output_date, 'YYYY-MM-DD'), prd_name, proc_disp, mc_line
+        GROUP BY TO_CHAR(output_date, 'YYYY-MM-DD'), prd_name, proc_disp
       )
       SELECT a.*
       FROM agg a
@@ -188,7 +190,7 @@ router.get("/dashboard-products", async (req, res) => {
 // Fetch lot-level output records for one product + process on one production day
 // (08:00 of `date` to 08:00 of the next day, based on out_time)
 // Source: smart.smart_fpc_output_by_lot (prd_name matched ignoring '-', out_time is varchar 'DD/MM/YYYY HH24:MI')
-// Note: table has no mc_line, so lots are not split by MC line
+// Note: table has no mc_line; /dashboard-products is grouped without MC so rows match this list
 // Response: { lots: [...], non_gate } — non_gate is true when no lots were found and
 // smart.smart_pln_product_routing_list marks this process gate_proc = 'N' (null if unknown)
 // Cached for 60 seconds
