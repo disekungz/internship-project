@@ -57,9 +57,9 @@ export function SingleSelectFilter({
             className="relative inline-block"
             onToggle={(e) => setIsOpen((e.currentTarget as HTMLDetailsElement).open)}
         >
-            <summary className="cursor-pointer select-none list-none px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white text-sm flex items-center gap-2 transition-colors">
-                {icon && <span className="text-slate-400">{icon}</span>}
-                <span className="font-semibold text-slate-700">
+            <summary className="cursor-pointer select-none list-none px-3.5 py-2 rounded-xl border border-base-300 bg-base-200 hover:bg-base-100 text-sm flex items-center gap-2 transition-colors">
+                {icon && <span className="text-base-content/60">{icon}</span>}
+                <span className="font-semibold text-base-content">
                     {selected !== "all"
                         ? <>{label}: <span className="text-blue-600 font-bold ml-0.5">{selected}</span></>
                         : label
@@ -69,7 +69,7 @@ export function SingleSelectFilter({
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    className="w-3.5 h-3.5 text-slate-400"
+                    className="w-3.5 h-3.5 text-base-content/60"
                 >
                     <path
                         fillRule="evenodd"
@@ -81,15 +81,15 @@ export function SingleSelectFilter({
 
             {isOpen && (
                 <div
-                    className="absolute z-50 top-full mt-2 p-2 bg-white border border-slate-200 rounded-2xl shadow-xl w-max min-w-[170px] left-0 box-border"
+                    className="absolute z-50 top-full mt-2 p-2 bg-base-100 border border-base-300 rounded-2xl shadow-xl w-max min-w-[170px] left-0 box-border"
                 >
-                    <div className="mb-2 w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus-within:ring-2 focus-within:ring-indigo-400/60 focus-within:border-indigo-400 focus-within:bg-white transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-slate-400 shrink-0">
+                    <div className="mb-2 w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-base-300 bg-base-200 focus-within:ring-2 focus-within:ring-indigo-400/60 focus-within:border-indigo-400 focus-within:bg-base-100 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-base-content/60 shrink-0">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                         </svg>
                         <input
                             type="text"
-                            className="w-full text-xs bg-transparent border-none outline-none focus:outline-none p-0 text-slate-700 placeholder:text-slate-400 min-w-0"
+                            className="w-full text-xs bg-transparent border-none outline-none focus:outline-none p-0 text-base-content placeholder:text-base-content/60 min-w-0"
                             placeholder="ค้นหา..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -103,7 +103,7 @@ export function SingleSelectFilter({
                                 onClick={() => handleSelect("all")}
                                 className={`flex items-center justify-between text-xs font-bold cursor-pointer rounded-lg px-2.5 py-2 transition-colors select-none ${selected === "all"
                                     ? "bg-indigo-50/60 text-blue-700 hover:bg-indigo-50"
-                                    : "text-slate-600 hover:bg-slate-50"
+                                    : "text-base-content hover:bg-base-300"
                                     }`}
                             >
                                 <span>All</span>
@@ -125,7 +125,7 @@ export function SingleSelectFilter({
                                             onClick={() => handleSelect(opt)}
                                             className={`flex items-center justify-between text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 transition-colors select-none ${isItemSelected
                                                 ? "bg-indigo-50/60 text-blue-700 hover:bg-indigo-50"
-                                                : "text-slate-600 hover:bg-slate-50"
+                                                : "text-base-content hover:bg-base-300"
                                                 }`}
                                         >
                                             <span className="truncate">{opt}</span>
@@ -138,13 +138,13 @@ export function SingleSelectFilter({
                                     );
                                 })}
                                 {filteredOptions.length > 100 && (
-                                    <div className="text-center py-2 text-[11px] text-slate-400 font-medium">
+                                    <div className="text-center py-2 text-[11px] text-base-content/60 font-medium">
                                         แสดง 100 จาก {filteredOptions.length} รายการ (พิมพ์เพื่อค้นหาเพิ่ม)
                                     </div>
                                 )}
                             </>
                         ) : (
-                            <div className="text-center py-4 text-xs text-slate-400">ไม่พบรายการที่ค้นหา</div>
+                            <div className="text-center py-4 text-xs text-base-content/60">ไม่พบรายการที่ค้นหา</div>
                         )}
                     </div>
                 </div>

@@ -122,22 +122,22 @@ export const ModernDateRangePicker: React.FC<ModernDateRangePickerProps> = ({
 
   return (
     <div ref={containerRef} className={`relative inline-block w-full ${className}`}>
-      {label && <label className="block text-xs font-semibold text-slate-500 mb-1">{label}</label>}
+      {label && <label className="block text-xs font-semibold text-base-content/60 mb-1">{label}</label>}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-[38px] px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white text-xs text-slate-700 flex items-center justify-between gap-2 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+        className="w-full h-[38px] px-3 py-1.5 rounded-xl border border-base-300 bg-base-200 hover:bg-base-300 text-xs text-base-content flex items-center justify-between gap-2 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
       >
         <div className="flex items-center gap-2 truncate">
-          <Calendar size={14} className="text-slate-400 shrink-0" />
-          <span className={`truncate font-medium ${hasValue ? "text-slate-800" : "text-slate-400"}`}>
+          <Calendar size={14} className="text-base-content/60 shrink-0" />
+          <span className={`truncate font-medium ${hasValue ? "text-base-content" : "text-base-content/60"}`}>
             {displayText()}
           </span>
         </div>
         {hasValue && (
           <span
             onClick={handleClear}
-            className="p-0.5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
+            className="p-0.5 rounded-full hover:bg-base-200 text-base-content/60 hover:text-base-content transition-colors"
             title="Clear range"
           >
             <X size={12} />
@@ -147,37 +147,37 @@ export const ModernDateRangePicker: React.FC<ModernDateRangePickerProps> = ({
 
       {isOpen && (
         <div
-          className={`absolute top-full mt-1.5 z-50 bg-white rounded-xl shadow-xl border border-slate-200 p-3 min-w-[280px] w-full sm:w-80 ${
+          className={`absolute top-full mt-1.5 z-50 bg-base-100 rounded-xl shadow-xl border border-base-300 p-3 min-w-[280px] w-full sm:w-80 ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >
           {/* Quick Presets */}
-          <div className="grid grid-cols-4 gap-1 mb-3 pb-2 border-b border-slate-100">
+          <div className="grid grid-cols-4 gap-1 mb-3 pb-2 border-b border-base-300">
             <button
               type="button"
               onClick={() => handlePreset("today")}
-              className="px-2 py-1 text-[11px] font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              className="px-2 py-1 text-[11px] font-medium text-base-content hover:text-blue-600 hover:bg-base-200 rounded-lg transition-colors"
             >
               Today
             </button>
             <button
               type="button"
               onClick={() => handlePreset("7days")}
-              className="px-2 py-1 text-[11px] font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              className="px-2 py-1 text-[11px] font-medium text-base-content hover:text-blue-600 hover:bg-base-200 rounded-lg transition-colors"
             >
               7 Days
             </button>
             <button
               type="button"
               onClick={() => handlePreset("30days")}
-              className="px-2 py-1 text-[11px] font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              className="px-2 py-1 text-[11px] font-medium text-base-content hover:text-blue-600 hover:bg-base-200 rounded-lg transition-colors"
             >
               30 Days
             </button>
             <button
               type="button"
               onClick={() => handlePreset("all")}
-              className="px-2 py-1 text-[11px] font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              className="px-2 py-1 text-[11px] font-medium text-base-content hover:text-blue-600 hover:bg-base-200 rounded-lg transition-colors"
             >
               All
             </button>
@@ -186,7 +186,7 @@ export const ModernDateRangePicker: React.FC<ModernDateRangePickerProps> = ({
           {/* Date Inputs */}
           <div className="space-y-2.5 mb-3">
             <div>
-              <span className="block text-[11px] font-semibold text-slate-500 mb-1">From</span>
+              <span className="block text-[11px] font-semibold text-base-content/60 mb-1">From</span>
               <input
                 type="date"
                 value={localStart}
@@ -196,11 +196,11 @@ export const ModernDateRangePicker: React.FC<ModernDateRangePickerProps> = ({
                 onClick={(e) => {
                   try { e.currentTarget.showPicker(); } catch (err) {}
                 }}
-                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-800 cursor-pointer focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-base-300 bg-base-200 text-base-content cursor-pointer focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
             </div>
             <div>
-              <span className="block text-[11px] font-semibold text-slate-500 mb-1">To</span>
+              <span className="block text-[11px] font-semibold text-base-content/60 mb-1">To</span>
               <input
                 type="date"
                 value={localEnd}
@@ -210,17 +210,17 @@ export const ModernDateRangePicker: React.FC<ModernDateRangePickerProps> = ({
                 onClick={(e) => {
                   try { e.currentTarget.showPicker(); } catch (err) {}
                 }}
-                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-800 cursor-pointer focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-base-300 bg-base-200 text-base-content cursor-pointer focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-base-300">
             <button
               type="button"
               onClick={() => handleClear()}
-              className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              className="px-3 py-1.5 text-xs font-medium text-base-content hover:bg-base-200 rounded-lg transition-colors"
             >
               Reset
             </button>

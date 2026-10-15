@@ -429,7 +429,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative flex flex-col w-full max-w-[95vw] xl:max-w-[1480px] 2xl:max-w-[1680px] max-h-[92vh] bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] border border-slate-200/80 overflow-hidden select-none"
+        className="relative flex flex-col w-full max-w-[95vw] xl:max-w-[1480px] 2xl:max-w-[1680px] max-h-[92vh] bg-base-100 rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] border border-base-300/80 overflow-hidden select-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header - THEMED WITH VIBRANT LEAD TIME COLOR */}
@@ -440,7 +440,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
           }}
         >
           <div className="flex items-center gap-3.5">
-            <div className="flex items-center justify-center w-11 h-11 rounded-2xl shadow-md bg-white/20 backdrop-blur-sm border border-white/30 text-white shrink-0">
+            <div className="flex items-center justify-center w-11 h-11 rounded-2xl shadow-md bg-base-100/20 backdrop-blur-sm border border-white/30 text-white shrink-0">
               <Boxes className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -461,7 +461,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                 )}
                 {leadTimeGroupName ? (
                   <span
-                    className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-lg text-xs font-black border bg-white text-slate-900 shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-lg text-xs font-black border bg-base-100 text-base-content shadow-xs"
                     style={{
                       borderColor: "rgba(255,255,255,0.9)",
                     }}
@@ -496,7 +496,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
           <div className="flex items-center gap-3">
             <button
               onClick={handleExportExcel}
-              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-black text-slate-900 bg-white hover:bg-slate-50 rounded-xl transition-all shadow-md hover:shadow-lg cursor-pointer active:scale-95 border border-white/90"
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-black text-base-content bg-base-100 hover:bg-base-300 rounded-xl transition-all shadow-md hover:shadow-lg cursor-pointer active:scale-95 border border-white/90"
               title="Export all lots to Excel (.xlsx)"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
@@ -504,7 +504,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-white hover:text-white bg-white/15 hover:bg-white/25 rounded-xl transition-all cursor-pointer backdrop-blur-xs border border-white/20"
+              className="p-2 text-white hover:text-white bg-base-100/15 hover:bg-base-100/25 rounded-xl transition-all cursor-pointer backdrop-blur-xs border border-white/20"
               title="Close (Esc)"
             >
               <X className="w-5 h-5" />
@@ -513,16 +513,16 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
         </div>
 
         {/* Executive KPI Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 px-7 py-3.5 bg-gradient-to-b from-slate-50/90 to-slate-100/50 border-b border-slate-200/80 shrink-0">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 px-7 py-3.5 bg-base-200 border-b border-base-300/80 shrink-0">
           <div
-            className="flex items-center justify-between bg-white p-3.5 rounded-2xl border shadow-xs transition-all hover:shadow-sm"
+            className="flex items-center justify-between bg-base-100 p-3.5 rounded-2xl border shadow-xs transition-all hover:shadow-sm"
             style={{
               borderColor: `${activeTheme.color}60`,
               boxShadow: `0 2px 8px -2px ${activeTheme.color}25`,
             }}
           >
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-base-content/60 flex items-center gap-1">
                 <Package
                   className="w-3.5 h-3.5"
                   style={{ color: activeTheme.color }}
@@ -536,14 +536,14 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                 >
                   {stats.totalLots.toLocaleString()}
                 </span>
-                <span className="text-xs font-bold text-slate-400">Lots</span>
+                <span className="text-xs font-bold text-base-content/60">Lots</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-blue-300 transition-colors">
+          <div className="flex items-center justify-between bg-base-100 p-3.5 rounded-2xl border border-base-300/80 shadow-xs hover:border-blue-300 transition-colors">
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-base-content/60 flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
                 Total Lot Qty
               </span>
@@ -551,14 +551,14 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                 <span className="text-xl font-black text-blue-600 tracking-tight">
                   {stats.totalQty.toLocaleString()}
                 </span>
-                <span className="text-xs font-bold text-slate-400">Lots</span>
+                <span className="text-xs font-bold text-base-content/60">Lots</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-amber-300 transition-colors">
+          <div className="flex items-center justify-between bg-base-100 p-3.5 rounded-2xl border border-base-300/80 shadow-xs hover:border-amber-300 transition-colors">
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-base-content/60 flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5 text-amber-500" />
                 Avg Aging
               </span>
@@ -566,14 +566,14 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                 <span className="text-xl font-black text-amber-600 tracking-tight">
                   {stats.avgDays}
                 </span>
-                <span className="text-xs font-bold text-slate-400">Days</span>
+                <span className="text-xs font-bold text-base-content/60">Days</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-rose-300 transition-colors">
+          <div className="flex items-center justify-between bg-base-100 p-3.5 rounded-2xl border border-base-300/80 shadow-xs hover:border-rose-300 transition-colors">
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-base-content/60 flex items-center gap-1">
                 <Flame className="w-3.5 h-3.5 text-rose-500" />
                 Max Aging
               </span>
@@ -586,9 +586,9 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 transition-colors col-span-2 sm:col-span-1">
+          <div className="flex items-center justify-between bg-base-100 p-3.5 rounded-2xl border border-base-300/80 shadow-xs hover:border-indigo-300 transition-colors col-span-2 sm:col-span-1">
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-base-content/60 flex items-center gap-1">
                 <Tag className="w-3.5 h-3.5 text-purple-500" />
                 Product Models
               </span>
@@ -596,17 +596,17 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                 <span className="text-xl font-black text-purple-600 tracking-tight">
                   {stats.uniquePrds}
                 </span>
-                <span className="text-xs font-bold text-slate-400">Models</span>
+                <span className="text-xs font-bold text-base-content/60">Models</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Process Filter Tabs & Search Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-7 py-3 border-b border-slate-200/80 bg-white shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-7 py-3 border-b border-base-300/80 bg-base-100 shrink-0">
           {/* Process Interactive Tabs */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs font-bold text-slate-400 mr-1">
+            <span className="text-xs font-bold text-base-content/60 mr-1">
               Process:
             </span>
             <button
@@ -614,7 +614,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeProcessTab === "all"
                   ? "text-white shadow-xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200/70"
+                  : "bg-base-200 text-base-content hover:bg-base-300/70"
               }`}
               style={{
                 backgroundColor:
@@ -632,7 +632,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                     isActive
                       ? "text-white shadow-xs"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200/70"
+                      : "bg-base-200 text-base-content hover:bg-base-300/70"
                   }`}
                   style={{
                     backgroundColor: isActive ? activeTheme.color : undefined,
@@ -642,8 +642,8 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                   <span
                     className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
                       isActive
-                        ? "bg-white/25 text-white"
-                        : "bg-slate-200 text-slate-700"
+                        ? "bg-base-100/25 text-white"
+                        : "bg-base-300 text-base-content"
                     }`}
                   >
                     {tab.count}
@@ -656,18 +656,18 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
           {/* Search & Product Dropdown */}
           <div className="flex items-center gap-3">
             <div className="relative min-w-[200px] sm:min-w-[240px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/60" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search..."
-                className="w-full pl-9 pr-8 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-800 placeholder-slate-400 transition-all"
+                className="w-full pl-9 pr-8 py-2 text-xs font-semibold bg-base-200 border border-base-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-base-content placeholder-slate-400 transition-all"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-base-content/60 hover:text-base-content p-0.5"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -678,7 +678,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
               <select
                 value={selectedProductFilter}
                 onChange={(e) => setSelectedProductFilter(e.target.value)}
-                className="text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="text-xs font-bold bg-base-200 border border-base-300 rounded-xl px-3 py-2 text-base-content focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
                 <option value="all">
                   All Products ({productOptions.length})
@@ -694,26 +694,26 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
         </div>
 
         {/* Spacious Scrollable Table with Lead Time Group & Aging Color Styling */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white max-h-[58vh]">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-base-100 max-h-[58vh]">
           {filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="p-4 bg-slate-100 rounded-full text-slate-400 mb-3">
+              <div className="p-4 bg-base-200 rounded-full text-base-content/60 mb-3">
                 <AlertCircle className="w-8 h-8" />
               </div>
-              <h4 className="text-sm font-bold text-slate-700">
+              <h4 className="text-sm font-bold text-base-content">
                 No matching WIP lot records found
               </h4>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-base-content/60 mt-1">
                 Try adjusting your search query or selecting a different process.
               </p>
             </div>
           ) : (
             <table className="w-full text-center border-collapse table-fixed">
-              <thead className="sticky top-0 z-10 bg-slate-100/95 backdrop-blur-md text-[11px] font-black uppercase tracking-wider text-slate-500 border-b border-slate-200 select-none shadow-xs">
+              <thead className="sticky top-0 z-10 bg-base-200/95 backdrop-blur-md text-[11px] font-black uppercase tracking-wider text-base-content/60 border-b border-base-300 select-none shadow-xs">
                 <tr>
                   <th className="py-3 px-3 w-12 text-center">#</th>
                   <th
-                    className="py-3 px-4 w-[24%] cursor-pointer hover:text-slate-800 transition-colors text-center"
+                    className="py-3 px-4 w-[24%] cursor-pointer hover:text-base-content transition-colors text-center"
                     onClick={() => toggleSort("lot_prd_name")}
                   >
                     <div className="flex items-center justify-center gap-1.5">
@@ -723,7 +723,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                   </th>
                   <th className="py-3 px-4 w-[18%] text-center">Lot Number</th>
                   <th
-                    className="py-3 px-4 w-[13%] cursor-pointer hover:text-slate-800 transition-colors text-center"
+                    className="py-3 px-4 w-[13%] cursor-pointer hover:text-base-content transition-colors text-center"
                     onClick={() => toggleSort("proc_disp")}
                   >
                     <div className="flex items-center justify-center gap-1.5">
@@ -737,7 +737,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                     </div>
                   </th>
                   <th
-                    className="py-3 px-4 w-[14%] cursor-pointer hover:text-slate-800 transition-colors text-center"
+                    className="py-3 px-4 w-[14%] cursor-pointer hover:text-base-content transition-colors text-center"
                     onClick={() => toggleSort("lead_time_wip_days")}
                   >
                     <div className="flex items-center justify-center gap-1.5">
@@ -747,7 +747,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                   </th>
                   <th className="py-3 px-4 w-[11%] text-center">WIP Scan In</th>
                   <th
-                    className="py-3 px-4 w-[13%] cursor-pointer hover:text-slate-800 transition-colors text-center"
+                    className="py-3 px-4 w-[13%] cursor-pointer hover:text-base-content transition-colors text-center"
                     onClick={() => toggleSort("lot_qty")}
                   >
                     <div className="flex items-center justify-center gap-1.5">
@@ -757,7 +757,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-base-300 text-xs">
                 {filteredItems.map((item, index) => {
                   const days = Number(item.lead_time_wip_days || 0);
                   const rowTheme = getLeadTimeTheme(
@@ -768,25 +768,25 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                   return (
                     <tr
                       key={`${item.lot_no || index}-${index}`}
-                      className="hover:bg-slate-50/80 transition-colors group"
+                      className="hover:bg-base-300/80 transition-colors group"
                     >
-                      <td className="py-3 px-3 text-center font-bold text-slate-400 text-xs">
+                      <td className="py-3 px-3 text-center font-bold text-base-content/60 text-xs">
                         {index + 1}
                       </td>
-                      <td className="py-3 px-4 text-center font-black text-slate-900 truncate">
-                        <span className="inline-block px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-900 font-black text-xs tracking-wide transition-colors">
+                      <td className="py-3 px-4 text-center font-black text-base-content truncate">
+                        <span className="inline-block px-3 py-1 rounded-xl bg-base-200 hover:bg-base-300/80 border border-base-300 text-base-content font-black text-xs tracking-wide transition-colors">
                           {item.lot_prd_name || "-"}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-center font-mono font-bold text-slate-700 truncate">
+                      <td className="py-3 px-4 text-center font-mono font-bold text-base-content truncate">
                         <div className="inline-flex items-center justify-center gap-2 group/lot">
-                          <span className="text-xs bg-slate-50 px-2 py-0.5 rounded border border-slate-200/80">
+                          <span className="text-xs bg-base-200 px-2 py-0.5 rounded border border-base-300/80">
                             {item.lot_no || "-"}
                           </span>
                           {item.lot_no && (
                             <button
                               onClick={() => handleCopyLot(item.lot_no!)}
-                              className="opacity-0 group-hover/lot:opacity-100 p-1 hover:bg-slate-200 rounded-md text-slate-400 hover:text-slate-700 transition-all cursor-pointer"
+                              className="opacity-0 group-hover/lot:opacity-100 p-1 hover:bg-base-300 rounded-md text-base-content/60 hover:text-base-content transition-all cursor-pointer"
                               title="Copy Lot Number"
                             >
                               {copiedLot === item.lot_no ? (
@@ -829,7 +829,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                           </span>
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-center text-slate-600 font-medium text-xs">
+                      <td className="py-3 px-4 text-center text-base-content font-medium text-xs">
                         {item.wip_scan_in
                           ? new Date(item.wip_scan_in).toLocaleDateString(
                               "en-GB",
@@ -841,8 +841,8 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
                             )
                           : "-"}
                       </td>
-                      <td className="py-3 px-4 text-center font-black text-slate-900 text-sm">
-                        <span className="bg-slate-100 px-3 py-0.5 rounded-lg border border-slate-200">
+                      <td className="py-3 px-4 text-center font-black text-base-content text-sm">
+                        <span className="bg-base-200 px-3 py-0.5 rounded-lg border border-base-300">
                           {Number(item.lot_qty || 0).toLocaleString()}
                         </span>
                       </td>
@@ -855,12 +855,12 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
         </div>
 
         {/* Bottom Status Footer */}
-        <div className="flex flex-wrap items-center justify-between gap-4 px-7 py-3.5 border-t border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-slate-50 text-xs shrink-0">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-7 py-3.5 border-t border-base-300/80 bg-base-200 text-xs shrink-0">
+          <div className="flex items-center gap-2 text-xs font-semibold text-base-content/60">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>
               Showing all{" "}
-              <strong className="text-slate-900 font-black">
+              <strong className="text-base-content font-black">
                 {filteredItems.length}
               </strong>{" "}
               records (Continuous scroll)
@@ -868,7 +868,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="text-xs font-bold text-slate-900 bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-xl shadow-2xs">
+            <div className="text-xs font-bold text-base-content bg-base-200 border border-base-300 px-3.5 py-1.5 rounded-xl shadow-2xs">
               Total Lots:{" "}
               <strong
                 className="font-black"
@@ -879,7 +879,7 @@ export const WipDetailModal: React.FC<WipDetailModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="px-4 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs transition-all cursor-pointer shadow-2xs active:scale-95"
+              className="px-4 py-1.5 rounded-xl border border-base-300 bg-base-100 hover:bg-base-300 text-base-content font-bold text-xs transition-all cursor-pointer shadow-2xs active:scale-95"
             >
               Close
             </button>

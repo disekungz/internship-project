@@ -23,38 +23,38 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({ label, icon,
 
     return (
         <div className="space-y-1.5 relative" ref={dropdownRef}>
-            <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+            <label className="text-xs font-bold text-base-content flex items-center gap-1.5">
                 {icon} {label}
             </label>
             <div
                 onClick={() => { setIsOpen(!isOpen); setSearchTerm(''); }}
-                className={`w-full border border-slate-300 bg-white rounded-lg px-2.5 py-1.5 text-xs text-slate-700 flex justify-between items-center cursor-pointer hover:border-slate-400 select-none ${isOpen ? 'ring-2 ring-blue-200 border-blue-500' : ''}`}
+                className={`w-full border border-base-300 bg-base-100 rounded-lg px-2.5 py-1.5 text-xs text-base-content flex justify-between items-center cursor-pointer hover:border-base-content/40 select-none ${isOpen ? 'ring-2 ring-blue-200 border-blue-500' : ''}`}
             >
                 <span className="truncate font-medium">{selectedValue}</span>
-                <ChevronDown size={14} className={`text-slate-400 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-base-content/50 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
             </div>
             {isOpen && (
-                <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-1 duration-100">
-                    <div className="p-1.5 border-b border-slate-100 bg-slate-50 flex items-center gap-1.5 sticky top-0">
-                        <Search size={12} className="text-slate-400 ml-1 flex-shrink-0" />
+                <div className="absolute left-0 right-0 mt-1 bg-base-100 border border-base-300 rounded-lg shadow-xl z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-1 duration-100">
+                    <div className="p-1.5 border-b border-base-300 bg-base-200 flex items-center gap-1.5 sticky top-0">
+                        <Search size={12} className="text-base-content/50 ml-1 flex-shrink-0" />
                         <input
                             type="text"
                             placeholder="ค้นหา..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full text-xs bg-transparent focus:outline-none text-slate-700 py-0.5"
+                            className="w-full text-xs bg-transparent focus:outline-none text-base-content py-0.5"
                             autoFocus
                         />
                     </div>
-                    <div className="overflow-y-auto flex-1 max-h-48 divide-y divide-slate-50">
+                    <div className="overflow-y-auto flex-1 max-h-48 divide-y divide-base-300">
                         {filteredOptions.length === 0 ? (
-                            <div className="p-2 text-center text-xs text-slate-400">ไม่พบข้อมูล</div>
+                            <div className="p-2 text-center text-xs text-base-content/50">ไม่พบข้อมูล</div>
                         ) : (
                             filteredOptions.map((opt) => (
                                 <div
                                     key={opt}
                                     onClick={() => { onSelect(opt); setIsOpen(false); }}
-                                    className={`p-2 text-xs cursor-pointer transition-colors whitespace-nowrap truncate ${selectedValue === opt ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
+                                    className={`p-2 text-xs cursor-pointer transition-colors whitespace-nowrap truncate ${selectedValue === opt ? 'bg-blue-50 text-blue-700 font-bold' : 'text-base-content hover:bg-base-200'}`}
                                 >
                                     {opt}
                                 </div>

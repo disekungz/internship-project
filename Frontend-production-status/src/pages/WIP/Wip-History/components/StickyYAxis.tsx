@@ -46,8 +46,8 @@ export const StickyYAxis: React.FC<StickyYAxisProps> = ({
         width,
         height,
         flex: "none",
-        background: "#ffffff",
-        borderRight: "1px solid #e2e8f0",
+        background: "var(--color-base-100)",
+        borderRight: "1px solid var(--color-base-300)",
         boxShadow: "2px 0 6px -2px rgba(0,0,0,0.08)",
         userSelect: "none",
       }}
@@ -70,7 +70,7 @@ export const StickyYAxis: React.FC<StickyYAxisProps> = ({
                 y1={y}
                 x2={width}
                 y2={y}
-                stroke="#cbd5e1"
+                stroke="var(--color-base-300)"
                 strokeWidth={1.5}
               />
               {/* ป้ายตัวเลขสเกล Y */}
@@ -79,7 +79,7 @@ export const StickyYAxis: React.FC<StickyYAxisProps> = ({
                 y={y}
                 dy="0.32em"
                 textAnchor="end"
-                fill="#64748b"
+                fill="var(--color-base-content)"
                 fontSize={11}
                 fontWeight={600}
                 fontFamily="Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif"

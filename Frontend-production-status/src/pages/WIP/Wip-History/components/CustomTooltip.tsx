@@ -55,17 +55,17 @@ export const CustomTooltip = ({ active, payload, label, processList, leadTimeGro
 
     return (
         <div
-            className="bg-white/95 backdrop-blur-sm border border-indigo-100 rounded-2xl shadow-xl p-3 text-xs flex flex-col gap-1 pointer-events-none"
+            className="bg-base-100/95 backdrop-blur-sm border border-base-300 rounded-2xl shadow-xl p-3 text-xs flex flex-col gap-1 pointer-events-none"
             style={{ maxWidth: "1000px", minWidth: "350px", width: "auto" }}
         >
             {/* ส่วนหัว Tooltip: วันที่ + ยอดรวม + เป้าหมาย Target */}
-            <div className="flex flex-col gap-1 border-b border-slate-100 pb-1.5 mb-1">
-                <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                    <span className="text-[12px] text-slate-700 uppercase">Date:</span>
+            <div className="flex flex-col gap-1 border-b border-base-300 pb-1.5 mb-1">
+                <div className="flex items-center gap-1.5 font-bold text-base-content">
+                    <span className="text-[12px] text-base-content uppercase">Date:</span>
                     <span>{label}</span>
                 </div>
                 <div className="flex flex-row gap-2 mt-0.5">
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-50 border border-indigo-100/50 font-bold text-indigo-700 shrink-0">
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-50 border border-base-300/50 font-bold text-indigo-700 shrink-0">
                         <span>Total:</span>
                         <span>{row?.total?.toLocaleString()}</span>
                     </div>
@@ -81,19 +81,19 @@ export const CustomTooltip = ({ active, payload, label, processList, leadTimeGro
             {/* สรุปแยกตามกลุ่ม Lead Time */}
             {leadTimeItems.length > 0 && (
                 <div className="flex flex-col gap-[2px]">
-                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">Lead Time Group</div>
+                    <div className="text-[10px] font-semibold text-base-content/60 uppercase tracking-wide mb-0.5">Lead Time Group</div>
                     <div className="flex flex-row flex-wrap gap-[2px] items-center">
                         {leadTimeItems.map((item) => (
                             <div
                                 key={item.key}
-                                className="flex items-center gap-[2px] px-1 py-[1px] rounded bg-slate-50 border border-slate-100 text-xs shrink-0"
+                                className="flex items-center gap-[2px] px-1 py-[1px] rounded bg-base-200 border border-base-300 text-xs shrink-0"
                             >
                                 <span
                                     className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
                                     style={{ backgroundColor: item.color }}
                                 />
-                                <span className="text-slate-700 font-medium">{item.name}:</span>
-                                <span className="font-bold text-slate-700">{item.value.toLocaleString()}</span>
+                                <span className="text-base-content font-medium">{item.name}:</span>
+                                <span className="font-bold text-base-content">{item.value.toLocaleString()}</span>
                             </div>
                         ))}
                     </div>
@@ -102,22 +102,22 @@ export const CustomTooltip = ({ active, payload, label, processList, leadTimeGro
 
             {/* สรุปแยกตาม Process */}
             {processItems.length > 0 && (
-                <div className="flex flex-col gap-[2px] border-t border-slate-100 pt-1.5 mt-0.5">
-                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">Process</div>
+                <div className="flex flex-col gap-[2px] border-t border-base-300 pt-1.5 mt-0.5">
+                    <div className="text-[10px] font-semibold text-base-content/60 uppercase tracking-wide mb-0.5">Process</div>
                     <div className="flex flex-col gap-[2px]">
                         {processChunks.map((chunk, chunkIdx) => (
                             <div key={chunkIdx} className="flex flex-row flex-wrap gap-[2px] items-center">
                                 {chunk.map((item) => (
                                     <div
                                         key={item.key}
-                                        className="flex items-center gap-[2px] px-1 py-[1px] rounded bg-slate-50 border border-slate-100 text-xs shrink-0"
+                                        className="flex items-center gap-[2px] px-1 py-[1px] rounded bg-base-200 border border-base-300 text-xs shrink-0"
                                     >
                                         <span
                                             className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
                                             style={{ backgroundColor: item.color }}
                                         />
-                                        <span className="text-slate-700 font-medium">{item.name}:</span>
-                                        <span className="font-bold text-slate-700">{item.value.toLocaleString()}</span>
+                                        <span className="text-base-content font-medium">{item.name}:</span>
+                                        <span className="font-bold text-base-content">{item.value.toLocaleString()}</span>
                                     </div>
                                 ))}
                             </div>
