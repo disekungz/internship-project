@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Filter, RefreshCcw, Layers, Cpu, Award, BarChart3, Sparkles, ChevronUp, ChevronDown, Package, CalendarDays, ArrowLeft, MousePointerClick, Download, Target, TrendingUp, Scale, Gauge } from "lucide-react";
+import { Filter, RefreshCcw, Layers, Cpu, Award, BarChart3, Sparkles, ChevronUp, ChevronDown, ChevronRight, Package, CalendarDays, ArrowLeft, MousePointerClick, Download, Target, TrendingUp, Scale, Gauge } from "lucide-react";
 import TopOutputChart from "./TopOutputChart";
 import ProcessDateChart from "./ProcessDateChart";
 import LineDateChart from "./LineDateChart";
@@ -352,9 +352,29 @@ interface ProductProcessOutput {
   process_name?: string;
   mc_line?: string;
   output_date?: string;
+  is_gate?: boolean; // gate_proc = 'Y' for this product + process (outputbyprocess/process-products)
   actual_pcs_qty: number;
   actual_sht_qty: number;
   actual_lot_qty: number;
+}
+
+// One lot record from smart.smart_fpc_output_by_lot (via /outputbyprocess/process-lots)
+interface LotDetail {
+  lot: string;
+  wo: string | null;
+  cat: string | null;
+  product_name: string | null;
+  plan_date: string | null;
+  in_time: string | null;
+  out_time: string;
+  input_qty: number | string | null;
+  factory_desc: string | null;
+  prbm_problem_name: string | null;
+}
+
+interface LotCacheEntry {
+  status: "loading" | "ok" | "error";
+  rows: LotDetail[];
 }
 
 type ExportRow = {
@@ -638,6 +658,127 @@ const Page: React.FC = () => {
     setDetailsCurrentPage(1);
   }, [selectedChartDate, selectedProcess, sortField, sortDirection]);
 
+  // Lot drill-down (Process Output Details): lots per process, production day cut at 08:00 -> 08:00
+  const [expandedLotProcesses, setExpandedLotProcesses] = useState<string[]>([]);
+  const [lotCache, setLotCache] = useState<Record<string, LotCacheEntry>>({});
+
+  useEffect(() => {
+    setExpandedLotProcesses([]);
+    setLotCache({});
+  }, [selectedChartDate, granularity, viewMode]);
+
+  // Date range of the selected period, clamped to the page date filter
+  const lotRange = useMemo(() => {
+    if (!selectedChartDate) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(selectedChartDate)) {
+      return { start: selectedChartDate, end: selectedChartDate };
+    }
+    if (granularity === "weekly") {
+      // selectedChartDate เป็น week key (เช่น 2026-WK42) — หาวันที่จริงในสัปดาห์นั้นจากข้อมูลเพื่อคำนวณช่วงวัน
+      const sample = [...(Array.isArray(lots) ? lots : []), ...productRows]
+        .map(row => row?.output_date as string | undefined)
+        .find(d => d && isDateInPeriod(d, selectedChartDate, "weekly"));
+      if (!sample) return null;
+      const week = getISOWeekInfo(sample);
+      return {
+        start: week.startDate < startDate ? startDate : week.startDate,
+        end: week.endDate > endDate ? endDate : week.endDate
+      };
+    }
+    return null;
+  }, [selectedChartDate, granularity, lots, productRows, startDate, endDate]);
+
+  const getLotCacheKey = (processName: string) => `${lotRange?.start || ""}|${lotRange?.end || ""}|${processName}`;
+
+  const loadLots = async (processName: string, force = false) => {
+    // ต้องเลือกวัน/สัปดาห์ก่อน — renderLotPanel จะแสดงข้อความให้เลือกวันแทน
+    if (!lotRange) return;
+    const cacheKey = getLotCacheKey(processName);
+    if (!force && lotCache[cacheKey] && lotCache[cacheKey].status !== "error") return;
+
+    setLotCache(prev => ({ ...prev, [cacheKey]: { status: "loading", rows: [] } }));
+    try {
+      const params = new URLSearchParams({
+        process: processName,
+        startDate: lotRange.start,
+        endDate: lotRange.end
+      });
+      if (force) params.append("_t", String(Date.now()));
+      // กันค้าง Loading ไม่สิ้นสุด — เกิน 60 วินาทีให้แสดง error พร้อมปุ่ม Retry
+      const res = await fetch(`${getApiBaseUrl()}/outputbyprocess/process-lots?${params.toString()}`, {
+        signal: AbortSignal.timeout(60_000)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: LotDetail[] = await res.json();
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: Array.isArray(data) ? data : [] } }));
+    } catch (error) {
+      console.error("Failed to fetch process lot detail", error);
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
+    }
+  };
+
+  const toggleLotProcess = (processName: string) => {
+    const isOpen = expandedLotProcesses.includes(processName);
+    setExpandedLotProcesses(prev => (isOpen ? prev.filter(item => item !== processName) : [...prev, processName]));
+    if (!isOpen) loadLots(processName);
+  };
+
+  const renderLotPanel = (processName: string) => {
+    const entry = lotCache[getLotCacheKey(processName)];
+    const lotRows = entry?.rows || [];
+    const rangeLabel = lotRange
+      ? (lotRange.start === lotRange.end ? lotRange.start : `${lotRange.start} – ${lotRange.end}`)
+      : (selectedChartDate || "");
+
+    return (
+      <div className="px-6 py-3 bg-base-200/20">
+        {!lotRange ? (
+          <div className="py-1 text-xs text-base-content/50">
+            Select a day to see lot numbers.
+          </div>
+        ) : !entry || entry.status === "loading" ? (
+          <div className="flex items-center gap-2 py-1 text-xs text-base-content/60">
+            <span className="loading loading-spinner loading-xs"></span>
+            Loading lots...
+          </div>
+        ) : entry.status === "error" ? (
+          <div className="flex items-center gap-2 py-1 text-xs text-error">
+            Cannot load lot data.
+            <button
+              type="button"
+              className="btn btn-xs btn-ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                loadLots(processName, true);
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        ) : lotRows.length === 0 ? (
+          <div className="py-1 text-xs text-base-content/50">
+            No lot records for {processName} on {rangeLabel} (08:00–08:00).
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-base-content/45 mr-1">
+              Lot No. ({lotRows.length.toLocaleString()})
+            </span>
+            {lotRows.map((lot, i) => (
+              <span
+                key={`${lot.lot}_${lot.out_time}_${i}`}
+                title={`${lot.product_name || "-"} | Out: ${lot.out_time || "-"} | Qty: ${lot.input_qty ?? "-"}`}
+                className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-primary/25 bg-primary/10 text-primary"
+              >
+                {lot.lot}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Removed fetchLines since Line filter is removed
 
   // Fetch lots and targets directly using the high-performance aggregated endpoint
@@ -648,14 +789,15 @@ const Page: React.FC = () => {
       setIsLoading(true);
       try {
         const url = `${getApiBaseUrl()}/outputbyprocess/dashboard-lots?`;
-        const productUrl = `${getApiBaseUrl()}/outputbyproduct/dashboard-products?`;
+        const productUrl = `${getApiBaseUrl()}/outputbyprocess/process-products?`;
         const targetUrl = `${getApiBaseUrl()}/outputbyprocess/dashboard-targets?startDate=${startDate}&endDate=${endDate}`;
         const baseParams = new URLSearchParams();
         baseParams.append("startDate", startDate);
         baseParams.append("endDate", endDate);
 
+        // By Process แสดงเฉพาะ gate process: dashboard-lots กรองที่ backend, process-products ส่ง is_gate มาให้กรองฝั่งนี้
         const [resLots, resProducts, resTargets] = await Promise.all([
-          fetch(url + baseParams.toString()),
+          fetch(url + baseParams.toString() + "&gateOnly=1"),
           fetch(productUrl + baseParams.toString()),
           fetch(targetUrl)
         ]);
@@ -778,10 +920,13 @@ const Page: React.FC = () => {
       params.append("endDate", eEndDate);
       if (selectedExportProcesses.length > 0) params.append("process", selectedExportProcesses.join(","));
 
-      const res = await fetch(`${getApiBaseUrl()}/outputbyproduct/dashboard-products?${params.toString()}`);
+      const res = await fetch(`${getApiBaseUrl()}/outputbyprocess/process-products?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch export data");
 
       let dataToProcess = await res.json();
+      if (viewMode === "process") {
+        dataToProcess = dataToProcess.filter((item: ProductProcessOutput) => item.is_gate !== false);
+      }
       if (selectedExportProcesses.length > 0) {
         const processFilter = new Set(selectedExportProcesses);
         dataToProcess = dataToProcess.filter((item: any) => processFilter.has(item.process_name?.trim()));
@@ -953,6 +1098,8 @@ const Page: React.FC = () => {
     }
 
     return rows.filter(row => {
+      // By Process: เฉพาะคู่ product + process ที่เป็น gate — By Line ยังใช้ทุกแถว
+      if (viewMode === "process" && row.is_gate === false) return false;
       if (selectedChartDate && !isDateInPeriod(row.output_date, selectedChartDate, granularity)) return false;
       if (processFamilyFilter !== "All" && getProcessFamily(row.product_name, row.process_name) !== processFamilyFilter) return false;
 
@@ -988,7 +1135,7 @@ const Page: React.FC = () => {
 
       return true;
     });
-  }, [productRows, processFamilyFilter, selectedChartDate, granularity, selectedLineGroup, lineGroups]);
+  }, [productRows, processFamilyFilter, selectedChartDate, granularity, selectedLineGroup, lineGroups, viewMode]);
 
   const baseSummaryData = useMemo(() => {
     const summaryMap: Record<string, ProcessSummary> = {};
@@ -1941,6 +2088,7 @@ const Page: React.FC = () => {
           params.append("endDate", endDate);
         }
         params.append("process", selectedProcess);
+        params.append("gateOnly", "1");
 
         const res = await fetch(`${getApiBaseUrl()}/outputbyprocess/dashboard-mcline?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to fetch MC Line data");
@@ -2433,6 +2581,14 @@ const Page: React.FC = () => {
                   {processFamilyFilter}
                 </span>
               )}
+              {viewMode === "process" && (
+                <span
+                  className="text-[10px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded border border-base-300"
+                  title="Only product + process pairs with gate_proc = 'Y' in smart_pln_product_routing_list"
+                >
+                  Gate processes only
+                </span>
+              )}
             </span>
           </h3>
           <div className="flex flex-wrap items-center gap-2">
@@ -2727,11 +2883,32 @@ const Page: React.FC = () => {
                     ) : sortedSummaryData.length > 0 ? (
                       sortedSummaryData.slice((detailsCurrentPage - 1) * detailsItemsPerPage, detailsCurrentPage * detailsItemsPerPage).map((row) => {
                         const color = getProcessColor(row.process_name);
+                        const canShowLots = viewMode === "process";
+                        const isLotOpen = canShowLots && expandedLotProcesses.includes(row.process_name);
 
                         return (
-                          <tr key={row.process_name} className="hover:bg-base-200/50 transition-colors border-b border-base-300">
+                          <React.Fragment key={row.process_name}>
+                          <tr
+                            className={`hover:bg-base-200/50 transition-colors border-b border-base-300 ${canShowLots ? "cursor-pointer" : ""} ${isLotOpen ? "bg-base-200/40" : ""}`}
+                            {...(canShowLots ? {
+                              onClick: () => toggleLotProcess(row.process_name),
+                              onKeyDown: (e: React.KeyboardEvent) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  toggleLotProcess(row.process_name);
+                                }
+                              },
+                              role: "button",
+                              tabIndex: 0,
+                              "aria-expanded": isLotOpen,
+                              title: isLotOpen ? "Click to hide lot numbers" : "Click to show lot numbers"
+                            } : {})}
+                          >
                             <td className="px-6 py-3.5 font-medium text-base-content/90">
                               <div className="flex items-center gap-3">
+                                {canShowLots && (isLotOpen
+                                  ? <ChevronDown className="w-3.5 h-3.5 text-base-content/50 shrink-0" />
+                                  : <ChevronRight className="w-3.5 h-3.5 text-base-content/50 shrink-0" />)}
                                 <span
                                   className="w-3 h-3 rounded-full shrink-0"
                                   style={{ backgroundColor: color }}
@@ -2749,6 +2926,14 @@ const Page: React.FC = () => {
                               {row.sum_pcs.toLocaleString()}
                             </td>
                           </tr>
+                          {isLotOpen && (
+                            <tr className="border-b border-base-300">
+                              <td colSpan={4} className="p-0">
+                                {renderLotPanel(row.process_name)}
+                              </td>
+                            </tr>
+                          )}
+                          </React.Fragment>
                         );
                       })
                     ) : (
@@ -2760,6 +2945,12 @@ const Page: React.FC = () => {
                     )}
                   </tbody>
                 </table>
+                {viewMode === "process" && sortedSummaryData.length > 0 && (
+                  <div className="flex items-center gap-1.5 px-4 pt-3 text-[11px] text-base-content/50">
+                    <Sparkles className="w-3 h-3 text-primary/70" />
+                    Click a process row to see lot numbers (08:00–08:00 cutoff).
+                  </div>
+                )}
                 {sortedSummaryData.length > detailsItemsPerPage && (
                   <div className="flex justify-between items-center p-4 border-t border-base-300 bg-base-100">
                     <div className="text-xs text-base-content/60">
