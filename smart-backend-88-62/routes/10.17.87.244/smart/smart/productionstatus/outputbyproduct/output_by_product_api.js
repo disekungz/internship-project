@@ -95,6 +95,8 @@ router.get("/products", async (req, res) => {
 // GET /dashboard-products
 // Fetch aggregated output data grouped by date, product, and process (MC lines merged)
 // Only rows that have lot numbers in smart.smart_fpc_output_by_lot are returned
+// Current production day (from 08:00 Bangkok today): actual_lot_qty = lot row count from
+// smart_fpc_output_by_lot (same as /lots), because the output_detail batch is not finished yet
 // Supports: startDate+endDate, date, or month query params
 // Uses index-friendly range comparisons (>= start AND < end) instead of TO_CHAR
 // Cached for 60 seconds
@@ -170,14 +172,17 @@ router.get("/dashboard-products", async (req, res) => {
       lotRangeClause += ` AND TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') < $${values.length}::timestamp`;
     }
 
+    // lot_count = จำนวนแถว lot ของ product + process + วันผลิต (เงื่อนไขเดียวกับ /lots จึงตรงกับจำนวน badge Lot No.)
     const sqlStatement = `
       WITH lot_days AS (
-        SELECT DISTINCT
+        SELECT
           REPLACE(TRIM(prd_name), '-', '') AS prd,
           TRIM(proc_disp) AS proc,
-          (TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') - INTERVAL '8 hours')::date AS prod_date
+          (TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') - INTERVAL '8 hours')::date AS prod_date,
+          COUNT(*) AS lot_count
         FROM smart.smart_fpc_output_by_lot
         WHERE out_time IS NOT NULL ${lotRangeClause}
+        GROUP BY 1, 2, 3
       ),
       -- ไม่แยก MC: รวมทุก mc_line ของ product + process เดียวกันในวันเดียวกันเป็นแถวเดียว
       -- (ตาราง lot ไม่มี MC จึงจับคู่เลข lot ได้ตรงระดับ product + process เท่านั้น)
@@ -203,17 +208,28 @@ router.get("/dashboard-products", async (req, res) => {
         WHERE proc_disp IS NOT NULL
         GROUP BY REPLACE(TRIM(prd_name), '-', ''), TRIM(proc_disp)
       )
-      SELECT a.*, rs.proc_seq
+      -- JOIN lot_days = แสดงเฉพาะแถวที่มีเลข lot (lot_days มีแถวเดียวต่อ product + process + วัน)
+      -- วันผลิตปัจจุบัน (ตั้งแต่ 08:00 วันนี้ เวลาไทย) batch ยังสรุปไม่เสร็จ จึงใช้จำนวน lot จากตาราง lot แทน lot_qty
+      SELECT
+        a.output_date,
+        a.product_name,
+        a.process_name,
+        a.actual_pcs_qty,
+        a.actual_sht_qty,
+        CASE
+          WHEN a.output_date::date = (NOW() AT TIME ZONE 'Asia/Bangkok' - INTERVAL '8 hours')::date
+            THEN ld.lot_count
+          ELSE a.actual_lot_qty
+        END AS actual_lot_qty,
+        rs.proc_seq
       FROM agg a
+      JOIN lot_days ld
+        ON ld.prd = REPLACE(TRIM(a.product_name), '-', '')
+       AND ld.proc = TRIM(a.process_name)
+       AND ld.prod_date = a.output_date::date
       LEFT JOIN route_seq rs
         ON rs.prd = REPLACE(TRIM(a.product_name), '-', '')
        AND rs.proc = TRIM(a.process_name)
-      WHERE EXISTS (
-        SELECT 1 FROM lot_days ld
-        WHERE ld.prd = REPLACE(TRIM(a.product_name), '-', '')
-          AND ld.proc = TRIM(a.process_name)
-          AND ld.prod_date = a.output_date::date
-      )
       ORDER BY a.output_date ASC
     `;
     const [result, productTypeMap] = await Promise.all([
