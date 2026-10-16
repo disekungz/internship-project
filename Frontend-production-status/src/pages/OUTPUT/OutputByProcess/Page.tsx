@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Filter, RefreshCcw, Layers, Cpu, Award, BarChart3, Sparkles, ChevronUp, ChevronDown, ChevronRight, Package, CalendarDays, ArrowLeft, MousePointerClick, Download, Target, TrendingUp, Scale, Gauge } from "lucide-react";
+import { Filter, RefreshCcw, Layers, Cpu, Award, BarChart3, Sparkles, ChevronUp, ChevronDown, ChevronRight, Package, CalendarDays, ArrowLeft, MousePointerClick, Download, Target, TrendingUp, Scale, Gauge, ScanLine } from "lucide-react";
 import TopOutputChart from "./TopOutputChart";
 import ProcessDateChart from "./ProcessDateChart";
 import LineDateChart from "./LineDateChart";
@@ -134,10 +134,10 @@ const hasLineTarget = (groupName: string, factory?: "EFPC" | "SMT"): boolean => 
   const stripped = underscored.replace(/^LINE_/, '');
   const targetSet = factory === "SMT" ? SMT_TARGET_LINES : factory === "EFPC" ? EFPC_TARGET_LINES : TARGET_LINE_NAMES;
   return targetSet.has(clean) ||
-         targetSet.has(underscored) ||
-         targetSet.has(stripped) ||
-         targetSet.has(underscored.replace(/_GEN$/, '_GENERAL')) ||
-         targetSet.has(underscored.replace(/_NON$/, '_NON_SILICONE'));
+    targetSet.has(underscored) ||
+    targetSet.has(stripped) ||
+    targetSet.has(underscored.replace(/_GEN$/, '_GENERAL')) ||
+    targetSet.has(underscored.replace(/_NON$/, '_NON_SILICONE'));
 };
 
 export const isMainSummaryLine = (lineName: string, factory?: "EFPC" | "SMT"): boolean => {
@@ -147,12 +147,12 @@ export const isMainSummaryLine = (lineName: string, factory?: "EFPC" | "SMT"): b
     return s === "ASY1_G" || s === "ASY1_A" || s === "ASY2" || s === "ASY3" || s === "MOTB" || s === "MOTA_A" || s === "MOTA_G" || s === "MOTC" || s === "MOTD";
   }
   return s === "LINE A" ||
-         s === "LINE B" ||
-         s === "LINE B_GEN" ||
-         s === "LINE B_NON" ||
-         s === "LINE B_JDT" ||
-         s === "LINE C" ||
-         s === "LINE D";
+    s === "LINE B" ||
+    s === "LINE B_GEN" ||
+    s === "LINE B_NON" ||
+    s === "LINE B_JDT" ||
+    s === "LINE C" ||
+    s === "LINE D";
 };
 
 export const getTargetForLine = (targetsByLine: { [k: string]: number } | undefined, lineName: string): number => {
@@ -178,43 +178,43 @@ export const getTargetForLine = (targetsByLine: { [k: string]: number } | undefi
     const val = targetsByLine['MOTB'] ?? targetsByLine['LINE_MOTB'] ?? targetsByLine['LINE MOTB'];
     if (val !== undefined) return val;
     const sum = (targetsByLine['A-1'] ?? targetsByLine['A1'] ?? 0) +
-                (targetsByLine['A-2'] ?? targetsByLine['A2'] ?? 0) +
-                (targetsByLine['A-3'] ?? targetsByLine['A3'] ?? 0) +
-                (targetsByLine['A-4'] ?? targetsByLine['A4'] ?? 0);
+      (targetsByLine['A-2'] ?? targetsByLine['A2'] ?? 0) +
+      (targetsByLine['A-3'] ?? targetsByLine['A3'] ?? 0) +
+      (targetsByLine['A-4'] ?? targetsByLine['A4'] ?? 0);
     if (sum > 0) return sum;
   }
   if (norm === 'MOTA_A') {
     const val = targetsByLine['MOTA_A'] ?? targetsByLine['LINE_MOTA_A'] ?? targetsByLine['LINE MOTA_A'] ?? targetsByLine['MOTA-A'];
     if (val !== undefined) return val;
     const sum = (targetsByLine['A-5'] ?? targetsByLine['A5'] ?? 0) +
-                (targetsByLine['A-6'] ?? targetsByLine['A6'] ?? 0);
+      (targetsByLine['A-6'] ?? targetsByLine['A6'] ?? 0);
     if (sum > 0) return sum;
   }
   if (norm === 'MOTA_G') {
     const val = targetsByLine['MOTA_G'] ?? targetsByLine['LINE_MOTA_G'] ?? targetsByLine['LINE MOTA_G'] ?? targetsByLine['MOTA-G'];
     if (val !== undefined) return val;
     const sum = (targetsByLine['A-7'] ?? targetsByLine['A7'] ?? 0) +
-                (targetsByLine['A-8'] ?? targetsByLine['A8'] ?? 0);
+      (targetsByLine['A-8'] ?? targetsByLine['A8'] ?? 0);
     if (sum > 0) return sum;
   }
   if (norm === 'MOTC') {
     const val = targetsByLine['MOTC'] ?? targetsByLine['LINE_MOTC'] ?? targetsByLine['LINE MOTC'] ?? targetsByLine['AIX-MOT'];
     if (val !== undefined) return val;
     const sum = (targetsByLine['G-1'] ?? targetsByLine['G1'] ?? 0) +
-                (targetsByLine['G-2'] ?? targetsByLine['G2'] ?? 0) +
-                (targetsByLine['G-3'] ?? targetsByLine['G3'] ?? 0) +
-                (targetsByLine['G-4'] ?? targetsByLine['G4'] ?? 0) +
-                (targetsByLine['G-5'] ?? targetsByLine['G5'] ?? 0);
+      (targetsByLine['G-2'] ?? targetsByLine['G2'] ?? 0) +
+      (targetsByLine['G-3'] ?? targetsByLine['G3'] ?? 0) +
+      (targetsByLine['G-4'] ?? targetsByLine['G4'] ?? 0) +
+      (targetsByLine['G-5'] ?? targetsByLine['G5'] ?? 0);
     if (sum > 0) return sum;
   }
   if (norm === 'MOTD') {
     const val = targetsByLine['MOTD'] ?? targetsByLine['LINE_MOTD'] ?? targetsByLine['LINE MOTD'];
     if (val !== undefined) return val;
     const sum = (targetsByLine['G-6'] ?? targetsByLine['G6'] ?? 0) +
-                (targetsByLine['G-7'] ?? targetsByLine['G7'] ?? 0) +
-                (targetsByLine['G-8'] ?? targetsByLine['G8'] ?? 0) +
-                (targetsByLine['G-9'] ?? targetsByLine['G9'] ?? 0) +
-                (targetsByLine['G-10'] ?? targetsByLine['G10'] ?? 0);
+      (targetsByLine['G-7'] ?? targetsByLine['G7'] ?? 0) +
+      (targetsByLine['G-8'] ?? targetsByLine['G8'] ?? 0) +
+      (targetsByLine['G-9'] ?? targetsByLine['G9'] ?? 0) +
+      (targetsByLine['G-10'] ?? targetsByLine['G10'] ?? 0);
     if (sum > 0) return sum;
   }
 
@@ -364,6 +364,7 @@ interface LotDetail {
   wo: string | null;
   cat: string | null;
   product_name: string | null;
+  process_name?: string | null;
   plan_date: string | null;
   in_time: string | null;
   out_time: string;
@@ -691,6 +692,9 @@ const Page: React.FC = () => {
   // ช่วงวันที่จริงของงวดที่เลือก (วัน = วันเดียว, สัปดาห์ = วันอาทิตย์-เสาร์ที่อยู่ในช่วงที่ตั้งไว้)
   const lotRangeStart = lotRange?.start;
   const lotRangeEnd = lotRange?.end;
+  const lotRangeLabel = lotRange
+    ? (lotRange.start === lotRange.end ? lotRange.start : `${lotRange.start} – ${lotRange.end}`)
+    : (selectedChartDate || "");
 
   // เปลี่ยน Daily/Weekly: ล้างงวดที่เลือกไว้ เพราะ key ของวัน (2026-10-14) กับสัปดาห์ (2026-WK42) ใช้แทนกันไม่ได้
   const changeGranularity = (next: OutputGranularity) => {
@@ -732,62 +736,211 @@ const Page: React.FC = () => {
     }
   };
 
+  // By Line: คู่ product + process ของแถวที่จัดเข้า line นี้ (ตามวันที่เลือก) — ใช้หา lot เพราะ output_by_lot ไม่มี mc_line
+  const getLineLotGroups = (lineName: string) => {
+    const rowsWithLine = chartFilteredProductRows.map(row => ({ row, line: normalizeLineKey(getRowLineGroup(row, lineGroups)) }));
+    let lineRows = rowsWithLine.filter(r => r.line === lineName).map(r => r.row);
+    // LINE B (EFPC) ในตารางคือผลรวมของ sub-line — ใช้แถวของ sub-line แทน เหมือน lineSummaryData
+    if (lineName === "LINE B" && selectedFactory === "EFPC") {
+      const bSubLines = ["LINE B_GEN", "LINE B_NON", "LINE B_JDT", "LINE B_JDI"];
+      const subRows = rowsWithLine.filter(r => bSubLines.includes(r.line)).map(r => r.row);
+      if (subRows.length > 0) lineRows = subRows;
+    }
+
+    const pairKeys = new Set<string>();
+    const pairs: { product: string; process: string }[] = [];
+    const summaryLotByProcess: Record<string, number> = {};
+    lineRows.forEach(row => {
+      const product = (row.product_name || "").trim();
+      const process = (row.process_name || "").trim();
+      if (!product || !process) return;
+      summaryLotByProcess[process] = (summaryLotByProcess[process] || 0) + Number(row.actual_lot_qty || 0);
+      const key = `${product}|${process}`;
+      if (!pairKeys.has(key)) {
+        pairKeys.add(key);
+        pairs.push({ product, process });
+      }
+    });
+    return { pairs, summaryLotByProcess };
+  };
+
+  const loadLineLots = async (lineName: string, force = false) => {
+    if (!lotRange) return;
+    const cacheKey = getLotCacheKey(`line:${lineName}`);
+    if (!force && lotCache[cacheKey] && lotCache[cacheKey].status !== "error") return;
+
+    const { pairs } = getLineLotGroups(lineName);
+    if (pairs.length === 0) {
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: [] } }));
+      return;
+    }
+
+    setLotCache(prev => ({ ...prev, [cacheKey]: { status: "loading", rows: [] } }));
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/outputbyprocess/line-lots`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startDate: lotRange.start,
+          endDate: lotRange.end,
+          pairs,
+          ...(force ? { _t: Date.now() } : {})
+        }),
+        signal: AbortSignal.timeout(60_000)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: LotDetail[] = await res.json();
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: Array.isArray(data) ? data : [] } }));
+    } catch (error) {
+      console.error("Failed to fetch line lot detail", error);
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
+    }
+  };
+
   const toggleLotProcess = (processName: string) => {
     const isOpen = expandedLotProcesses.includes(processName);
     setExpandedLotProcesses(prev => (isOpen ? prev.filter(item => item !== processName) : [...prev, processName]));
-    if (!isOpen) loadLots(processName);
+    if (!isOpen) {
+      if (viewMode === "line") loadLineLots(processName);
+      else loadLots(processName);
+    }
   };
 
-  const renderLotPanel = (processName: string) => {
-    const entry = lotCache[getLotCacheKey(processName)];
+  // สถานะร่วมของแถบ Lot No. (ยังไม่เลือกวัน / กำลังโหลด / error) — คืน null เมื่อโหลดเสร็จแล้ว
+  const renderLotPanelStatus = (entry: LotCacheEntry | undefined, onRetry: () => void) => {
+    if (!lotRange) {
+      return (
+        <div className="py-1 text-xs text-base-content/50">
+          Select a day to see lot numbers.
+        </div>
+      );
+    }
+    if (!entry || entry.status === "loading") {
+      return (
+        <div className="flex items-center gap-2 py-1 text-xs text-base-content/60">
+          <span className="loading loading-spinner loading-xs"></span>
+          Loading lots...
+        </div>
+      );
+    }
+    if (entry.status === "error") {
+      return (
+        <div className="flex items-center gap-2 py-1 text-xs text-error">
+          Cannot load lot data.
+          <button
+            type="button"
+            className="btn btn-xs btn-ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRetry();
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const renderLotBadge = (lot: LotDetail, i: number) => (
+    <span
+      key={`${lot.lot}_${lot.out_time}_${i}`}
+      title={`${lot.product_name || "-"} | Out: ${lot.out_time || "-"} | Qty: ${lot.input_qty ?? "-"}`}
+      className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-primary/25 bg-primary/10 text-primary"
+    >
+      {lot.lot}
+    </span>
+  );
+
+  // By Line: lot แยกกลุ่มตาม process — ผลรวมทุกกลุ่มเทียบกับคอลัมน์ LOT ได้ (นับแยก process เหมือนกัน)
+  const renderLineLotPanel = (lineName: string) => {
+    const entry = lotCache[getLotCacheKey(`line:${lineName}`)];
+    const status = renderLotPanelStatus(entry, () => loadLineLots(lineName, true));
+    if (status) return <div className="px-6 py-3 bg-base-200/20">{status}</div>;
+
     const lotRows = entry?.rows || [];
-    const rangeLabel = lotRange
-      ? (lotRange.start === lotRange.end ? lotRange.start : `${lotRange.start} – ${lotRange.end}`)
-      : (selectedChartDate || "");
+    const { summaryLotByProcess } = getLineLotGroups(lineName);
+
+    // process ที่มียอดในตารางสรุปแต่ไม่มี scan ก็แสดงด้วย พร้อมป้าย "ไม่มี Process Scan"
+    const lotsByProcess: Record<string, LotDetail[]> = {};
+    lotRows.forEach(lot => {
+      const proc = (lot.process_name || "").trim() || "-";
+      if (!lotsByProcess[proc]) lotsByProcess[proc] = [];
+      lotsByProcess[proc].push(lot);
+    });
+    Object.entries(summaryLotByProcess).forEach(([proc, qty]) => {
+      if (qty > 0 && !lotsByProcess[proc]) lotsByProcess[proc] = [];
+    });
+    const processNames = Object.keys(lotsByProcess)
+      .sort((a, b) => getProcessIndex(a) - getProcessIndex(b) || a.localeCompare(b));
 
     return (
       <div className="px-6 py-3 bg-base-200/20">
-        {!lotRange ? (
+        {processNames.length === 0 ? (
           <div className="py-1 text-xs text-base-content/50">
-            Select a day to see lot numbers.
+            No lot records for {lineName} on {lotRangeLabel} (08:00–08:00).
           </div>
-        ) : !entry || entry.status === "loading" ? (
-          <div className="flex items-center gap-2 py-1 text-xs text-base-content/60">
-            <span className="loading loading-spinner loading-xs"></span>
-            Loading lots...
+        ) : (
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-base-content/45">
+              Lot No. ({lotRows.length.toLocaleString()})
+            </span>
+            {processNames.map(proc => {
+              const procLots = lotsByProcess[proc];
+              return (
+                <div key={proc} className="flex items-start gap-3">
+                  <span className="w-28 shrink-0 pt-0.5 text-xs font-semibold text-base-content/75">
+                    {proc}
+                    {procLots.length > 0 && (
+                      <span className="ml-1 font-normal text-base-content/45">({procLots.length.toLocaleString()})</span>
+                    )}
+                  </span>
+                  {procLots.length > 0 ? (
+                    <div className="flex flex-1 flex-wrap gap-1.5">
+                      {procLots.map(renderLotBadge)}
+                    </div>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/25 bg-primary/5 px-2 py-0.5 text-xs text-base-content/70">
+                      <ScanLine className="h-3.5 w-3.5 text-primary" />
+                      ไม่มี Process Scan · ยอด {(summaryLotByProcess[proc] || 0).toLocaleString()} lot จากข้อมูลสรุป
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        ) : entry.status === "error" ? (
-          <div className="flex items-center gap-2 py-1 text-xs text-error">
-            Cannot load lot data.
-            <button
-              type="button"
-              className="btn btn-xs btn-ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                loadLots(processName, true);
-              }}
-            >
-              Retry
-            </button>
-          </div>
-        ) : lotRows.length === 0 ? (
-          <div className="py-1 text-xs text-base-content/50">
-            No lot records for {processName} on {rangeLabel} (08:00–08:00).
+        )}
+      </div>
+    );
+  };
+
+  const renderLotPanel = (processName: string, summaryLot: number) => {
+    const entry = lotCache[getLotCacheKey(processName)];
+    const lotRows = entry?.rows || [];
+    const status = renderLotPanelStatus(entry, () => loadLots(processName, true));
+
+    return (
+      <div className="px-6 py-3 bg-base-200/20">
+        {status ? status : lotRows.length === 0 ? (
+          // แถวที่แสดงในตารางมี lot > 0 เสมอ (lot = 0 ถูกซ่อน) — ไม่มีรายการ lot จึงหมายถึง process นี้ไม่ได้ scan ลง output_by_lot
+          <div className="flex items-start gap-3 rounded-lg border border-primary/25 bg-primary/5 px-4 py-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <ScanLine className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="text-sm font-semibold text-base-content/85">ไม่มี Process Scan</span>
+              <p className="mt-0.5 text-xs text-base-content/60">
+                ยอด {summaryLot.toLocaleString()} lot มาจากข้อมูลสรุป (batch) — {processName} ไม่ได้ scan จึงไม่มีรายการ Lot No.
+              </p>
+            </div>
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[10px] uppercase font-bold tracking-wider text-base-content/45 mr-1">
               Lot No. ({lotRows.length.toLocaleString()})
             </span>
-            {lotRows.map((lot, i) => (
-              <span
-                key={`${lot.lot}_${lot.out_time}_${i}`}
-                title={`${lot.product_name || "-"} | Out: ${lot.out_time || "-"} | Qty: ${lot.input_qty ?? "-"}`}
-                className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-primary/25 bg-primary/10 text-primary"
-              >
-                {lot.lot}
-              </span>
-            ))}
+            {lotRows.map(renderLotBadge)}
           </div>
         )}
       </div>
@@ -841,7 +994,7 @@ const Page: React.FC = () => {
         .then(data => {
           if (Array.isArray(data) && data.length > 0) setTargets(data);
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [viewMode, targets.length, startDate, endDate, isLoading]);
 
@@ -999,18 +1152,18 @@ const Page: React.FC = () => {
       const dataToExport: ExportRow[] = Array.from(mcLineGroups.values())
         .sort((a, b) => a.Date.localeCompare(b.Date) || a.Process.localeCompare(b.Process) || a.mcLine.localeCompare(b.mcLine))
         .map((item) => {
-        const row: ExportRow = {
-          Date: item.Date,
-          Process: item.Process,
-          "MC Lines": item.mcLine,
-        };
-        
-        if (eUnit === "All" || eUnit === "Lot") row["Lot Qty"] = item.lotQty;
-        if (eUnit === "All" || eUnit === "Sheet") row["Sheet Qty"] = item.sheetQty;
-        if (eUnit === "All" || eUnit === "Piece") row["Piece Qty"] = item.pieceQty;
-        
-        return row;
-      });
+          const row: ExportRow = {
+            Date: item.Date,
+            Process: item.Process,
+            "MC Lines": item.mcLine,
+          };
+
+          if (eUnit === "All" || eUnit === "Lot") row["Lot Qty"] = item.lotQty;
+          if (eUnit === "All" || eUnit === "Sheet") row["Sheet Qty"] = item.sheetQty;
+          if (eUnit === "All" || eUnit === "Piece") row["Piece Qty"] = item.pieceQty;
+
+          return row;
+        });
 
       if (dataToExport.length === 0) {
         setExportError("No data available for the selected date range and filters.");
@@ -1021,7 +1174,7 @@ const Page: React.FC = () => {
         dataToExport,
         `OutputByProcess_${eStartDate}_${eEndDate}.xlsx`
       );
-      
+
       setExportError("");
       setIsExportModalOpen(false);
     } catch (error) {
@@ -1366,7 +1519,7 @@ const Page: React.FC = () => {
         lineMap['LINE B'] = {
           line_name: 'LINE B',
           sum_pcs: (bGen?.sum_pcs || 0) + (bNon?.sum_pcs || 0) + (bJdt?.sum_pcs || 0),
-          sum_sht: (bGen?.sum_sht || 0) + (bNon?.sum_sht || 0) + (bJdt?.sum_lot || 0),
+          sum_sht: (bGen?.sum_sht || 0) + (bNon?.sum_sht || 0) + (bJdt?.sum_sht || 0),
           sum_lot: (bGen?.sum_lot || 0) + (bNon?.sum_lot || 0) + (bJdt?.sum_lot || 0),
           output_value: 0,
           productsSet: bSet
@@ -2191,7 +2344,8 @@ const Page: React.FC = () => {
       });
       return listCopy;
     }
-    const listCopy = [...summaryData];
+    // ตารางซ่อน process ที่ไม่มี lot — กราฟและ KPI ยังใช้ summaryData ครบทุก process
+    const listCopy = summaryData.filter(item => (item.sum_lot || 0) > 0);
     listCopy.sort((a, b) => {
       let comparison = 0;
       if (sortField === "sequence") {
@@ -2239,770 +2393,763 @@ const Page: React.FC = () => {
       />
 
       <div className="w-full h-full p-4 overflow-y-auto overflow-x-hidden bg-base-200 flex flex-col gap-4">
-      {/* Header & Controls */}
-      <div className="bg-base-100 rounded-xl shadow-sm border border-base-300 shrink-0 relative z-20">
-        <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-base-content">Output By Process</h2>
-            <p className="text-sm text-base-content/60">Summary of actual output quantities grouped by process.</p>
-            <div className="flex flex-wrap items-center gap-2 mt-2.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 shadow-sm text-xs font-bold text-primary tracking-wide">
-                <CalendarDays size={14} className="opacity-80" />
-                {formatDate(startDate)}
-                <span className="text-primary/50 mx-1 font-medium">to</span>
-                {formatDate(endDate)}
-              </span>
-              {selectedLineGroup !== "All" && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 shadow-sm text-xs font-bold text-indigo-600 tracking-wide">
-                  <Layers size={14} className="opacity-80" />
-                  Group: {selectedLineGroup}
+        {/* Header & Controls */}
+        <div className="bg-base-100 rounded-xl shadow-sm border border-base-300 shrink-0 relative z-20">
+          <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-base-content">Output By Process</h2>
+              <p className="text-sm text-base-content/60">Summary of actual output quantities grouped by process.</p>
+              <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 shadow-sm text-xs font-bold text-primary tracking-wide">
+                  <CalendarDays size={14} className="opacity-80" />
+                  {formatDate(startDate)}
+                  <span className="text-primary/50 mx-1 font-medium">to</span>
+                  {formatDate(endDate)}
                 </span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing || isLoading}
-              className="btn btn-sm btn-outline shadow-sm"
-            >
-              <RefreshCcw size={14} className={isRefreshing || isLoading ? "animate-spin" : ""} />
-              Refresh
-            </button>
-
-            <div className="flex items-center bg-base-100 border border-base-300 rounded-lg shadow-sm h-8">
-              <div
-                className="relative flex items-center h-full px-3 cursor-pointer hover:bg-base-200 rounded-l-lg transition-colors border-r border-base-300/50"
-                onClick={() => {
-                  try { startDateRef.current?.showPicker(); } catch (e) { }
-                }}
-              >
-                <span className="text-xs font-semibold text-base-content/60 uppercase tracking-wider mr-2">From Date</span>
-                <span className="text-sm select-none mr-6">{formatDate(tempStartDate)}</span>
-                <CalendarDays size={14} className="opacity-50 absolute right-3 pointer-events-none text-base-content/70" />
-                <input
-                  ref={startDateRef}
-                  type="date"
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                  value={tempStartDate}
-                  onChange={(e) => setTempStartDate(e.target.value)}
-                  min="2026-01-01"
-                  max={tempEndDate > "2026-12-31" ? "2026-12-31" : tempEndDate}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    try { e.currentTarget.showPicker(); } catch (err) { }
-                  }}
-                />
-              </div>
-
-              <div
-                className="relative flex items-center h-full px-3 cursor-pointer hover:bg-base-200 rounded-r-lg transition-colors"
-                onClick={() => {
-                  try { endDateRef.current?.showPicker(); } catch (e) { }
-                }}
-              >
-                <span className="text-xs font-semibold text-base-content/60 uppercase tracking-wider mr-2">To Date</span>
-                <span className="text-sm select-none mr-6">{formatDate(tempEndDate)}</span>
-                <CalendarDays size={14} className="opacity-50 absolute right-3 pointer-events-none text-base-content/70" />
-                <input
-                  ref={endDateRef}
-                  type="date"
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                  value={tempEndDate}
-                  onChange={(e) => setTempEndDate(e.target.value)}
-                  min={tempStartDate < "2026-01-01" ? "2026-01-01" : tempStartDate}
-                  max="2026-12-31"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    try { e.currentTarget.showPicker(); } catch (err) { }
-                  }}
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={handleApplyFilters}
-              disabled={isLoading}
-              className="btn btn-sm btn-primary shadow-sm"
-            >
-              Search
-            </button>
-
-            <button
-              onClick={handleExport}
-              disabled={isLoading}
-              className="btn btn-sm btn-outline btn-success shadow-sm"
-            >
-              <Download size={14} />
-              Export Excel
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Formal KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
-        {/* Card 1: Acc Target / Total Output */}
-        <div className={`relative overflow-hidden rounded-xl p-5 text-white transition-all duration-300 group hover:shadow-xl hover:-translate-y-1 ${
-          viewMode === "line"
-            ? "bg-gradient-to-br from-rose-600 via-red-700 to-rose-900 shadow-md shadow-rose-900/20"
-            : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 shadow-md shadow-slate-900/10"
-        }`}>
-          <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/10 blur-xl group-hover:scale-125 transition-transform duration-500"></div>
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className={`text-xs font-semibold uppercase tracking-wider ${viewMode === "line" ? "text-rose-200" : "text-slate-200"}`}>
-                  {viewMode === "line" ? "Acc Target" : "Total Output"}
-                </span>
-                {viewMode === "line" && (
-                  <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-white/15 text-rose-100/90 tracking-tight">
-                    as of {formatDate(lineStats.cutoffDate)}
+                {selectedLineGroup !== "All" && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 shadow-sm text-xs font-bold text-indigo-600 tracking-wide">
+                    <Layers size={14} className="opacity-80" />
+                    Group: {selectedLineGroup}
                   </span>
                 )}
               </div>
-              <span className="text-3xl font-extrabold tracking-tight mt-1">
-                {viewMode === "line" ? lineStats.accTarget.toLocaleString() : stats.total.toLocaleString()}
-              </span>
             </div>
-            <div className="rounded-lg bg-white/15 p-2.5 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-              {viewMode === "line" ? (
-                <Target className="w-5 h-5 text-white" />
-              ) : (
-                <Layers className="w-5 h-5 text-white" />
-              )}
-            </div>
-          </div>
-          <div className={`mt-4 flex items-center justify-between text-xs ${viewMode === "line" ? "text-rose-100" : "text-slate-300"}`}>
-            {viewMode === "line" ? (
-              <>
-                <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
-                  Unit: {unitMode}
-                </span>
-                <span>
-                  Plan Target
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="font-medium bg-white/10 px-2 py-0.5 rounded">Unit: {unitMode}</span>
-                <span>{summaryFilterLabel}</span>
-              </>
-            )}
-          </div>
-        </div>
 
-        {/* Card 2: Acc Output / Active Processes */}
-        <div className={`relative overflow-hidden rounded-xl p-5 text-white transition-all duration-300 group hover:shadow-xl hover:-translate-y-1 ${
-          viewMode === "line"
-            ? "bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-900 shadow-md shadow-emerald-900/20"
-            : "bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 shadow-md shadow-teal-700/10"
-        }`}>
-          <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/10 blur-xl group-hover:scale-125 transition-transform duration-500"></div>
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className={`text-xs font-semibold uppercase tracking-wider ${viewMode === "line" ? "text-emerald-200" : "text-teal-150"}`}>
-                  {viewMode === "line" ? "Acc Output" : "Active Processes"}
-                </span>
-                {viewMode === "line" && (
-                  <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-white/15 text-emerald-100/90 tracking-tight">
-                    as of {formatDate(lineStats.cutoffDate)}
-                  </span>
-                )}
-              </div>
-              <span className="text-3xl font-extrabold tracking-tight mt-1">
-                {viewMode === "line" ? (
-                  lineStats.total.toLocaleString()
-                ) : (
-                  <>
-                    {stats.activeCount} <span className="text-lg font-medium text-teal-200">/ {baseSummaryData.length}</span>
-                  </>
-                )}
-              </span>
-            </div>
-            <div className="rounded-lg bg-white/15 p-2.5 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-              {viewMode === "line" ? (
-                <TrendingUp className="w-5 h-5 text-white" />
-              ) : (
-                <Cpu className="w-5 h-5 text-white" />
-              )}
-            </div>
-          </div>
-          <div className={`mt-4 flex items-center justify-between text-xs ${viewMode === "line" ? "text-emerald-100" : "text-teal-200"}`}>
-            {viewMode === "line" ? (
-              <>
-                <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
-                  Unit: {unitMode}
-                </span>
-                <span>{lineStats.filterTitle}</span>
-              </>
-            ) : (
-              <>
-                <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
-                  Active: {baseSummaryData.length > 0 ? ((stats.activeCount / baseSummaryData.length) * 100).toFixed(0) : 0}%
-                </span>
-                <span>{isSummaryFiltered ? "Within current filter" : "Currently running output"}</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Card 3: Active Products / Balance Card */}
-        <div className={`relative overflow-hidden rounded-xl p-5 text-white transition-all duration-300 group hover:shadow-xl hover:-translate-y-1 ${
-          viewMode === "line"
-            ? lineStats.diffTarget < 0
-              ? "bg-gradient-to-br from-amber-600 via-orange-700 to-amber-950 shadow-md shadow-amber-900/20"
-              : "bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-950 shadow-md shadow-emerald-900/20"
-            : "bg-gradient-to-br from-blue-600 via-blue-700 to-sky-800 shadow-md shadow-blue-700/10"
-        }`}>
-          <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/10 blur-xl group-hover:scale-125 transition-transform duration-500"></div>
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className={`text-xs font-semibold uppercase tracking-wider ${
-                  viewMode === "line"
-                    ? lineStats.diffTarget < 0 ? "text-amber-200" : "text-emerald-200"
-                    : "text-blue-150"
-                }`}>
-                  {viewMode === "line" ? "Balance" : "Active Products"}
-                </span>
-                {viewMode === "line" && (
-                  <span className={`text-[10px] font-normal px-1.5 py-0.2 rounded bg-white/15 tracking-tight ${
-                    lineStats.diffTarget < 0 ? "text-amber-100/90" : "text-emerald-100/90"
-                  }`}>
-                    as of {formatDate(lineStats.cutoffDate)}
-                  </span>
-                )}
-              </div>
-              <span className="text-3xl font-extrabold tracking-tight mt-1">
-                {viewMode === "line"
-                  ? `${lineStats.diffTarget > 0 ? "+" : ""}${lineStats.diffTarget.toLocaleString()}`
-                  : stats.activeProducts.toLocaleString()}
-              </span>
-            </div>
-            <div className="rounded-lg bg-white/15 p-2.5 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-              {viewMode === "line" ? (
-                <Scale className="w-5 h-5 text-white" />
-              ) : (
-                <Package className="w-5 h-5 text-white" />
-              )}
-            </div>
-          </div>
-          <div className={`mt-4 flex items-center justify-between text-xs ${
-            viewMode === "line"
-              ? lineStats.diffTarget < 0 ? "text-amber-100" : "text-emerald-100"
-              : "text-blue-200"
-          }`}>
-            {viewMode === "line" ? (
-              <>
-                <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
-                  {lineStats.diffTarget < 0 ? "Under Target" : lineStats.diffTarget > 0 ? "Over Target" : "On Target"}
-                </span>
-                <span>
-                  {lineStats.diffTarget < 0
-                    ? `Shortfall: ${Math.abs(lineStats.diffTarget).toLocaleString()} ${unitMode}`
-                    : lineStats.diffTarget > 0
-                    ? `Surplus: +${lineStats.diffTarget.toLocaleString()} ${unitMode}`
-                    : "Balanced"}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
-                  Active Models
-                </span>
-                <span>
-                  {isSummaryFiltered ? "Overall product count" : "Distinct product parts processed"}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Card 4: Top Process / KPR Card */}
-        <div className={`relative overflow-hidden rounded-xl p-5 text-white transition-all duration-300 group hover:shadow-xl hover:-translate-y-1 ${
-          viewMode === "line"
-            ? "bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-950 shadow-md shadow-violet-900/20"
-            : "bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-800 shadow-md shadow-indigo-700/10"
-        }`}>
-          <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/10 blur-xl group-hover:scale-125 transition-transform duration-500"></div>
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className={`text-xs font-semibold uppercase tracking-wider ${viewMode === "line" ? "text-purple-200" : "text-indigo-150"}`}>
-                  {viewMode === "line" ? "KPR (%)" : "Top Performing Process"}
-                </span>
-                {viewMode === "line" && (
-                  <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-white/15 text-purple-100/90 tracking-tight">
-                    as of {formatDate(lineStats.cutoffDate)}
-                  </span>
-                )}
-              </div>
-              <span className="text-3xl font-extrabold tracking-tight mt-1">
-                {viewMode === "line"
-                  ? `${lineStats.achievementRate}%`
-                  : (stats.topProcess ? stats.topProcess.process_name : "N/A")}
-              </span>
-            </div>
-            <div className="rounded-lg bg-white/15 p-2.5 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-              {viewMode === "line" ? (
-                <Gauge className="w-5 h-5 text-white" />
-              ) : (
-                <Award className="w-5 h-5 text-white" />
-              )}
-            </div>
-          </div>
-          <div className={`mt-4 flex items-center justify-between text-xs ${viewMode === "line" ? "text-purple-200" : "text-indigo-200"}`}>
-            {viewMode === "line" ? (
-              <>
-                <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
-                  Rate
-                </span>
-                <span>
-                  Output vs Target
-                </span>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
-                    {(stats.topProcess?.output_value || 0).toLocaleString()} {unitMode}
-                  </span>
-                </div>
-                <span>
-                  {stats.topProcess && stats.total > 0
-                    ? `${((stats.topProcess.output_value || 0) / stats.total * 100).toFixed(1)}% share`
-                    : "0%"}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Chart Section */}
-      <div className="bg-base-100 rounded-xl shadow-sm border border-base-300 p-4 shrink-0 flex flex-col min-h-[450px]">
-
-        {/* Dynamic header for chart section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-          <h3 className="text-base font-semibold text-base-content/80 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-primary" />
-            <span className="flex items-center gap-1.5 flex-wrap">
-              {selectedProcess ? "MC Line Output" : selectedChartDate ? (viewMode === "line" ? "Line Output" : "Process Output") : `${granularity === 'weekly' ? 'Weekly' : granularity === 'monthly' ? 'Monthly' : 'Daily'} Data Summary (${viewMode === 'line' ? 'By Line' : 'By Process'})`}
-              {selectedChartDate && !selectedProcess && (
-                <span className="text-primary font-bold ml-1">— {selectedChartDate}</span>
-              )}
-              {selectedProcess && (
-                <span className="text-primary font-bold ml-1">— {selectedProcess}</span>
-              )}
-              {processFamilyFilter !== "All" && (
-                <span className="text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
-                  {processFamilyFilter}
-                </span>
-              )}
-              {viewMode === "process" && (
-                <span
-                  className="text-[10px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded border border-base-300"
-                  title="Only product + process pairs with gate_proc = 'Y' in smart_pln_product_routing_list"
-                >
-                  Gate processes only
-                </span>
-              )}
-            </span>
-          </h3>
-          <div className="flex flex-wrap items-center gap-2">
-            {/* View Mode Switcher: By Process vs By Line */}
-            <div className="join shadow-sm border border-base-300 rounded-lg overflow-hidden">
+            <div className="flex flex-wrap items-center gap-3">
               <button
-                type="button"
-                onClick={() => {
-                  setViewMode("process");
-                  setSelectedChartDate(null);
-                  setSelectedProcess("");
-                  setDailyProcessFilter([]);
-                }}
-                className={`join-item btn btn-xs font-bold ${viewMode === "process" ? "btn-primary" : "btn-ghost bg-base-100 hover:bg-base-200"}`}
+                onClick={handleRefresh}
+                disabled={isRefreshing || isLoading}
+                className="btn btn-sm btn-outline shadow-sm"
               >
-                By Process
+                <RefreshCcw size={14} className={isRefreshing || isLoading ? "animate-spin" : ""} />
+                Refresh
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setViewMode("line");
-                  setSelectedChartDate(null);
-                  setSelectedProcess("");
-                  setDailyLineFilter([]);
-                }}
-                className={`join-item btn btn-xs font-bold ${viewMode === "line" ? "btn-primary" : "btn-ghost bg-base-100 hover:bg-base-200"}`}
-              >
-                By Line
-              </button>
-            </div>
 
-            {/* Granularity Switcher Button Group */}
-            <div className="join shadow-sm border border-base-300 rounded-lg overflow-hidden">
-              <button
-                type="button"
-                onClick={() => changeGranularity("daily")}
-                className={`join-item btn btn-xs font-bold ${granularity === "daily" ? "btn-primary" : "btn-ghost bg-base-100 hover:bg-base-200"}`}
-              >
-                Daily
-              </button>
-              <button
-                type="button"
-                onClick={() => changeGranularity("weekly")}
-                className={`join-item btn btn-xs font-bold ${granularity === "weekly" ? "btn-primary" : "btn-ghost bg-base-100 hover:bg-base-200"}`}
-              >
-                Weekly
-              </button>
-            </div>
-
-            {selectedChartDate && !selectedProcess && (
-              <div className="join shadow-sm">
-                {(["All", "FPC", "SMT"] as ProcessFamilyFilter[]).map(type => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setProcessFamilyFilter(type)}
-                    className={`join-item btn btn-xs ${processFamilyFilter === type ? "btn-primary" : "btn-outline"}`}
-                    title={type === "SMT" ? 'SMT: process starts with "M", fallback product code index 3 is "Z"' : type === "FPC" ? 'FPC: process starts with "F", fallback product code index 3 is not "Z"' : "All process types"}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {selectedChartDate && (
-              <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-xs font-semibold">
-                <CalendarDays className="w-3.5 h-3.5" />
-                <span>{selectedChartDate}</span>
-                <button
-                  className="ml-1 hover:text-primary-focus transition-colors"
+              <div className="flex items-center bg-base-100 border border-base-300 rounded-lg shadow-sm h-8">
+                <div
+                  className="relative flex items-center h-full px-3 cursor-pointer hover:bg-base-200 rounded-l-lg transition-colors border-r border-base-300/50"
                   onClick={() => {
+                    try { startDateRef.current?.showPicker(); } catch (e) { }
+                  }}
+                >
+                  <span className="text-xs font-semibold text-base-content/60 uppercase tracking-wider mr-2">From Date</span>
+                  <span className="text-sm select-none mr-6">{formatDate(tempStartDate)}</span>
+                  <CalendarDays size={14} className="opacity-50 absolute right-3 pointer-events-none text-base-content/70" />
+                  <input
+                    ref={startDateRef}
+                    type="date"
+                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                    value={tempStartDate}
+                    onChange={(e) => setTempStartDate(e.target.value)}
+                    min="2026-01-01"
+                    max={tempEndDate > "2026-12-31" ? "2026-12-31" : tempEndDate}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      try { e.currentTarget.showPicker(); } catch (err) { }
+                    }}
+                  />
+                </div>
+
+                <div
+                  className="relative flex items-center h-full px-3 cursor-pointer hover:bg-base-200 rounded-r-lg transition-colors"
+                  onClick={() => {
+                    try { endDateRef.current?.showPicker(); } catch (e) { }
+                  }}
+                >
+                  <span className="text-xs font-semibold text-base-content/60 uppercase tracking-wider mr-2">To Date</span>
+                  <span className="text-sm select-none mr-6">{formatDate(tempEndDate)}</span>
+                  <CalendarDays size={14} className="opacity-50 absolute right-3 pointer-events-none text-base-content/70" />
+                  <input
+                    ref={endDateRef}
+                    type="date"
+                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                    value={tempEndDate}
+                    onChange={(e) => setTempEndDate(e.target.value)}
+                    min={tempStartDate < "2026-01-01" ? "2026-01-01" : tempStartDate}
+                    max="2026-12-31"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      try { e.currentTarget.showPicker(); } catch (err) { }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleApplyFilters}
+                disabled={isLoading}
+                className="btn btn-sm btn-primary shadow-sm"
+              >
+                Search
+              </button>
+
+              <button
+                onClick={handleExport}
+                disabled={isLoading}
+                className="btn btn-sm btn-outline btn-success shadow-sm"
+              >
+                <Download size={14} />
+                Export Excel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Formal KPI Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+          {/* Card 1: Acc Target / Total Output */}
+          <div className={`relative overflow-hidden rounded-xl p-5 text-white transition-all duration-300 group hover:shadow-xl hover:-translate-y-1 ${viewMode === "line"
+              ? "bg-gradient-to-br from-rose-600 via-red-700 to-rose-900 shadow-md shadow-rose-900/20"
+              : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 shadow-md shadow-slate-900/10"
+            }`}>
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/10 blur-xl group-hover:scale-125 transition-transform duration-500"></div>
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${viewMode === "line" ? "text-rose-200" : "text-slate-200"}`}>
+                    {viewMode === "line" ? "Acc Target" : "Total Output"}
+                  </span>
+                  {viewMode === "line" && (
+                    <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-white/15 text-rose-100/90 tracking-tight">
+                      as of {formatDate(lineStats.cutoffDate)}
+                    </span>
+                  )}
+                </div>
+                <span className="text-3xl font-extrabold tracking-tight mt-1">
+                  {viewMode === "line" ? lineStats.accTarget.toLocaleString() : stats.total.toLocaleString()}
+                </span>
+              </div>
+              <div className="rounded-lg bg-white/15 p-2.5 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                {viewMode === "line" ? (
+                  <Target className="w-5 h-5 text-white" />
+                ) : (
+                  <Layers className="w-5 h-5 text-white" />
+                )}
+              </div>
+            </div>
+            <div className={`mt-4 flex items-center justify-between text-xs ${viewMode === "line" ? "text-rose-100" : "text-slate-300"}`}>
+              {viewMode === "line" ? (
+                <>
+                  <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
+                    Unit: {unitMode}
+                  </span>
+                  <span>
+                    Plan Target
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="font-medium bg-white/10 px-2 py-0.5 rounded">Unit: {unitMode}</span>
+                  <span>{summaryFilterLabel}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Card 2: Acc Output / Active Processes */}
+          <div className={`relative overflow-hidden rounded-xl p-5 text-white transition-all duration-300 group hover:shadow-xl hover:-translate-y-1 ${viewMode === "line"
+              ? "bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-900 shadow-md shadow-emerald-900/20"
+              : "bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 shadow-md shadow-teal-700/10"
+            }`}>
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/10 blur-xl group-hover:scale-125 transition-transform duration-500"></div>
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${viewMode === "line" ? "text-emerald-200" : "text-teal-150"}`}>
+                    {viewMode === "line" ? "Acc Output" : "Active Processes"}
+                  </span>
+                  {viewMode === "line" && (
+                    <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-white/15 text-emerald-100/90 tracking-tight">
+                      as of {formatDate(lineStats.cutoffDate)}
+                    </span>
+                  )}
+                </div>
+                <span className="text-3xl font-extrabold tracking-tight mt-1">
+                  {viewMode === "line" ? (
+                    lineStats.total.toLocaleString()
+                  ) : (
+                    <>
+                      {stats.activeCount} <span className="text-lg font-medium text-teal-200">/ {baseSummaryData.length}</span>
+                    </>
+                  )}
+                </span>
+              </div>
+              <div className="rounded-lg bg-white/15 p-2.5 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                {viewMode === "line" ? (
+                  <TrendingUp className="w-5 h-5 text-white" />
+                ) : (
+                  <Cpu className="w-5 h-5 text-white" />
+                )}
+              </div>
+            </div>
+            <div className={`mt-4 flex items-center justify-between text-xs ${viewMode === "line" ? "text-emerald-100" : "text-teal-200"}`}>
+              {viewMode === "line" ? (
+                <>
+                  <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
+                    Unit: {unitMode}
+                  </span>
+                  <span>{lineStats.filterTitle}</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
+                    Active: {baseSummaryData.length > 0 ? ((stats.activeCount / baseSummaryData.length) * 100).toFixed(0) : 0}%
+                  </span>
+                  <span>{isSummaryFiltered ? "Within current filter" : "Currently running output"}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Card 3: Active Products / Balance Card */}
+          <div className={`relative overflow-hidden rounded-xl p-5 text-white transition-all duration-300 group hover:shadow-xl hover:-translate-y-1 ${viewMode === "line"
+              ? lineStats.diffTarget < 0
+                ? "bg-gradient-to-br from-amber-600 via-orange-700 to-amber-950 shadow-md shadow-amber-900/20"
+                : "bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-950 shadow-md shadow-emerald-900/20"
+              : "bg-gradient-to-br from-blue-600 via-blue-700 to-sky-800 shadow-md shadow-blue-700/10"
+            }`}>
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/10 blur-xl group-hover:scale-125 transition-transform duration-500"></div>
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${viewMode === "line"
+                      ? lineStats.diffTarget < 0 ? "text-amber-200" : "text-emerald-200"
+                      : "text-blue-150"
+                    }`}>
+                    {viewMode === "line" ? "Balance" : "Active Products"}
+                  </span>
+                  {viewMode === "line" && (
+                    <span className={`text-[10px] font-normal px-1.5 py-0.2 rounded bg-white/15 tracking-tight ${lineStats.diffTarget < 0 ? "text-amber-100/90" : "text-emerald-100/90"
+                      }`}>
+                      as of {formatDate(lineStats.cutoffDate)}
+                    </span>
+                  )}
+                </div>
+                <span className="text-3xl font-extrabold tracking-tight mt-1">
+                  {viewMode === "line"
+                    ? `${lineStats.diffTarget > 0 ? "+" : ""}${lineStats.diffTarget.toLocaleString()}`
+                    : stats.activeProducts.toLocaleString()}
+                </span>
+              </div>
+              <div className="rounded-lg bg-white/15 p-2.5 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                {viewMode === "line" ? (
+                  <Scale className="w-5 h-5 text-white" />
+                ) : (
+                  <Package className="w-5 h-5 text-white" />
+                )}
+              </div>
+            </div>
+            <div className={`mt-4 flex items-center justify-between text-xs ${viewMode === "line"
+                ? lineStats.diffTarget < 0 ? "text-amber-100" : "text-emerald-100"
+                : "text-blue-200"
+              }`}>
+              {viewMode === "line" ? (
+                <>
+                  <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
+                    {lineStats.diffTarget < 0 ? "Under Target" : lineStats.diffTarget > 0 ? "Over Target" : "On Target"}
+                  </span>
+                  <span>
+                    {lineStats.diffTarget < 0
+                      ? `Shortfall: ${Math.abs(lineStats.diffTarget).toLocaleString()} ${unitMode}`
+                      : lineStats.diffTarget > 0
+                        ? `Surplus: +${lineStats.diffTarget.toLocaleString()} ${unitMode}`
+                        : "Balanced"}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
+                    Active Models
+                  </span>
+                  <span>
+                    {isSummaryFiltered ? "Overall product count" : "Distinct product parts processed"}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Card 4: Top Process / KPR Card */}
+          <div className={`relative overflow-hidden rounded-xl p-5 text-white transition-all duration-300 group hover:shadow-xl hover:-translate-y-1 ${viewMode === "line"
+              ? "bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-950 shadow-md shadow-violet-900/20"
+              : "bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-800 shadow-md shadow-indigo-700/10"
+            }`}>
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/10 blur-xl group-hover:scale-125 transition-transform duration-500"></div>
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${viewMode === "line" ? "text-purple-200" : "text-indigo-150"}`}>
+                    {viewMode === "line" ? "KPR (%)" : "Top Performing Process"}
+                  </span>
+                  {viewMode === "line" && (
+                    <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-white/15 text-purple-100/90 tracking-tight">
+                      as of {formatDate(lineStats.cutoffDate)}
+                    </span>
+                  )}
+                </div>
+                <span className="text-3xl font-extrabold tracking-tight mt-1">
+                  {viewMode === "line"
+                    ? `${lineStats.achievementRate}%`
+                    : (stats.topProcess ? stats.topProcess.process_name : "N/A")}
+                </span>
+              </div>
+              <div className="rounded-lg bg-white/15 p-2.5 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                {viewMode === "line" ? (
+                  <Gauge className="w-5 h-5 text-white" />
+                ) : (
+                  <Award className="w-5 h-5 text-white" />
+                )}
+              </div>
+            </div>
+            <div className={`mt-4 flex items-center justify-between text-xs ${viewMode === "line" ? "text-purple-200" : "text-indigo-200"}`}>
+              {viewMode === "line" ? (
+                <>
+                  <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
+                    Rate
+                  </span>
+                  <span>
+                    Output vs Target
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium bg-white/10 px-2 py-0.5 rounded">
+                      {(stats.topProcess?.output_value || 0).toLocaleString()} {unitMode}
+                    </span>
+                  </div>
+                  <span>
+                    {stats.topProcess && stats.total > 0
+                      ? `${((stats.topProcess.output_value || 0) / stats.total * 100).toFixed(1)}% share`
+                      : "0%"}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Chart Section */}
+        <div className="bg-base-100 rounded-xl shadow-sm border border-base-300 p-4 shrink-0 flex flex-col min-h-[450px]">
+
+          {/* Dynamic header for chart section */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+            <h3 className="text-base font-semibold text-base-content/80 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-primary" />
+              <span className="flex items-center gap-1.5 flex-wrap">
+                {selectedProcess ? "MC Line Output" : selectedChartDate ? (viewMode === "line" ? "Line Output" : "Process Output") : `${granularity === 'weekly' ? 'Weekly' : granularity === 'monthly' ? 'Monthly' : 'Daily'} Data Summary (${viewMode === 'line' ? 'By Line' : 'By Process'})`}
+                {selectedChartDate && !selectedProcess && (
+                  <span className="text-primary font-bold ml-1">— {selectedChartDate}</span>
+                )}
+                {selectedProcess && (
+                  <span className="text-primary font-bold ml-1">— {selectedProcess}</span>
+                )}
+                {processFamilyFilter !== "All" && (
+                  <span className="text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
+                    {processFamilyFilter}
+                  </span>
+                )}
+                {viewMode === "process" && (
+                  <span
+                    className="text-[10px] font-semibold text-base-content/50 bg-base-200 px-1.5 py-0.5 rounded border border-base-300"
+                    title="Only product + process pairs with gate_proc = 'Y' in smart_pln_product_routing_list"
+                  >
+                    Gate processes only
+                  </span>
+                )}
+              </span>
+            </h3>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* View Mode Switcher: By Process vs By Line */}
+              <div className="join shadow-sm border border-base-300 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewMode("process");
                     setSelectedChartDate(null);
                     setSelectedProcess("");
-                    setProcessFamilyFilter("All");
+                    setDailyProcessFilter([]);
                   }}
-                  title="Clear date filter"
+                  className={`join-item btn btn-xs font-bold ${viewMode === "process" ? "btn-primary" : "btn-ghost bg-base-100 hover:bg-base-200"}`}
                 >
-                  <div className="bg-primary/20 rounded-full p-0.5">
-                    <span className="opacity-70 font-bold hover:opacity-100 flex items-center justify-center w-3 h-3 text-[10px]">✕</span>
-                  </div>
+                  By Process
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewMode("line");
+                    setSelectedChartDate(null);
+                    setSelectedProcess("");
+                    setDailyLineFilter([]);
+                  }}
+                  className={`join-item btn btn-xs font-bold ${viewMode === "line" ? "btn-primary" : "btn-ghost bg-base-100 hover:bg-base-200"}`}
+                >
+                  By Line
                 </button>
               </div>
-            )}
-          </div>
-        </div>
 
-        {(isLoading && !isRefreshing) ? (
-          <ChartSkeleton />
-        ) : viewMode === "line" ? (
-          <LineDateChart
-            data={chartDataAndProcs.dailyChartData}
-            unit={unitMode}
-            setUnitMode={setUnitMode}
-            multiUnitData={multiUnitData}
-            activeLines={chartDataAndProcs.activeProcesses}
-            selectedDate={selectedChartDate}
-            selectedFactory={selectedFactory}
-            onFactoryChange={(f) => {
-              setSelectedFactory(f);
-              if (f === "SMT") {
-                setUnitMode("Piece");
-              }
-              setSelectedChartDate(null);
-              setSelectedProcess("");
-              setDailyLineFilter([]);
-            }}
-            onLineFilterChange={setDailyLineFilter}
-            onBarClick={(rawDate, _lineName) => {
-              setSelectedChartDate(prev => (prev === rawDate ? null : rawDate));
-              setProcessFamilyFilter("All");
-            }}
-          />
-        ) : ((Array.isArray(lots) && lots.length > 0) || chartFilteredProductRows.length > 0 || summaryData.length > 0) ? (
-          startDate !== endDate && !selectedChartDate ? (
-            <ProcessDateChart
+              {/* Granularity Switcher Button Group */}
+              <div className="join shadow-sm border border-base-300 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => changeGranularity("daily")}
+                  className={`join-item btn btn-xs font-bold ${granularity === "daily" ? "btn-primary" : "btn-ghost bg-base-100 hover:bg-base-200"}`}
+                >
+                  Daily
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeGranularity("weekly")}
+                  className={`join-item btn btn-xs font-bold ${granularity === "weekly" ? "btn-primary" : "btn-ghost bg-base-100 hover:bg-base-200"}`}
+                >
+                  Weekly
+                </button>
+              </div>
+
+              {selectedChartDate && !selectedProcess && (
+                <div className="join shadow-sm">
+                  {(["All", "FPC", "SMT"] as ProcessFamilyFilter[]).map(type => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setProcessFamilyFilter(type)}
+                      className={`join-item btn btn-xs ${processFamilyFilter === type ? "btn-primary" : "btn-outline"}`}
+                      title={type === "SMT" ? 'SMT: process starts with "M", fallback product code index 3 is "Z"' : type === "FPC" ? 'FPC: process starts with "F", fallback product code index 3 is not "Z"' : "All process types"}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {selectedChartDate && (
+                <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-xs font-semibold">
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  <span>{selectedChartDate}</span>
+                  <button
+                    className="ml-1 hover:text-primary-focus transition-colors"
+                    onClick={() => {
+                      setSelectedChartDate(null);
+                      setSelectedProcess("");
+                      setProcessFamilyFilter("All");
+                    }}
+                    title="Clear date filter"
+                  >
+                    <div className="bg-primary/20 rounded-full p-0.5">
+                      <span className="opacity-70 font-bold hover:opacity-100 flex items-center justify-center w-3 h-3 text-[10px]">✕</span>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {(isLoading && !isRefreshing) ? (
+            <ChartSkeleton />
+          ) : viewMode === "line" ? (
+            <LineDateChart
               data={chartDataAndProcs.dailyChartData}
               unit={unitMode}
               setUnitMode={setUnitMode}
               multiUnitData={multiUnitData}
-              activeProcesses={chartDataAndProcs.activeProcesses}
+              activeLines={chartDataAndProcs.activeProcesses}
               selectedDate={selectedChartDate}
-              onProcessFilterChange={setDailyProcessFilter}
-              onBarClick={(rawDate, _procName) => {
+              selectedFactory={selectedFactory}
+              onFactoryChange={(f) => {
+                setSelectedFactory(f);
+                if (f === "SMT") {
+                  setUnitMode("Piece");
+                }
+                setSelectedChartDate(null);
+                setSelectedProcess("");
+                setDailyLineFilter([]);
+              }}
+              onLineFilterChange={setDailyLineFilter}
+              onBarClick={(rawDate, _lineName) => {
                 setSelectedChartDate(prev => (prev === rawDate ? null : rawDate));
                 setProcessFamilyFilter("All");
               }}
             />
+          ) : ((Array.isArray(lots) && lots.length > 0) || chartFilteredProductRows.length > 0 || summaryData.length > 0) ? (
+            startDate !== endDate && !selectedChartDate ? (
+              <ProcessDateChart
+                data={chartDataAndProcs.dailyChartData}
+                unit={unitMode}
+                setUnitMode={setUnitMode}
+                multiUnitData={multiUnitData}
+                activeProcesses={chartDataAndProcs.activeProcesses}
+                selectedDate={selectedChartDate}
+                onProcessFilterChange={setDailyProcessFilter}
+                onBarClick={(rawDate, _procName) => {
+                  setSelectedChartDate(prev => (prev === rawDate ? null : rawDate));
+                  setProcessFamilyFilter("All");
+                }}
+              />
+            ) : (
+              <TopOutputChart
+                data={summaryData.map(item => ({
+                  process_name: item.process_name,
+                  output_qty: item.output_value || 0,
+                  color: getProcessColor(item.process_name),
+                  mcline_count: item.mcline_count
+                }))}
+                unit={unitMode}
+                selectedProcess={selectedProcess}
+                onProcessSelect={setSelectedProcess}
+                backButtonNode={
+                  (selectedChartDate || selectedProcess) ? (
+                    <button
+                      onClick={() => {
+                        if (selectedProcess) {
+                          setSelectedProcess("");
+                        } else {
+                          setSelectedChartDate(null);
+                          setProcessFamilyFilter("All");
+                        }
+                      }}
+                      className="btn btn-sm btn-primary shadow-sm hover:scale-105 transition-transform font-bold"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-1" />
+                      {selectedProcess ? "Back to Processes" : (granularity === "weekly" ? "Back to All Weeks" : granularity === "monthly" ? "Back to All Months" : "Back to All Days")}
+                    </button>
+                  ) : undefined
+                }
+              />
+            )
           ) : (
-            <TopOutputChart
-              data={summaryData.map(item => ({
-                process_name: item.process_name,
-                output_qty: item.output_value || 0,
-                color: getProcessColor(item.process_name),
-                mcline_count: item.mcline_count
-              }))}
-              unit={unitMode}
-              selectedProcess={selectedProcess}
-              onProcessSelect={setSelectedProcess}
-              backButtonNode={
-                (selectedChartDate || selectedProcess) ? (
+            <div className="w-full min-h-[400px] flex items-center justify-center text-base-content/50">
+              No data to display
+            </div>
+          )}
+        </div>
+
+        {/* Table Content - Only shown when a specific date or process is selected */}
+        {(selectedChartDate || selectedProcess) && (
+          <div className="bg-base-100 rounded-xl shadow-sm border border-base-300 overflow-hidden flex-1 relative min-h-[350px]">
+            <div className="p-4 border-b border-base-300 flex justify-between items-center bg-base-200/20">
+              <h3 className="text-base font-bold text-base-content/90 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                {selectedProcess
+                  ? `MC Line Details - ${selectedProcess}`
+                  : (viewMode === "line" ? "Line Output Details" : "Process Output Details")}
+              </h3>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-base-content/60 font-medium bg-base-200 px-2 py-1 rounded">
+                  {selectedProcess
+                    ? `Total MC Lines: ${mcLineData.length}`
+                    : (viewMode === "line" ? `Total lines: ${sortedSummaryData.length}` : `Total processes: ${sortedSummaryData.length}`)}
+                </span>
+                {selectedProcess && (
                   <button
                     onClick={() => {
-                      if (selectedProcess) {
-                        setSelectedProcess("");
-                      } else {
-                        setSelectedChartDate(null);
-                        setProcessFamilyFilter("All");
-                      }
+                      setSelectedProcess("");
                     }}
-                    className="btn btn-sm btn-primary shadow-sm hover:scale-105 transition-transform font-bold"
+                    className="btn btn-xs btn-ghost border border-base-300 text-base-content/70 hover:bg-base-300/50"
                   >
-                    <ArrowLeft className="w-4 h-4 mr-1" />
-                    {selectedProcess ? "Back to Processes" : (granularity === "weekly" ? "Back to All Weeks" : granularity === "monthly" ? "Back to All Months" : "Back to All Days")}
+                    Back to Processes
                   </button>
-                ) : undefined
-              }
-            />
-          )
-        ) : (
-          <div className="w-full min-h-[400px] flex items-center justify-center text-base-content/50">
-            No data to display
-          </div>
-        )}
-      </div>
+                )}
+              </div>
+            </div>
+            <div className="overflow-x-auto h-[calc(100%-60px)]">
+              {isLoading || isMcLineLoading ? (
+                <ListSkeleton />
+              ) : selectedProcess ? (
+                <div className="flex flex-col gap-2 p-2 overflow-y-auto h-full scrollbar-thin">
+                  {sortedMcLineData.length > 0 ? (
+                    sortedMcLineData.map((row) => {
+                      const color = getProcessColor(selectedProcess);
+                      const units = [
+                        { key: "Sheet", label: "SHEET", value: row.sum_sht },
+                        { key: "Piece", label: "PIECE", value: row.sum_pcs },
+                        { key: "Lot", label: "LOT", value: row.sum_lot }
+                      ];
+                      const activeUnit = units.find(u => u.key === unitMode) || units[0];
+                      const otherUnits = units.filter(u => u.key !== unitMode);
 
-      {/* Table Content - Only shown when a specific date or process is selected */}
-      {(selectedChartDate || selectedProcess) && (
-        <div className="bg-base-100 rounded-xl shadow-sm border border-base-300 overflow-hidden flex-1 relative min-h-[350px]">
-          <div className="p-4 border-b border-base-300 flex justify-between items-center bg-base-200/20">
-            <h3 className="text-base font-bold text-base-content/90 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              {selectedProcess
-                ? `MC Line Details - ${selectedProcess}`
-                : (viewMode === "line" ? "Line Output Details" : "Process Output Details")}
-            </h3>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-base-content/60 font-medium bg-base-200 px-2 py-1 rounded">
-                {selectedProcess
-                  ? `Total MC Lines: ${mcLineData.length}`
-                  : (viewMode === "line" ? `Total lines: ${sortedSummaryData.length}` : `Total processes: ${summaryData.length}`)}
-              </span>
-              {selectedProcess && (
-                <button
-                  onClick={() => {
-                    setSelectedProcess("");
-                  }}
-                  className="btn btn-xs btn-ghost border border-base-300 text-base-content/70 hover:bg-base-300/50"
-                >
-                  Back to Processes
-                </button>
+                      return (
+                        <div
+                          key={row.mc_line}
+                          className="flex items-center justify-between p-3 rounded-lg border border-base-200 bg-base-100/50 hover:bg-base-200 hover:border-primary/30 transition-all text-left shadow-sm group"
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
+                            <div className="w-2.5 h-8 rounded-full shrink-0" style={{ backgroundColor: color }}></div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold text-sm text-base-content/90 truncate">{row.mc_line}</span>
+                              <span className="text-[10px] text-base-content/50 uppercase font-medium">MC Line</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 mt-1">
+                            {otherUnits.map(u => (
+                              <div key={u.key} className="flex flex-col items-center min-w-[3.5rem]">
+                                <span className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider">{u.label}</span>
+                                <span className="text-xs font-mono font-semibold text-base-content/80">{u.value.toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex flex-col items-end shrink-0 w-24 pl-3 border-l border-base-300 ml-4">
+                            <span className="text-[9px] uppercase font-bold tracking-wider text-primary/70">{activeUnit.label}</span>
+                            <span className="font-mono font-bold text-sm text-primary">
+                              {activeUnit.value.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8 text-base-content/50">
+                      No machine lines found for {selectedProcess}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <table className="table w-full border-collapse">
+                    <thead className="bg-base-200/60 text-base-content/70 uppercase text-xs sticky top-0 z-10 border-b border-base-300">
+                      <tr>
+                        <th
+                          className="px-6 py-4 font-bold text-left w-[40%] cursor-pointer hover:bg-base-300/30 select-none transition-colors"
+                          onClick={() => handleSort("sequence")}
+                        >
+                          <div className="flex items-center">
+                            {viewMode === "line" ? "Line Name" : "Process Name"} {renderSortIndicator("sequence")}
+                          </div>
+                        </th>
+                        <th
+                          className={`px-4 py-4 font-bold text-right w-[20%] ${unitMode === "Lot" ? "text-primary cursor-pointer hover:bg-base-300/30" : "text-base-content/50"} select-none text-[10px] tracking-widest transition-colors`}
+                          onClick={() => unitMode === "Lot" && handleSort("output_value")}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            LOT {unitMode === "Lot" && renderSortIndicator("output_value")}
+                          </div>
+                        </th>
+                        <th
+                          className={`px-4 py-4 font-bold text-right w-[20%] ${unitMode === "Sheet" ? "text-primary cursor-pointer hover:bg-base-300/30" : "text-base-content/50"} select-none text-[10px] tracking-widest transition-colors`}
+                          onClick={() => unitMode === "Sheet" && handleSort("output_value")}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            SHEET {unitMode === "Sheet" && renderSortIndicator("output_value")}
+                          </div>
+                        </th>
+                        <th
+                          className={`px-6 py-4 font-bold text-right w-[20%] ${unitMode === "Piece" ? "text-primary cursor-pointer hover:bg-base-300/30" : "text-base-content/50"} select-none text-[10px] tracking-widest transition-colors`}
+                          onClick={() => unitMode === "Piece" && handleSort("output_value")}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            PIECE {unitMode === "Piece" && renderSortIndicator("output_value")}
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(isLoading && !isRefreshing) ? (
+                        <tr>
+                          <td colSpan={4} className="p-0 border-0">
+                            <ListSkeleton />
+                          </td>
+                        </tr>
+                      ) : sortedSummaryData.length > 0 ? (
+                        sortedSummaryData.slice((detailsCurrentPage - 1) * detailsItemsPerPage, detailsCurrentPage * detailsItemsPerPage).map((row) => {
+                          const color = getProcessColor(row.process_name);
+                          // ทั้ง By Process และ By Line กดแถวเพื่อดู Lot No. ได้ (By Line: row.process_name คือชื่อ line)
+                          const isLotOpen = expandedLotProcesses.includes(row.process_name);
+
+                          return (
+                            <React.Fragment key={row.process_name}>
+                              <tr
+                                className={`hover:bg-base-200/50 transition-colors border-b border-base-300 cursor-pointer ${isLotOpen ? "bg-base-200/40" : ""}`}
+                                onClick={() => toggleLotProcess(row.process_name)}
+                                onKeyDown={(e: React.KeyboardEvent) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    toggleLotProcess(row.process_name);
+                                  }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                                aria-expanded={isLotOpen}
+                                title={isLotOpen ? "Click to hide lot numbers" : "Click to show lot numbers"}
+                              >
+                                <td className="px-6 py-3.5 font-medium text-base-content/90">
+                                  <div className="flex items-center gap-3">
+                                    {isLotOpen
+                                      ? <ChevronDown className="w-3.5 h-3.5 text-base-content/50 shrink-0" />
+                                      : <ChevronRight className="w-3.5 h-3.5 text-base-content/50 shrink-0" />}
+                                    <span
+                                      className="w-3 h-3 rounded-full shrink-0"
+                                      style={{ backgroundColor: color }}
+                                    ></span>
+                                    <span className="font-semibold text-sm">{row.process_name}</span>
+                                  </div>
+                                </td>
+                                <td className={`px-4 py-3.5 text-right font-mono text-sm ${unitMode === "Lot" ? "font-bold text-primary" : "text-base-content/70"}`}>
+                                  {row.sum_lot.toLocaleString()}
+                                </td>
+                                <td className={`px-4 py-3.5 text-right font-mono text-sm ${unitMode === "Sheet" ? "font-bold text-primary" : "text-base-content/70"}`}>
+                                  {row.sum_sht.toLocaleString()}
+                                </td>
+                                <td className={`px-6 py-3.5 text-right font-mono text-sm ${unitMode === "Piece" ? "font-bold text-primary" : "text-base-content/70"}`}>
+                                  {row.sum_pcs.toLocaleString()}
+                                </td>
+                              </tr>
+                              {isLotOpen && (
+                                <tr className="border-b border-base-300">
+                                  <td colSpan={4} className="p-0">
+                                    {viewMode === "line"
+                                      ? renderLineLotPanel(row.process_name)
+                                      : renderLotPanel(row.process_name, row.sum_lot)}
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-16 text-center text-base-content/50">
+                            {!isLoading && "No output data available for the selected filters."}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  {sortedSummaryData.length > 0 && (
+                    <div className="flex items-center gap-1.5 px-4 pt-3 text-[11px] text-base-content/50">
+                      <Sparkles className="w-3 h-3 text-primary/70" />
+                      Click a {viewMode === "line" ? "line" : "process"} row to see lot numbers (08:00–08:00 cutoff).
+                    </div>
+                  )}
+                  {sortedSummaryData.length > detailsItemsPerPage && (
+                    <div className="flex justify-between items-center p-4 border-t border-base-300 bg-base-100">
+                      <div className="text-xs text-base-content/60">
+                        Showing {(detailsCurrentPage - 1) * detailsItemsPerPage + 1} to {Math.min(detailsCurrentPage * detailsItemsPerPage, sortedSummaryData.length)} of {sortedSummaryData.length} {viewMode === "line" ? "lines" : "processes"}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setDetailsCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={detailsCurrentPage === 1}
+                          className="btn btn-sm btn-ghost"
+                        >
+                          Previous
+                        </button>
+                        <div className="text-xs font-semibold px-2">
+                          {detailsCurrentPage} / {Math.ceil(sortedSummaryData.length / detailsItemsPerPage)}
+                        </div>
+                        <button
+                          onClick={() => setDetailsCurrentPage(p => Math.min(Math.ceil(sortedSummaryData.length / detailsItemsPerPage), p + 1))}
+                          disabled={detailsCurrentPage >= Math.ceil(sortedSummaryData.length / detailsItemsPerPage)}
+                          className="btn btn-sm btn-ghost"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
-          <div className="overflow-x-auto h-[calc(100%-60px)]">
-            {isLoading || isMcLineLoading ? (
-              <ListSkeleton />
-            ) : selectedProcess ? (
-              <div className="flex flex-col gap-2 p-2 overflow-y-auto h-full scrollbar-thin">
-                {sortedMcLineData.length > 0 ? (
-                  sortedMcLineData.map((row) => {
-                    const color = getProcessColor(selectedProcess);
-                    const units = [
-                      { key: "Sheet", label: "SHEET", value: row.sum_sht },
-                      { key: "Piece", label: "PIECE", value: row.sum_pcs },
-                      { key: "Lot", label: "LOT", value: row.sum_lot }
-                    ];
-                    const activeUnit = units.find(u => u.key === unitMode) || units[0];
-                    const otherUnits = units.filter(u => u.key !== unitMode);
-
-                    return (
-                      <div
-                        key={row.mc_line}
-                        className="flex items-center justify-between p-3 rounded-lg border border-base-200 bg-base-100/50 hover:bg-base-200 hover:border-primary/30 transition-all text-left shadow-sm group"
-                      >
-                        <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
-                          <div className="w-2.5 h-8 rounded-full shrink-0" style={{ backgroundColor: color }}></div>
-                          <div className="flex flex-col min-w-0">
-                            <span className="font-bold text-sm text-base-content/90 truncate">{row.mc_line}</span>
-                            <span className="text-[10px] text-base-content/50 uppercase font-medium">MC Line</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4 mt-1">
-                          {otherUnits.map(u => (
-                            <div key={u.key} className="flex flex-col items-center min-w-[3.5rem]">
-                              <span className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider">{u.label}</span>
-                              <span className="text-xs font-mono font-semibold text-base-content/80">{u.value.toLocaleString()}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex flex-col items-end shrink-0 w-24 pl-3 border-l border-base-300 ml-4">
-                          <span className="text-[9px] uppercase font-bold tracking-wider text-primary/70">{activeUnit.label}</span>
-                          <span className="font-mono font-bold text-sm text-primary">
-                            {activeUnit.value.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-8 text-base-content/50">
-                    No machine lines found for {selectedProcess}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <table className="table w-full border-collapse">
-                  <thead className="bg-base-200/60 text-base-content/70 uppercase text-xs sticky top-0 z-10 border-b border-base-300">
-                    <tr>
-                      <th
-                        className="px-6 py-4 font-bold text-left w-[40%] cursor-pointer hover:bg-base-300/30 select-none transition-colors"
-                        onClick={() => handleSort("sequence")}
-                      >
-                        <div className="flex items-center">
-                          {viewMode === "line" ? "Line Name" : "Process Name"} {renderSortIndicator("sequence")}
-                        </div>
-                      </th>
-                      <th
-                        className={`px-4 py-4 font-bold text-right w-[20%] ${unitMode === "Lot" ? "text-primary cursor-pointer hover:bg-base-300/30" : "text-base-content/50"} select-none text-[10px] tracking-widest transition-colors`}
-                        onClick={() => unitMode === "Lot" && handleSort("output_value")}
-                      >
-                        <div className="flex items-center justify-end gap-1">
-                          LOT {unitMode === "Lot" && renderSortIndicator("output_value")}
-                        </div>
-                      </th>
-                      <th
-                        className={`px-4 py-4 font-bold text-right w-[20%] ${unitMode === "Sheet" ? "text-primary cursor-pointer hover:bg-base-300/30" : "text-base-content/50"} select-none text-[10px] tracking-widest transition-colors`}
-                        onClick={() => unitMode === "Sheet" && handleSort("output_value")}
-                      >
-                        <div className="flex items-center justify-end gap-1">
-                          SHEET {unitMode === "Sheet" && renderSortIndicator("output_value")}
-                        </div>
-                      </th>
-                      <th
-                        className={`px-6 py-4 font-bold text-right w-[20%] ${unitMode === "Piece" ? "text-primary cursor-pointer hover:bg-base-300/30" : "text-base-content/50"} select-none text-[10px] tracking-widest transition-colors`}
-                        onClick={() => unitMode === "Piece" && handleSort("output_value")}
-                      >
-                        <div className="flex items-center justify-end gap-1">
-                          PIECE {unitMode === "Piece" && renderSortIndicator("output_value")}
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(isLoading && !isRefreshing) ? (
-                      <tr>
-                        <td colSpan={4} className="p-0 border-0">
-                          <ListSkeleton />
-                        </td>
-                      </tr>
-                    ) : sortedSummaryData.length > 0 ? (
-                      sortedSummaryData.slice((detailsCurrentPage - 1) * detailsItemsPerPage, detailsCurrentPage * detailsItemsPerPage).map((row) => {
-                        const color = getProcessColor(row.process_name);
-                        const canShowLots = viewMode === "process";
-                        const isLotOpen = canShowLots && expandedLotProcesses.includes(row.process_name);
-
-                        return (
-                          <React.Fragment key={row.process_name}>
-                          <tr
-                            className={`hover:bg-base-200/50 transition-colors border-b border-base-300 ${canShowLots ? "cursor-pointer" : ""} ${isLotOpen ? "bg-base-200/40" : ""}`}
-                            {...(canShowLots ? {
-                              onClick: () => toggleLotProcess(row.process_name),
-                              onKeyDown: (e: React.KeyboardEvent) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  e.preventDefault();
-                                  toggleLotProcess(row.process_name);
-                                }
-                              },
-                              role: "button",
-                              tabIndex: 0,
-                              "aria-expanded": isLotOpen,
-                              title: isLotOpen ? "Click to hide lot numbers" : "Click to show lot numbers"
-                            } : {})}
-                          >
-                            <td className="px-6 py-3.5 font-medium text-base-content/90">
-                              <div className="flex items-center gap-3">
-                                {canShowLots && (isLotOpen
-                                  ? <ChevronDown className="w-3.5 h-3.5 text-base-content/50 shrink-0" />
-                                  : <ChevronRight className="w-3.5 h-3.5 text-base-content/50 shrink-0" />)}
-                                <span
-                                  className="w-3 h-3 rounded-full shrink-0"
-                                  style={{ backgroundColor: color }}
-                                ></span>
-                                <span className="font-semibold text-sm">{row.process_name}</span>
-                              </div>
-                            </td>
-                            <td className={`px-4 py-3.5 text-right font-mono text-sm ${unitMode === "Lot" ? "font-bold text-primary" : "text-base-content/70"}`}>
-                              {row.sum_lot.toLocaleString()}
-                            </td>
-                            <td className={`px-4 py-3.5 text-right font-mono text-sm ${unitMode === "Sheet" ? "font-bold text-primary" : "text-base-content/70"}`}>
-                              {row.sum_sht.toLocaleString()}
-                            </td>
-                            <td className={`px-6 py-3.5 text-right font-mono text-sm ${unitMode === "Piece" ? "font-bold text-primary" : "text-base-content/70"}`}>
-                              {row.sum_pcs.toLocaleString()}
-                            </td>
-                          </tr>
-                          {isLotOpen && (
-                            <tr className="border-b border-base-300">
-                              <td colSpan={4} className="p-0">
-                                {renderLotPanel(row.process_name)}
-                              </td>
-                            </tr>
-                          )}
-                          </React.Fragment>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="px-6 py-16 text-center text-base-content/50">
-                          {!isLoading && "No output data available for the selected filters."}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-                {viewMode === "process" && sortedSummaryData.length > 0 && (
-                  <div className="flex items-center gap-1.5 px-4 pt-3 text-[11px] text-base-content/50">
-                    <Sparkles className="w-3 h-3 text-primary/70" />
-                    Click a process row to see lot numbers (08:00–08:00 cutoff).
-                  </div>
-                )}
-                {sortedSummaryData.length > detailsItemsPerPage && (
-                  <div className="flex justify-between items-center p-4 border-t border-base-300 bg-base-100">
-                    <div className="text-xs text-base-content/60">
-                      Showing {(detailsCurrentPage - 1) * detailsItemsPerPage + 1} to {Math.min(detailsCurrentPage * detailsItemsPerPage, sortedSummaryData.length)} of {sortedSummaryData.length} {viewMode === "line" ? "lines" : "processes"}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setDetailsCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={detailsCurrentPage === 1}
-                        className="btn btn-sm btn-ghost"
-                      >
-                        Previous
-                      </button>
-                      <div className="text-xs font-semibold px-2">
-                        {detailsCurrentPage} / {Math.ceil(sortedSummaryData.length / detailsItemsPerPage)}
-                      </div>
-                      <button
-                        onClick={() => setDetailsCurrentPage(p => Math.min(Math.ceil(sortedSummaryData.length / detailsItemsPerPage), p + 1))}
-                        disabled={detailsCurrentPage >= Math.ceil(sortedSummaryData.length / detailsItemsPerPage)}
-                        className="btn btn-sm btn-ghost"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
+        )}
       </div>
     </>
   );
