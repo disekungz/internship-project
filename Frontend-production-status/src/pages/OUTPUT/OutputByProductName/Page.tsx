@@ -17,6 +17,7 @@ interface ProductOutput {
   actual_lot_qty: number;
   output_value?: number; // Used for dynamic unit mode selection
   product_type?: "SMT" | "FPC" | null; // from smart_fpc_output_detail.prd_item_code (95 = SMT, 94 = FPC)
+  proc_seq?: number | null; // step order of this process in the product's routing (smart_pln_product_routing_list.seq)
 }
 
 // One lot record from smart.smart_fpc_output_by_lot (via /outputbyproduct/lots)
@@ -821,6 +822,13 @@ const Page: React.FC = () => {
     return sortedGroups;
   };
 
+  // Process rows under one product follow its routing step order (proc_seq); processes not in routing go last
+  const sortByRoutingSeq = (rows: ProductOutput[]) => [...rows].sort((a, b) => {
+    const seqA = a.proc_seq ?? Number.MAX_SAFE_INTEGER;
+    const seqB = b.proc_seq ?? Number.MAX_SAFE_INTEGER;
+    return seqA - seqB || (a.process_name || "").localeCompare(b.process_name || "");
+  });
+
   const toggleExpandedDetailProduct = (productName: string) => {
     setExpandedDetailProducts(prev =>
       prev.includes(productName)
@@ -927,7 +935,7 @@ const Page: React.FC = () => {
     const groupedRows = sortDetailGroups(Array.from(groupMap.values()).map(group => {
       group.processCount = new Set(group.entries.map(row => row.process_name).filter(Boolean)).size;
       group.mcLineCount = new Set(group.entries.map(row => row.mc_line).filter(Boolean)).size;
-      group.entries = sortDetailRows(group.entries, detailSortMode);
+      group.entries = sortByRoutingSeq(group.entries);
       return group;
     }), detailSortMode);
 
