@@ -688,6 +688,21 @@ const Page: React.FC = () => {
     return null;
   }, [selectedChartDate, granularity, lots, productRows, startDate, endDate]);
 
+  // ช่วงวันที่จริงของงวดที่เลือก (วัน = วันเดียว, สัปดาห์ = วันอาทิตย์-เสาร์ที่อยู่ในช่วงที่ตั้งไว้)
+  const lotRangeStart = lotRange?.start;
+  const lotRangeEnd = lotRange?.end;
+
+  // เปลี่ยน Daily/Weekly: ล้างงวดที่เลือกไว้ เพราะ key ของวัน (2026-10-14) กับสัปดาห์ (2026-WK42) ใช้แทนกันไม่ได้
+  const changeGranularity = (next: OutputGranularity) => {
+    if (next === granularity) return;
+    setGranularity(next);
+    setSelectedChartDate(null);
+    setSelectedProcess("");
+    setProcessFamilyFilter("All");
+    setDailyProcessFilter([]);
+    setDailyLineFilter([]);
+  };
+
   const getLotCacheKey = (processName: string) => `${lotRange?.start || ""}|${lotRange?.end || ""}|${processName}`;
 
   const loadLots = async (processName: string, force = false) => {
@@ -2082,7 +2097,13 @@ const Page: React.FC = () => {
       try {
         const params = new URLSearchParams();
         if (selectedChartDate) {
-          params.append("date", selectedChartDate);
+          // selectedChartDate อาจเป็น week key (เช่น 2026-WK42) — ใช้ช่วงวันที่จริงจาก lotRange แทน
+          if (!lotRangeStart || !lotRangeEnd) {
+            setMcLineData([]);
+            return;
+          }
+          params.append("startDate", lotRangeStart);
+          params.append("endDate", lotRangeEnd);
         } else if (startDate && endDate) {
           params.append("startDate", startDate);
           params.append("endDate", endDate);
@@ -2114,7 +2135,7 @@ const Page: React.FC = () => {
     };
 
     fetchMcLineData();
-  }, [selectedProcess, startDate, endDate, selectedChartDate, unitMode, processFamilyFilter, chartFilteredProductRows]);
+  }, [selectedProcess, startDate, endDate, selectedChartDate, lotRangeStart, lotRangeEnd, unitMode, processFamilyFilter, chartFilteredProductRows]);
 
   const mcLineTotal = useMemo(() => mcLineData.reduce((sum, item) => sum + item.output_value, 0), [mcLineData]);
 
@@ -2209,8 +2230,8 @@ const Page: React.FC = () => {
         onClose={() => setIsExportModalOpen(false)}
         title="Export Output By Process"
         availableProcesses={exportProcessOptions}
-        defaultStartDate={selectedChartDate || startDate}
-        defaultEndDate={selectedChartDate || endDate}
+        defaultStartDate={lotRangeStart || startDate}
+        defaultEndDate={lotRangeEnd || endDate}
         defaultProcesses={activeSummaryProcessFilter}
         onConfirmExport={handleConfirmExport}
         isLoading={isExporting}
@@ -2624,14 +2645,14 @@ const Page: React.FC = () => {
             <div className="join shadow-sm border border-base-300 rounded-lg overflow-hidden">
               <button
                 type="button"
-                onClick={() => setGranularity("daily")}
+                onClick={() => changeGranularity("daily")}
                 className={`join-item btn btn-xs font-bold ${granularity === "daily" ? "btn-primary" : "btn-ghost bg-base-100 hover:bg-base-200"}`}
               >
                 Daily
               </button>
               <button
                 type="button"
-                onClick={() => setGranularity("weekly")}
+                onClick={() => changeGranularity("weekly")}
                 className={`join-item btn btn-xs font-bold ${granularity === "weekly" ? "btn-primary" : "btn-ghost bg-base-100 hover:bg-base-200"}`}
               >
                 Weekly
