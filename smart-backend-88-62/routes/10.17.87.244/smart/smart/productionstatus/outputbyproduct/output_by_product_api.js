@@ -192,9 +192,22 @@ router.get("/dashboard-products", async (req, res) => {
         FROM smart.smart_fpc_process_output_detail
         ${whereClause}
         GROUP BY TO_CHAR(output_date, 'YYYY-MM-DD'), prd_name, proc_disp
+      ),
+      -- ลำดับขั้นตอนของ process ใน routing ของ product นั้น (proc_seq = null ถ้าไม่มีใน routing)
+      route_seq AS (
+        SELECT
+          REPLACE(TRIM(prd_name), '-', '') AS prd,
+          TRIM(proc_disp) AS proc,
+          MIN(seq) AS proc_seq
+        FROM smart.smart_pln_product_routing_list
+        WHERE proc_disp IS NOT NULL
+        GROUP BY REPLACE(TRIM(prd_name), '-', ''), TRIM(proc_disp)
       )
-      SELECT a.*
+      SELECT a.*, rs.proc_seq
       FROM agg a
+      LEFT JOIN route_seq rs
+        ON rs.prd = REPLACE(TRIM(a.product_name), '-', '')
+       AND rs.proc = TRIM(a.process_name)
       WHERE EXISTS (
         SELECT 1 FROM lot_days ld
         WHERE ld.prd = REPLACE(TRIM(a.product_name), '-', '')
