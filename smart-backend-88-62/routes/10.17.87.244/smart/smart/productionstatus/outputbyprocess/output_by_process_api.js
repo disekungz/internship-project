@@ -75,9 +75,53 @@ router.get("/lines", async (req, res) => {
 });
 
 // ----------------------------------------------------------------------------
+// วันผลิตปัจจุบัน (เวลาไทย, ตัดรอบ 08:00) ในรูปแบบ YYYY-MM-DD
+// ก่อน 08:00 ยังนับเป็นวันผลิตของเมื่อวาน
+// ----------------------------------------------------------------------------
+function getCurrentProductionDate() {
+  const bkk = new Date(Date.now() + 7 * 60 * 60 * 1000);
+  if (bkk.getUTCHours() < 8) bkk.setUTCDate(bkk.getUTCDate() - 1);
+  return bkk.toISOString().split("T")[0];
+}
+
+// ----------------------------------------------------------------------------
+// จำนวน lot ต่อ process ของวันผลิตหนึ่งวัน จาก smart.smart_fpc_output_by_lot
+// ใช้เงื่อนไขเดียวกับ /process-lots (gate เท่านั้น, out_time 08:00 -> 08:00 วันถัดไป, นับทุกแถว)
+// เพื่อให้จำนวน lot ในตารางตรงกับจำนวน Lot No. ที่กดขยายดู
+// คืนค่า Map: process_name (TRIM) -> จำนวน lot
+// ----------------------------------------------------------------------------
+async function getScanLotCounts(prodDate) {
+  const nextDay = new Date(new Date(`${prodDate}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000)
+    .toISOString().split("T")[0];
+  const sqlStatement = `
+    WITH ${GATE_PAIRS_CTE},
+    parsed AS (
+      SELECT
+        TRIM(proc_disp) AS proc,
+        CASE WHEN TRIM(out_time) ~ '^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}'
+             THEN TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI')
+        END AS out_ts
+      FROM smart.smart_fpc_output_by_lot
+      WHERE ${gateExists()}
+    )
+    SELECT proc, COUNT(*) AS lot_count
+    FROM parsed
+    WHERE out_ts >= $1::timestamp
+      AND out_ts < $2::timestamp
+    GROUP BY proc
+  `;
+  const result = await query(sqlStatement, [`${prodDate} 08:00`, `${nextDay} 08:00`]);
+  return new Map(result.rows.map((row) => [row.proc, Number(row.lot_count || 0)]));
+}
+
+// ----------------------------------------------------------------------------
 // GET /dashboard-lots
 // Fetch aggregated output data grouped by date and process, for Process Dashboard chart
 // Supports: startDate+endDate, date, or month query params
+// วันผลิตปัจจุบัน: actual_lot_qty = ค่าที่มากกว่าระหว่างตารางสรุป กับ smart_fpc_output_by_lot (real-time)
+//   - process ที่ batch สรุปยังตามไม่ทัน จะได้ยอดตรงกับรายการ Lot No.
+//   - process ที่ไม่มี process scan ใน output_by_lot (เช่น MELT1, MINT1) ยังใช้ยอดจากตารางสรุป
+// วันในอดีต: ใช้ตารางสรุปตามเดิม (ตรวจแล้วตรงกับ output_by_lot ทุก process ที่มีข้อมูลทั้งสองฝั่ง)
 // ----------------------------------------------------------------------------
 router.get("/dashboard-lots", async (req, res) => {
   try {
@@ -141,6 +185,27 @@ router.get("/dashboard-lots", async (req, res) => {
       ORDER BY output_date ASC
     `;
     const result = await query(sqlStatement, values);
+
+    // วันผลิตปัจจุบัน: ใช้ยอด lot ที่มากกว่าระหว่างตารางสรุปกับ output_by_lot
+    // ทำเฉพาะ gateOnly และไม่ได้กรอง line เพราะ output_by_lot ไม่มี mc_line และ /process-lots กรองเฉพาะ gate
+    const today = getCurrentProductionDate();
+    const includesToday =
+      (startDate && endDate && startDate <= today && today <= endDate) ||
+      (!startDate && date === today) ||
+      (!startDate && !date && month === today.slice(0, 7));
+    if (gateOnly && (!line || line === "All Lines") && includesToday) {
+      try {
+        const scanCounts = await getScanLotCounts(today);
+        result.rows.forEach((row) => {
+          if (row.output_date !== today) return;
+          const scanLots = scanCounts.get((row.process_name || "").trim()) || 0;
+          row.actual_lot_qty = Math.max(Number(row.actual_lot_qty || 0), scanLots);
+        });
+      } catch (scanError) {
+        // ถ้าดึงยอดจาก output_by_lot ไม่ได้ ใช้ยอดจากตารางสรุปตามเดิม
+        console.error("[OutputByProcess] Error fetching scan lot counts:", scanError.message);
+      }
+    }
 
     setCache(cacheKey, result.rows, 60_000);
     res.setHeader("X-Cache", "MISS");
@@ -548,6 +613,98 @@ router.get("/process-lots", async (req, res) => {
     res.status(200).json(result.rows);
   } catch (error) {
     console.error("[OutputByProcess] Error fetching process-lots:", error.message);
+    res.status(500).json({ error: "Cannot fetch lot data" });
+  }
+});
+
+// ----------------------------------------------------------------------------
+// POST /line-lots
+// body: { startDate: YYYY-MM-DD, endDate?: YYYY-MM-DD, pairs: [{ product, process }], _t? }
+// Fetch every lot of the given product + process pairs within the production day(s), for By Line
+// smart_fpc_output_by_lot ไม่มี mc_line — frontend ส่งคู่ product + process ของแถวที่จัดเข้า line นั้นมาให้
+// ไม่กรอง gate เพราะคอลัมน์ LOT ของ By Line รวมทุก process
+// Production day cutoff: startDate 08:00 -> (endDate + 1 day) 08:00
+// Cached for 60 seconds
+// ----------------------------------------------------------------------------
+router.post("/line-lots", async (req, res) => {
+  try {
+    const { startDate, pairs, _t } = req.body || {};
+    const endDate = req.body?.endDate || startDate;
+    const isDate = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+    if (!isDate(startDate) || !isDate(endDate) || endDate < startDate) {
+      return res.status(400).json({ error: "startDate (YYYY-MM-DD) is required; endDate must be >= startDate" });
+    }
+    if (!Array.isArray(pairs) || pairs.length === 0 || pairs.length > 1000) {
+      return res.status(400).json({ error: "pairs must be a non-empty array (max 1000)" });
+    }
+
+    // prd_name แต่ละตารางเก็บทั้งแบบมีขีดและไม่มีขีด — ตัด '-' ออกก่อนเทียบ
+    const keySet = new Set();
+    pairs.forEach((p) => {
+      const product = String(p?.product || "").trim().replace(/-/g, "");
+      const process = String(p?.process || "").trim();
+      if (product && process) keySet.add(`${product}\u0000${process}`);
+    });
+    if (keySet.size === 0) return res.status(200).json([]);
+
+    const sortedKeys = Array.from(keySet).sort();
+    const cacheKey = `linelots:${startDate}:${endDate}:${sortedKeys.join("|")}`;
+    if (!_t) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        res.setHeader("X-Cache", "HIT");
+        return res.status(200).json(cached);
+      }
+    }
+
+    const products = sortedKeys.map((k) => k.split("\u0000")[0]);
+    const processes = sortedKeys.map((k) => k.split("\u0000")[1]);
+    const end = new Date(`${endDate}T00:00:00Z`);
+    const endPlusOne = new Date(end.getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    // out_time เป็น varchar — แปลงเฉพาะแถวที่รูปแบบถูกต้อง เพื่อไม่ให้แถวเสียทำให้ทั้ง query error
+    const sqlStatement = `
+      WITH pairs AS (
+        SELECT DISTINCT prd_key, proc
+        FROM UNNEST($1::text[], $2::text[]) AS p(prd_key, proc)
+      ),
+      parsed AS (
+        SELECT
+          l.lot, l.wo, l.cat, l.prd_name, l.proc_disp, l.plan_date, l.in_time, l.out_time,
+          l.input_qty, l.factory_desc, l.prbm_problem_name,
+          CASE WHEN TRIM(l.out_time) ~ '^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}'
+               THEN TO_TIMESTAMP(TRIM(l.out_time), 'DD/MM/YYYY HH24:MI')
+          END AS out_ts
+        FROM smart.smart_fpc_output_by_lot l
+        JOIN pairs p
+          ON p.prd_key = REPLACE(TRIM(l.prd_name), '-', '')
+         AND p.proc = TRIM(l.proc_disp)
+      )
+      SELECT
+        lot,
+        wo,
+        cat,
+        prd_name AS product_name,
+        TRIM(proc_disp) AS process_name,
+        TO_CHAR(plan_date, 'YYYY-MM-DD') AS plan_date,
+        in_time,
+        out_time,
+        input_qty,
+        factory_desc,
+        prbm_problem_name
+      FROM parsed
+      WHERE out_ts >= $3::timestamp
+        AND out_ts < $4::timestamp
+      ORDER BY TRIM(proc_disp) ASC, out_ts ASC, lot ASC
+    `;
+    const result = await query(sqlStatement, [products, processes, `${startDate} 08:00`, `${endPlusOne} 08:00`]);
+
+    setCache(cacheKey, result.rows, 60_000);
+    res.setHeader("X-Cache", "MISS");
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("[OutputByProcess] Error fetching line-lots:", error.message);
     res.status(500).json({ error: "Cannot fetch lot data" });
   }
 });
