@@ -627,99 +627,7 @@ router.get("/process-lots", async (req, res) => {
 });
 
 // ----------------------------------------------------------------------------
-// POST /line-lots
-// body: { startDate: YYYY-MM-DD, endDate?: YYYY-MM-DD, pairs: [{ product, process }], _t? }
-// Fetch every lot of the given product + process pairs within the production day(s), for By Line
-// smart_fpc_output_by_lot ไม่มี mc_line — frontend ส่งคู่ product + process ของแถวที่จัดเข้า line นั้นมาให้
-// ไม่กรอง gate เพราะคอลัมน์ LOT ของ By Line รวมทุก process
-// Production day cutoff: startDate 08:00 -> (endDate + 1 day) 08:00
-// Cached for 60 seconds
-// ----------------------------------------------------------------------------
-router.post("/line-lots", async (req, res) => {
-  try {
-    const { startDate, pairs, _t } = req.body || {};
-    const endDate = req.body?.endDate || startDate;
-    const isDate = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
-
-    if (!isDate(startDate) || !isDate(endDate) || endDate < startDate) {
-      return res.status(400).json({ error: "startDate (YYYY-MM-DD) is required; endDate must be >= startDate" });
-    }
-    if (!Array.isArray(pairs) || pairs.length === 0 || pairs.length > 1000) {
-      return res.status(400).json({ error: "pairs must be a non-empty array (max 1000)" });
-    }
-
-    // prd_name แต่ละตารางเก็บทั้งแบบมีขีดและไม่มีขีด — ตัด '-' ออกก่อนเทียบ
-    const keySet = new Set();
-    pairs.forEach((p) => {
-      const product = String(p?.product || "").trim().replace(/-/g, "");
-      const process = String(p?.process || "").trim();
-      if (product && process) keySet.add(`${product}\u0000${process}`);
-    });
-    if (keySet.size === 0) return res.status(200).json([]);
-
-    const sortedKeys = Array.from(keySet).sort();
-    const cacheKey = `linelots:${startDate}:${endDate}:${sortedKeys.join("|")}`;
-    if (!_t) {
-      const cached = getCached(cacheKey);
-      if (cached) {
-        res.setHeader("X-Cache", "HIT");
-        return res.status(200).json(cached);
-      }
-    }
-
-    const products = sortedKeys.map((k) => k.split("\u0000")[0]);
-    const processes = sortedKeys.map((k) => k.split("\u0000")[1]);
-    const end = new Date(`${endDate}T00:00:00Z`);
-    const endPlusOne = new Date(end.getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-
-    // out_time เป็น varchar — แปลงเฉพาะแถวที่รูปแบบถูกต้อง เพื่อไม่ให้แถวเสียทำให้ทั้ง query error
-    const sqlStatement = `
-      WITH pairs AS (
-        SELECT DISTINCT prd_key, proc
-        FROM UNNEST($1::text[], $2::text[]) AS p(prd_key, proc)
-      ),
-      parsed AS (
-        SELECT
-          l.lot, l.wo, l.cat, l.prd_name, l.proc_disp, l.plan_date, l.in_time, l.out_time,
-          l.input_qty, l.factory_desc, l.prbm_problem_name,
-          CASE WHEN TRIM(l.out_time) ~ '^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}'
-               THEN TO_TIMESTAMP(TRIM(l.out_time), 'DD/MM/YYYY HH24:MI')
-          END AS out_ts
-        FROM smart.smart_fpc_output_by_lot l
-        JOIN pairs p
-          ON p.prd_key = REPLACE(TRIM(l.prd_name), '-', '')
-         AND p.proc = TRIM(l.proc_disp)
-      )
-      SELECT
-        lot,
-        wo,
-        cat,
-        prd_name AS product_name,
-        TRIM(proc_disp) AS process_name,
-        TO_CHAR(plan_date, 'YYYY-MM-DD') AS plan_date,
-        in_time,
-        out_time,
-        input_qty,
-        factory_desc,
-        prbm_problem_name
-      FROM parsed
-      WHERE out_ts >= $3::timestamp
-        AND out_ts < $4::timestamp
-      ORDER BY TRIM(proc_disp) ASC, out_ts ASC, lot ASC
-    `;
-    const result = await query(sqlStatement, [products, processes, `${startDate} 08:00`, `${endPlusOne} 08:00`]);
-
-    setCache(cacheKey, result.rows, 60_000);
-    res.setHeader("X-Cache", "MISS");
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error("[OutputByProcess] Error fetching line-lots:", error.message);
-    res.status(500).json({ error: "Cannot fetch lot data" });
-  }
-});
-
-// ----------------------------------------------------------------------------
-// ตารางที่เก็บเลข lot คู่กับ line / เครื่อง — ใช้ระบุ MC Line ของ lot ใน /mcline-lots
+// ตารางที่เก็บเลข lot คู่กับ line / เครื่อง — ใช้ระบุ MC Line ของ lot ใน assignLotMcLines
 // แต่ละ query คืน lot, proc (process ของแถวนั้น), line, machine
 // ----------------------------------------------------------------------------
 const LOT_LINE_SOURCES = [
@@ -782,19 +690,277 @@ async function queryWithTimeout(text, params, timeoutMs) {
   }
 }
 
-// ชื่อ line สำหรับเทียบข้ามตาราง: ตัวพิมพ์ใหญ่ ไม่มีช่องว่าง / '-' / '_'
+// ชื่อ line / process สำหรับเทียบข้ามตาราง: ตัวพิมพ์ใหญ่ ไม่มีช่องว่าง / '-' / '_'
 const toLineKey = (value) => String(value || "").toUpperCase().replace(/[\s_-]+/g, "");
+
+// ----------------------------------------------------------------------------
+// ระบุ MC Line ของแต่ละ lot (smart_fpc_output_by_lot ไม่มี mc_line) — ใช้ร่วมกันระหว่าง /mcline-lots กับ /line-lots
+// lotRows: แถวจาก output_by_lot (ต้องมี lot, product_name, process_name)
+// quotaRows: ยอด lot จากตารางสรุป { prd_key, proc, mc_line, lot_qty } ของ "ทุก" MC Line ของคู่ product + process นั้น
+// ระบุแยกตามคู่ product + process ตามลำดับ:
+//   1. ตารางใน LOT_LINE_SOURCES — แถวของ process เดียวกันเชื่อได้มากกว่าแถวของ process อื่น
+//      (แถวของ process อื่นใช้ได้เฉพาะเมื่อชี้ไปที่ line ที่ product นี้ผลิตจริงในวันนั้น)
+//   2. product ที่วันนั้นผลิตบน MC Line เดียว
+//   3. เหลือ line เดียวที่ยอด lot ยังไม่ครบ (หักจำนวนที่ระบุได้จากข้อ 1 แล้ว)
+// lot ที่ยังระบุไม่ได้: mc_line = null พร้อม candidate_lines (line ที่เป็นไปได้)
+// คืนค่า { lots, sources } — sources บอกว่าตารางอ้างอิงแต่ละตัว query สำเร็จหรือไม่
+// ----------------------------------------------------------------------------
+async function assignLotMcLines(lotRows, quotaRows) {
+  // processLines: process -> (line key -> ชื่อ MC Line)
+  // pairLines: `${prd_key}|${process}` -> (line key -> ชื่อ MC Line), pairQuota: -> (ชื่อ MC Line -> ยอด lot)
+  const processLines = new Map();
+  const pairLines = new Map();
+  const pairQuota = new Map();
+  quotaRows.forEach((row) => {
+    const key = toLineKey(row.mc_line);
+    const pairKey = `${row.prd_key}|${row.proc}`;
+    if (!processLines.has(row.proc)) processLines.set(row.proc, new Map());
+    processLines.get(row.proc).set(key, row.mc_line);
+    if (!pairLines.has(pairKey)) {
+      pairLines.set(pairKey, new Map());
+      pairQuota.set(pairKey, new Map());
+    }
+    pairLines.get(pairKey).set(key, row.mc_line);
+    const quota = pairQuota.get(pairKey);
+    quota.set(row.mc_line, (quota.get(row.mc_line) || 0) + Number(row.lot_qty || 0));
+  });
+
+  // ค้นตารางอ้างอิงทุกตัวพร้อมกัน — ตัวไหน error (เช่น ชื่อคอลัมน์ไม่ตรง) ข้ามไป ไม่ทำให้ทั้ง endpoint ล้ม
+  const lotNos = Array.from(new Set(lotRows.map((row) => String(row.lot || "").trim()).filter(Boolean)));
+  const hintsByLot = new Map(); // lot -> [{ key, source, procKey }]
+  const sources = {};
+  await Promise.all(LOT_LINE_SOURCES.map(async (source) => {
+    if (lotNos.length === 0) {
+      sources[source.name] = "skipped";
+      return;
+    }
+    try {
+      const { rows } = await queryWithTimeout(source.sql, [lotNos], 15_000);
+      rows.forEach((row) => {
+        if (!row.lot) return;
+        if (!hintsByLot.has(row.lot)) hintsByLot.set(row.lot, []);
+        [row.line, row.machine].forEach((value) => {
+          const key = toLineKey(value);
+          if (key) hintsByLot.get(row.lot).push({ key, source: source.name, procKey: toLineKey(row.proc) });
+        });
+      });
+      sources[source.name] = "ok";
+    } catch (sourceError) {
+      console.error(`[OutputByProcess] lot line lookup: ${source.name} failed:`, sourceError.message);
+      sources[source.name] = "error";
+    }
+  }));
+
+  // MC Line ที่ hint ชี้ไป เฉพาะที่อยู่ใน allowed (line key -> ชื่อ) — คืน Map ชื่อ MC Line -> ตารางที่ใช้ระบุ
+  const matchLines = (hints, allowed) => {
+    const found = new Map();
+    hints.forEach((hint) => {
+      const name = allowed.get(hint.key);
+      if (name && !found.has(name)) found.set(name, hint.source);
+    });
+    return found;
+  };
+
+  // ขั้นที่ 1: ระบุจากตารางอ้างอิง
+  const emptyLines = new Map();
+  const lots = lotRows.map((row) => {
+    const proc = String(row.process_name || "").trim();
+    const pairKey = `${String(row.product_name || "").trim().replace(/-/g, "")}|${proc}`;
+    const candidates = pairLines.get(pairKey) || emptyLines;
+    const procKey = toLineKey(proc);
+    const hints = hintsByLot.get(String(row.lot || "").trim()) || [];
+    const sameHints = hints.filter((hint) => hint.procKey === procKey);
+    const otherHints = hints.filter((hint) => hint.procKey !== procKey);
+
+    let found = matchLines(sameHints, processLines.get(proc) || emptyLines);
+    // process เดียวกันชี้หลาย line — ตัดเหลือเฉพาะ line ที่ product นี้ผลิตจริง
+    if (found.size > 1) found = matchLines(sameHints, candidates);
+    if (found.size === 0) found = matchLines(otherHints, candidates);
+
+    const assigned = found.size === 1 ? Array.from(found.entries())[0] : null;
+    return {
+      ...row,
+      pair_key: pairKey,
+      mc_line: assigned ? assigned[0] : null,
+      line_source: assigned ? assigned[1] : null,
+      candidate_lines: [],
+    };
+  });
+
+  // ขั้นที่ 2-3: lot ที่เหลือ ระบุด้วยยอด lot ของแต่ละ line ในตารางสรุป
+  const unresolvedByPair = new Map();
+  const assignedCount = new Map(); // `${pair_key}|${mc_line}` -> จำนวน lot ที่ระบุจากตารางอ้างอิงแล้ว
+  lots.forEach((lot) => {
+    if (lot.mc_line) {
+      const countKey = `${lot.pair_key}|${lot.mc_line}`;
+      assignedCount.set(countKey, (assignedCount.get(countKey) || 0) + 1);
+      return;
+    }
+    if (!unresolvedByPair.has(lot.pair_key)) unresolvedByPair.set(lot.pair_key, []);
+    unresolvedByPair.get(lot.pair_key).push(lot);
+  });
+
+  unresolvedByPair.forEach((pending, pairKey) => {
+    const quota = pairQuota.get(pairKey);
+    if (!quota) return; // คู่ product + process ไม่มีในตารางสรุป — ไม่มี line ให้เลือก
+
+    const lineNames = Array.from(quota.keys());
+    if (lineNames.length === 1) {
+      pending.forEach((lot) => {
+        lot.mc_line = lineNames[0];
+        lot.line_source = "single_line";
+      });
+      return;
+    }
+
+    const openLines = lineNames
+      .map((name) => ({ name, remaining: quota.get(name) - (assignedCount.get(`${pairKey}|${name}`) || 0) }))
+      .filter((line) => line.remaining > 0);
+    if (openLines.length === 1 && pending.length <= openLines[0].remaining) {
+      pending.forEach((lot) => {
+        lot.mc_line = openLines[0].name;
+        lot.line_source = "remainder";
+      });
+      return;
+    }
+
+    // เหลือหลาย line ที่ยอดยังไม่ครบ: lot อยู่ได้แค่ line เหล่านั้น
+    // ไม่มี line ว่าง หรือ lot เกินยอดที่เหลือ (ตารางสรุปยังไม่ครบ): อาจอยู่ line ไหนก็ได้ของ product นี้
+    const candidateLines = (openLines.length > 1 ? openLines.map((line) => line.name) : lineNames).sort();
+    pending.forEach((lot) => {
+      lot.candidate_lines = candidateLines;
+    });
+  });
+
+  return {
+    lots: lots.map(({ pair_key, ...lot }) => lot),
+    sources,
+  };
+}
+
+// ----------------------------------------------------------------------------
+// POST /line-lots
+// body: { startDate: YYYY-MM-DD, endDate?: YYYY-MM-DD, pairs: [{ product, process }], _t? }
+// Fetch every lot of the given product + process pairs within the production day(s), for By Line
+// frontend ส่งคู่ product + process ของแถวที่จัดเข้า line นั้นมาให้ — คู่เดียวกันอาจผลิตหลาย MC Line ที่อยู่คนละ line
+// จึงระบุ mc_line ของแต่ละ lot ด้วย assignLotMcLines (ยอดของทุก MC Line ของคู่นั้น) ให้ frontend จัดเข้า line เอง
+// ไม่กรอง gate เพราะคอลัมน์ LOT ของ By Line รวมทุก process
+// คืนค่า { lots, sources } เหมือน /mcline-lots
+// Production day cutoff: startDate 08:00 -> (endDate + 1 day) 08:00
+// Cache: 10 นาทีสำหรับวันในอดีต, 60 วินาทีเมื่อช่วงวันมีวันผลิตปัจจุบัน
+// ----------------------------------------------------------------------------
+router.post("/line-lots", async (req, res) => {
+  try {
+    const { startDate, pairs, _t } = req.body || {};
+    const endDate = req.body?.endDate || startDate;
+    const isDate = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+    if (!isDate(startDate) || !isDate(endDate) || endDate < startDate) {
+      return res.status(400).json({ error: "startDate (YYYY-MM-DD) is required; endDate must be >= startDate" });
+    }
+    if (!Array.isArray(pairs) || pairs.length === 0 || pairs.length > 1000) {
+      return res.status(400).json({ error: "pairs must be a non-empty array (max 1000)" });
+    }
+
+    // prd_name แต่ละตารางเก็บทั้งแบบมีขีดและไม่มีขีด — ตัด '-' ออกก่อนเทียบ
+    const keySet = new Set();
+    pairs.forEach((p) => {
+      const product = String(p?.product || "").trim().replace(/-/g, "");
+      const process = String(p?.process || "").trim();
+      if (product && process) keySet.add(`${product}\u0000${process}`);
+    });
+    if (keySet.size === 0) return res.status(200).json({ lots: [], sources: {} });
+
+    const sortedKeys = Array.from(keySet).sort();
+    const cacheKey = `linelots:${startDate}:${endDate}:${sortedKeys.join("|")}`;
+    if (!_t) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        res.setHeader("X-Cache", "HIT");
+        return res.status(200).json(cached);
+      }
+    }
+
+    const products = sortedKeys.map((k) => k.split("\u0000")[0]);
+    const processes = sortedKeys.map((k) => k.split("\u0000")[1]);
+    const end = new Date(`${endDate}T00:00:00Z`);
+    const endPlusOne = new Date(end.getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    // out_time เป็น varchar — แปลงเฉพาะแถวที่รูปแบบถูกต้อง เพื่อไม่ให้แถวเสียทำให้ทั้ง query error
+    const sqlStatement = `
+      WITH pairs AS (
+        SELECT DISTINCT prd_key, proc
+        FROM UNNEST($1::text[], $2::text[]) AS p(prd_key, proc)
+      ),
+      parsed AS (
+        SELECT
+          l.lot, l.wo, l.cat, l.prd_name, l.proc_disp, l.plan_date, l.in_time, l.out_time,
+          l.input_qty, l.factory_desc, l.prbm_problem_name,
+          CASE WHEN TRIM(l.out_time) ~ '^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}'
+               THEN TO_TIMESTAMP(TRIM(l.out_time), 'DD/MM/YYYY HH24:MI')
+          END AS out_ts
+        FROM smart.smart_fpc_output_by_lot l
+        JOIN pairs p
+          ON p.prd_key = REPLACE(TRIM(l.prd_name), '-', '')
+         AND p.proc = TRIM(l.proc_disp)
+      )
+      SELECT
+        lot,
+        wo,
+        cat,
+        prd_name AS product_name,
+        TRIM(proc_disp) AS process_name,
+        TO_CHAR(plan_date, 'YYYY-MM-DD') AS plan_date,
+        in_time,
+        out_time,
+        input_qty,
+        factory_desc,
+        prbm_problem_name
+      FROM parsed
+      WHERE out_ts >= $3::timestamp
+        AND out_ts < $4::timestamp
+      ORDER BY TRIM(proc_disp) ASC, out_ts ASC, lot ASC
+    `;
+    // ยอด lot ของทุก MC Line ของคู่ที่ส่งมา (ไม่ใช่เฉพาะ line ที่เปิดดู) — ใช้หักยอดใน assignLotMcLines
+    const quotaStatement = `
+      WITH pairs AS (
+        SELECT DISTINCT prd_key, proc
+        FROM UNNEST($1::text[], $2::text[]) AS p(prd_key, proc)
+      )
+      SELECT
+        REPLACE(TRIM(d.prd_name), '-', '') AS prd_key,
+        TRIM(d.proc_disp) AS proc,
+        COALESCE(NULLIF(TRIM(d.mc_line), ''), 'Unknown') AS mc_line,
+        SUM(COALESCE(d.lot_qty, 0)) AS lot_qty
+      FROM smart.smart_fpc_process_output_detail d
+      JOIN pairs p
+        ON p.prd_key = REPLACE(TRIM(d.prd_name), '-', '')
+       AND p.proc = TRIM(d.proc_disp)
+      WHERE d.output_date >= $3
+        AND d.output_date < $4
+      GROUP BY 1, 2, 3
+    `;
+    const [lotResult, quotaResult] = await Promise.all([
+      query(sqlStatement, [products, processes, `${startDate} 08:00`, `${endPlusOne} 08:00`]),
+      query(quotaStatement, [products, processes, startDate, endPlusOne]),
+    ]);
+    const payload = await assignLotMcLines(lotResult.rows, quotaResult.rows);
+
+    const isPastRange = endDate < getCurrentProductionDate();
+    setCache(cacheKey, payload, isPastRange ? 10 * 60_000 : 60_000);
+    res.setHeader("X-Cache", "MISS");
+    res.status(200).json(payload);
+  } catch (error) {
+    console.error("[OutputByProcess] Error fetching line-lots:", error.message);
+    res.status(500).json({ error: "Cannot fetch lot data" });
+  }
+});
 
 // ----------------------------------------------------------------------------
 // GET /mcline-lots?process=FFPC&startDate=YYYY-MM-DD[&endDate=YYYY-MM-DD]
 // Lot No. ของทุก MC Line ใน process เดียว — สำหรับ MC Line Details
-// smart_fpc_output_by_lot ไม่มี mc_line จึงระบุ line ของแต่ละ lot ตามลำดับ:
-//   1. ตารางใน LOT_LINE_SOURCES — แถวของ process เดียวกันเชื่อได้มากกว่าแถวของ process อื่น
-//      (แถวของ process อื่นใช้ได้เฉพาะเมื่อชี้ไปที่ line ที่ product นี้ผลิตจริงในวันนั้น)
-//   2. product ที่วันนั้นผลิตบน MC Line เดียว
-//   3. product ที่เหลือ line เดียวที่ยอด lot ยังไม่ครบ (หักจำนวนที่ระบุได้จากข้อ 1 แล้ว)
-// lot ที่ยังระบุไม่ได้: mc_line = null พร้อม candidate_lines (line ที่เป็นไปได้)
-// คืนค่า { lots, sources } — sources บอกว่าตารางอ้างอิงแต่ละตัว query สำเร็จหรือไม่
+// ระบุ mc_line ของแต่ละ lot ด้วย assignLotMcLines — คืนค่า { lots, sources }
+// gate เท่านั้น เหมือน /dashboard-mcline ที่ gateOnly
 // Cache: 10 นาทีสำหรับวันในอดีต, 60 วินาทีเมื่อช่วงวันมีวันผลิตปัจจุบัน
 // ----------------------------------------------------------------------------
 router.get("/mcline-lots", async (req, res) => {
@@ -825,6 +991,7 @@ router.get("/mcline-lots", async (req, res) => {
         WITH ${GATE_PAIRS_CTE}
         SELECT
           REPLACE(TRIM(prd_name), '-', '') AS prd_key,
+          TRIM(proc_disp) AS proc,
           COALESCE(NULLIF(TRIM(mc_line), ''), 'Unknown') AS mc_line,
           SUM(COALESCE(lot_qty, 0)) AS lot_qty
         FROM smart.smart_fpc_process_output_detail
@@ -832,139 +999,11 @@ router.get("/mcline-lots", async (req, res) => {
           AND output_date < $2
           AND TRIM(proc_disp) = $3
           AND ${gateExists()}
-        GROUP BY 1, 2
+        GROUP BY 1, 2, 3
       `, [startDate, endPlusOne, processName]),
       queryProcessLots(processName, startDate, endDate),
     ]);
-
-    // processLines: line key -> ชื่อ MC Line ของ process นี้
-    // productLines: product -> (line key -> ชื่อ MC Line), productQuota: product -> (ชื่อ MC Line -> ยอด lot)
-    const processLines = new Map();
-    const productLines = new Map();
-    const productQuota = new Map();
-    quotaResult.rows.forEach((row) => {
-      const key = toLineKey(row.mc_line);
-      processLines.set(key, row.mc_line);
-      if (!productLines.has(row.prd_key)) {
-        productLines.set(row.prd_key, new Map());
-        productQuota.set(row.prd_key, new Map());
-      }
-      productLines.get(row.prd_key).set(key, row.mc_line);
-      const quota = productQuota.get(row.prd_key);
-      quota.set(row.mc_line, (quota.get(row.mc_line) || 0) + Number(row.lot_qty || 0));
-    });
-
-    // ค้นตารางอ้างอิงทุกตัวพร้อมกัน — ตัวไหน error (เช่น ชื่อคอลัมน์ไม่ตรง) ข้ามไป ไม่ทำให้ทั้ง endpoint ล้ม
-    const processKey = toLineKey(processName);
-    const lotNos = Array.from(new Set(lotRows.map((row) => String(row.lot || "").trim()).filter(Boolean)));
-    const hintsByLot = new Map(); // lot -> [{ key, source, sameProcess }]
-    const sources = {};
-    await Promise.all(LOT_LINE_SOURCES.map(async (source) => {
-      if (lotNos.length === 0) {
-        sources[source.name] = "skipped";
-        return;
-      }
-      try {
-        const { rows } = await queryWithTimeout(source.sql, [lotNos], 15_000);
-        rows.forEach((row) => {
-          if (!row.lot) return;
-          const sameProcess = toLineKey(row.proc) === processKey;
-          if (!hintsByLot.has(row.lot)) hintsByLot.set(row.lot, []);
-          [row.line, row.machine].forEach((value) => {
-            const key = toLineKey(value);
-            if (key) hintsByLot.get(row.lot).push({ key, source: source.name, sameProcess });
-          });
-        });
-        sources[source.name] = "ok";
-      } catch (sourceError) {
-        console.error(`[OutputByProcess] mcline-lots: ${source.name} lookup failed:`, sourceError.message);
-        sources[source.name] = "error";
-      }
-    }));
-
-    // MC Line ที่ hint ชี้ไป เฉพาะที่อยู่ใน allowed (line key -> ชื่อ) — คืน Map ชื่อ MC Line -> ตารางที่ใช้ระบุ
-    const matchLines = (hints, allowed) => {
-      const found = new Map();
-      hints.forEach((hint) => {
-        const name = allowed.get(hint.key);
-        if (name && !found.has(name)) found.set(name, hint.source);
-      });
-      return found;
-    };
-
-    // ขั้นที่ 1: ระบุจากตารางอ้างอิง
-    const emptyLines = new Map();
-    const lots = lotRows.map((row) => {
-      const prdKey = String(row.product_name || "").trim().replace(/-/g, "");
-      const candidates = productLines.get(prdKey) || emptyLines;
-      const hints = hintsByLot.get(String(row.lot || "").trim()) || [];
-      const sameHints = hints.filter((hint) => hint.sameProcess);
-      const otherHints = hints.filter((hint) => !hint.sameProcess);
-
-      let found = matchLines(sameHints, processLines);
-      // process เดียวกันชี้หลาย line — ตัดเหลือเฉพาะ line ที่ product นี้ผลิตจริง
-      if (found.size > 1) found = matchLines(sameHints, candidates);
-      if (found.size === 0) found = matchLines(otherHints, candidates);
-
-      const assigned = found.size === 1 ? Array.from(found.entries())[0] : null;
-      return {
-        ...row,
-        prd_key: prdKey,
-        mc_line: assigned ? assigned[0] : null,
-        line_source: assigned ? assigned[1] : null,
-        candidate_lines: [],
-      };
-    });
-
-    // ขั้นที่ 2-3: lot ที่เหลือ ระบุด้วยยอด lot ของแต่ละ line ในตารางสรุป
-    const unresolvedByProduct = new Map();
-    const assignedCount = new Map(); // `${prd_key}|${mc_line}` -> จำนวน lot ที่ระบุจากตารางอ้างอิงแล้ว
-    lots.forEach((lot) => {
-      if (lot.mc_line) {
-        const countKey = `${lot.prd_key}|${lot.mc_line}`;
-        assignedCount.set(countKey, (assignedCount.get(countKey) || 0) + 1);
-        return;
-      }
-      if (!unresolvedByProduct.has(lot.prd_key)) unresolvedByProduct.set(lot.prd_key, []);
-      unresolvedByProduct.get(lot.prd_key).push(lot);
-    });
-
-    unresolvedByProduct.forEach((pending, prdKey) => {
-      const quota = productQuota.get(prdKey);
-      if (!quota) return; // product ไม่มีในตารางสรุป — ไม่มี line ให้เลือก
-
-      const lineNames = Array.from(quota.keys());
-      if (lineNames.length === 1) {
-        pending.forEach((lot) => {
-          lot.mc_line = lineNames[0];
-          lot.line_source = "single_line";
-        });
-        return;
-      }
-
-      const openLines = lineNames
-        .map((name) => ({ name, remaining: quota.get(name) - (assignedCount.get(`${prdKey}|${name}`) || 0) }))
-        .filter((line) => line.remaining > 0);
-      if (openLines.length === 1 && pending.length <= openLines[0].remaining) {
-        pending.forEach((lot) => {
-          lot.mc_line = openLines[0].name;
-          lot.line_source = "remainder";
-        });
-        return;
-      }
-
-      // เหลือหลาย line ที่ยอดยังไม่ครบ: lot อยู่ได้แค่ line เหล่านั้น
-      // ไม่มี line ว่าง หรือ lot เกินยอดที่เหลือ (ตารางสรุปยังไม่ครบ): อาจอยู่ line ไหนก็ได้ของ product นี้
-      const candidateLines = (openLines.length > 1 ? openLines.map((line) => line.name) : lineNames).sort();
-      pending.forEach((lot) => {
-        lot.candidate_lines = candidateLines;
-      });
-    });
-
-    const payload = {
-      lots: lots.map(({ prd_key, ...lot }) => lot),
-      sources,
-    };
+    const payload = await assignLotMcLines(lotRows, quotaResult.rows);
 
     const isPastRange = endDate < getCurrentProductionDate();
     setCache(cacheKey, payload, isPastRange ? 10 * 60_000 : 60_000);

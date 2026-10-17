@@ -377,7 +377,7 @@ interface LotDetail {
   candidate_lines?: string[];
 }
 
-// วิธีที่ backend ใช้ระบุ MC Line ของ lot (/mcline-lots line_source) — แสดงใน tooltip ของ Lot No.
+// วิธีที่ใช้ระบุ MC Line ของ lot (line_source จาก /mcline-lots และ /line-lots) — แสดงใน tooltip ของ Lot No.
 const LINE_SOURCE_LABELS: Record<string, string> = {
   fake_scan: "fake scan",
   trace_tools: "trace tools",
@@ -385,6 +385,18 @@ const LINE_SOURCE_LABELS: Record<string, string> = {
   reject: "reject record",
   single_line: "product ผลิต line เดียว",
   remainder: "ยอด lot ที่เหลือของ line",
+  // ตั้งฝั่งหน้าเว็บ (By Line): ระบุ MC Line ไม่ได้ แต่ทุก MC Line ที่เป็นไปได้อยู่ใน line นี้
+  same_line_group: "ทุก MC Line ที่เป็นไปได้อยู่ใน line นี้",
+};
+
+const getLotBadgeTitle = (lot: LotDetail) => {
+  const base = `${lot.product_name || "-"} | Out: ${lot.out_time || "-"} | Qty: ${lot.input_qty ?? "-"}`;
+  const sourceLabel = lot.line_source ? LINE_SOURCE_LABELS[lot.line_source] || lot.line_source : "";
+  if (lot.mc_line) return `${base} | MC Line: ${lot.mc_line}${sourceLabel ? ` (${sourceLabel})` : ""}`;
+  if (lot.candidate_lines && lot.candidate_lines.length > 0) {
+    return `${base} | MC Line: ${lot.candidate_lines.join(" / ")}${sourceLabel ? ` (${sourceLabel})` : " — ระบุไม่ได้"}`;
+  }
+  return base;
 };
 
 interface LotCacheEntry {
@@ -762,14 +774,19 @@ const Page: React.FC = () => {
   };
 
   // By Line: คู่ product + process ของแถวที่จัดเข้า line นี้ (ตามวันที่เลือก) — ใช้หา lot เพราะ output_by_lot ไม่มี mc_line
+  // คู่เดียวกันอาจผลิตหลาย MC Line ที่อยู่คนละ line — classifyLot ใช้ mc_line ที่ backend ระบุให้ เพื่อไม่นับ lot ซ้ำทุก line
   const getLineLotGroups = (lineName: string) => {
     const rowsWithLine = chartFilteredProductRows.map(row => ({ row, line: normalizeLineKey(getRowLineGroup(row, lineGroups)) }));
     let lineRows = rowsWithLine.filter(r => r.line === lineName).map(r => r.row);
+    let memberLines = [lineName];
     // LINE B (EFPC) ในตารางคือผลรวมของ sub-line — ใช้แถวของ sub-line แทน เหมือน lineSummaryData
     if (lineName === "LINE B" && selectedFactory === "EFPC") {
       const bSubLines = ["LINE B_GEN", "LINE B_NON", "LINE B_JDT", "LINE B_JDI"];
       const subRows = rowsWithLine.filter(r => bSubLines.includes(r.line)).map(r => r.row);
-      if (subRows.length > 0) lineRows = subRows;
+      if (subRows.length > 0) {
+        lineRows = subRows;
+        memberLines = bSubLines;
+      }
     }
 
     const pairKeys = new Set<string>();
@@ -786,7 +803,40 @@ const Page: React.FC = () => {
         pairs.push({ product, process });
       }
     });
-    return { pairs, summaryLotByProcess };
+
+    // line ของ product + process + MC Line: ใช้ line ของแถวในตารางที่ตรงกัน
+    // ไม่มีแถวตรงกัน (เช่น ตารางสรุปของวันนี้ยังตามไม่ทัน) ใช้กฎเดียวกับ getRowLineGroup
+    const productKey = (name?: string | null) => (name || "").trim().replace(/-/g, "");
+    const lineByKey = new Map<string, string>();
+    const productNameByKey = new Map<string, string>();
+    rowsWithLine.forEach(({ row, line }) => {
+      const prdKey = productKey(row.product_name);
+      lineByKey.set(`${prdKey}|${(row.process_name || "").trim()}|${(row.mc_line || "").trim() || "Unknown"}`, line);
+      if (!productNameByKey.has(prdKey)) productNameByKey.set(prdKey, row.product_name);
+    });
+    const members = new Set(memberLines);
+    const isLotOnThisLine = (lot: LotDetail, mcLine: string) => {
+      const prdKey = productKey(lot.product_name);
+      const proc = (lot.process_name || "").trim();
+      const line = lineByKey.get(`${prdKey}|${proc}|${mcLine}`) ?? normalizeLineKey(getRowLineGroup({
+        product_name: productNameByKey.get(prdKey) || lot.product_name,
+        process_name: proc,
+        mc_line: mcLine === "Unknown" ? "" : mcLine
+      }, lineGroups));
+      return members.has(line);
+    };
+
+    // "here" = lot ของ line นี้, "maybe" = ระบุ MC Line ไม่ได้และบาง MC Line ที่เป็นไปได้อยู่ line อื่น, null = ไม่ใช่ของ line นี้
+    const classifyLot = (lot: LotDetail): "here" | "maybe" | null => {
+      if (lot.mc_line) return isLotOnThisLine(lot, lot.mc_line.trim()) ? "here" : null;
+      const candidates = lot.candidate_lines || [];
+      if (candidates.length === 0) return "maybe";
+      const inside = candidates.filter(mcLine => isLotOnThisLine(lot, mcLine)).length;
+      if (inside === 0) return null;
+      return inside === candidates.length ? "here" : "maybe";
+    };
+
+    return { pairs, summaryLotByProcess, classifyLot };
   };
 
   const loadLineLots = async (lineName: string, force = false) => {
@@ -814,8 +864,8 @@ const Page: React.FC = () => {
         signal: AbortSignal.timeout(60_000)
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: LotDetail[] = await res.json();
-      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: Array.isArray(data) ? data : [] } }));
+      const data: { lots?: LotDetail[] } = await res.json();
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: Array.isArray(data?.lots) ? data.lots : [] } }));
     } catch (error) {
       console.error("Failed to fetch line lot detail", error);
       setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
@@ -907,7 +957,7 @@ const Page: React.FC = () => {
   const renderLotBadge = (lot: LotDetail, i: number) => (
     <span
       key={`${lot.lot}_${lot.out_time}_${i}`}
-      title={`${lot.product_name || "-"} | Out: ${lot.out_time || "-"} | Qty: ${lot.input_qty ?? "-"}${lot.line_source ? ` | Line จาก: ${LINE_SOURCE_LABELS[lot.line_source] || lot.line_source}` : ""}`}
+      title={getLotBadgeTitle(lot)}
       className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-primary/25 bg-primary/10 text-primary"
     >
       {lot.lot}
@@ -918,7 +968,7 @@ const Page: React.FC = () => {
   const renderUnresolvedLotBadge = (lot: LotDetail, i: number) => (
     <span
       key={`${lot.lot}_${lot.out_time}_${i}`}
-      title={`${lot.product_name || "-"} | Out: ${lot.out_time || "-"} | Qty: ${lot.input_qty ?? "-"} | อาจอยู่: ${(lot.candidate_lines || []).join(", ")}`}
+      title={getLotBadgeTitle(lot)}
       className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-dashed border-base-content/30 bg-base-200/60 text-base-content/60"
     >
       {lot.lot}
@@ -931,21 +981,28 @@ const Page: React.FC = () => {
     const status = renderLotPanelStatus(entry, () => loadLineLots(lineName, true));
     if (status) return <div className="px-6 py-3 bg-base-200/20">{status}</div>;
 
-    const lotRows = entry?.rows || [];
-    const { summaryLotByProcess } = getLineLotGroups(lineName);
+    const { summaryLotByProcess, classifyLot } = getLineLotGroups(lineName);
 
-    // process ที่มียอดในตารางสรุปแต่ไม่มี scan ก็แสดงด้วย พร้อมป้าย "ไม่มี Process Scan"
-    const lotsByProcess: Record<string, LotDetail[]> = {};
-    lotRows.forEach(lot => {
+    // lot ที่ได้มาเป็นของทุก MC Line ของคู่ product + process — เก็บเฉพาะ lot ของ line นี้ แยกตาม process
+    const lotsByProcess: Record<string, { here: LotDetail[]; maybe: LotDetail[] }> = {};
+    const scannedProcesses = new Set<string>();
+    (entry?.rows || []).forEach(lot => {
       const proc = (lot.process_name || "").trim() || "-";
-      if (!lotsByProcess[proc]) lotsByProcess[proc] = [];
-      lotsByProcess[proc].push(lot);
+      scannedProcesses.add(proc);
+      const placement = classifyLot(lot);
+      if (!placement) return;
+      if (!lotsByProcess[proc]) lotsByProcess[proc] = { here: [], maybe: [] };
+      if (placement === "maybe") lotsByProcess[proc].maybe.push(lot);
+      else lotsByProcess[proc].here.push(lot.mc_line ? lot : { ...lot, line_source: "same_line_group" });
     });
+    // process ที่มียอดในตารางสรุปแต่ไม่มี lot ของ line นี้ ก็แสดงด้วย
     Object.entries(summaryLotByProcess).forEach(([proc, qty]) => {
-      if (qty > 0 && !lotsByProcess[proc]) lotsByProcess[proc] = [];
+      if (qty > 0 && !lotsByProcess[proc]) lotsByProcess[proc] = { here: [], maybe: [] };
     });
     const processNames = Object.keys(lotsByProcess)
       .sort((a, b) => getProcessIndex(a) - getProcessIndex(b) || a.localeCompare(b));
+    const hereTotal = processNames.reduce((sum, proc) => sum + lotsByProcess[proc].here.length, 0);
+    const maybeTotal = processNames.reduce((sum, proc) => sum + lotsByProcess[proc].maybe.length, 0);
 
     return (
       <div className="px-6 py-3 bg-base-200/20">
@@ -956,22 +1013,33 @@ const Page: React.FC = () => {
         ) : (
           <div className="flex flex-col gap-2">
             <span className="text-[10px] uppercase font-bold tracking-wider text-base-content/45">
-              Lot No. ({lotRows.length.toLocaleString()})
+              Lot No. ({hereTotal.toLocaleString()})
             </span>
+            {maybeTotal > 0 && (
+              <span className="text-[11px] text-base-content/55">
+                ป้ายเส้นประ = ระบุ MC Line ไม่ได้ ({maybeTotal.toLocaleString()}) — product ผลิตหลาย MC Line ที่อยู่คนละ line จึงอาจเป็นของ line อื่น (ชี้ที่ป้ายเพื่อดู MC Line ที่เป็นไปได้)
+              </span>
+            )}
             {processNames.map(proc => {
-              const procLots = lotsByProcess[proc];
+              const { here, maybe } = lotsByProcess[proc];
               return (
                 <div key={proc} className="flex items-start gap-3">
                   <span className="w-28 shrink-0 pt-0.5 text-xs font-semibold text-base-content/75">
                     {proc}
-                    {procLots.length > 0 && (
-                      <span className="ml-1 font-normal text-base-content/45">({procLots.length.toLocaleString()})</span>
+                    {here.length > 0 && (
+                      <span className="ml-1 font-normal text-base-content/45">({here.length.toLocaleString()})</span>
                     )}
                   </span>
-                  {procLots.length > 0 ? (
+                  {here.length > 0 || maybe.length > 0 ? (
                     <div className="flex flex-1 flex-wrap gap-1.5">
-                      {procLots.map(renderLotBadge)}
+                      {here.map(renderLotBadge)}
+                      {maybe.map(renderUnresolvedLotBadge)}
                     </div>
+                  ) : scannedProcesses.has(proc) ? (
+                    // process นี้มีรายการ lot แต่ระบุได้ว่าเป็นของ line อื่นทั้งหมด
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-base-300 bg-base-200/60 px-2 py-0.5 text-xs text-base-content/60">
+                      ไม่พบ lot ที่ระบุได้ว่าอยู่ line นี้ · ยอด {(summaryLotByProcess[proc] || 0).toLocaleString()} lot จากข้อมูลสรุป
+                    </span>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/25 bg-primary/5 px-2 py-0.5 text-xs text-base-content/70">
                       <ScanLine className="h-3.5 w-3.5 text-primary" />
