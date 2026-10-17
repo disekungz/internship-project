@@ -36,6 +36,15 @@ async function getProductTypeMap() {
 }
 
 // ----------------------------------------------------------------------------
+// Cache TTL for lot data: production days that already ended (before the current
+// production day, which starts 08:00 Bangkok time) no longer change, so keep them 1 hour
+// ----------------------------------------------------------------------------
+function getLotCacheTtl(lastDate) {
+  const currentProdDate = new Date(Date.now() + (7 - 8) * 60 * 60 * 1000).toISOString().split("T")[0];
+  return lastDate < currentProdDate ? 60 * 60_000 : 60_000;
+}
+
+// ----------------------------------------------------------------------------
 // GET /processes
 // Fetch distinct process names that have actual output records (non-zero qty)
 // Cached for 5 minutes
@@ -325,11 +334,81 @@ router.get("/lots", async (req, res) => {
     }
 
     const data = { lots: result.rows, non_gate: nonGate };
-    setCache(cacheKey, data, 60_000);
+    setCache(cacheKey, data, getLotCacheTtl(date));
     res.setHeader("X-Cache", "MISS");
     res.status(200).json(data);
   } catch (error) {
     console.error("[OutputByProduct] Error fetching lots:", error.message);
+    res.status(500).json({ error: "Cannot fetch lot data" });
+  }
+});
+
+// ----------------------------------------------------------------------------
+// GET /lots-by-product
+// Fetch lot-level records of every process of one product over production days
+// startDate..endDate (inclusive, each day 08:00 to 08:00 of the next day, based on out_time)
+// Used to prefetch lots when a product group is expanded, so clicking a process shows lots instantly
+// Response: { lots: [{ ...lot, prod_date, process_name }] }
+// No non_gate here: /dashboard-products only returns rows that have lots, so it is not needed
+// Cached for 60 seconds when the range includes the current production day, otherwise 1 hour
+// ----------------------------------------------------------------------------
+router.get("/lots-by-product", async (req, res) => {
+  try {
+    const { startDate, endDate, product, _t } = req.query;
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (!startDate || !endDate || !datePattern.test(startDate) || !datePattern.test(endDate) || !product) {
+      return res.status(400).json({ error: "startDate, endDate (YYYY-MM-DD) and product are required" });
+    }
+    const rangeDays = (new Date(`${endDate}T00:00:00Z`) - new Date(`${startDate}T00:00:00Z`)) / 86_400_000;
+    if (!(rangeDays >= 0 && rangeDays <= 62)) {
+      return res.status(400).json({ error: "date range must be 0-62 days" });
+    }
+
+    const cacheKey = `productname:lots-by-product:${startDate}:${endDate}:${product}`;
+    if (!_t) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        res.setHeader("X-Cache", "HIT");
+        return res.status(200).json(cached);
+      }
+    }
+
+    const productCode = String(product).trim().replace(/-/g, "");
+    const nextDate = new Date(new Date(`${endDate}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000)
+      .toISOString().split("T")[0];
+    const shiftStart = `${startDate} 08:00`;
+    const shiftEnd = `${nextDate} 08:00`;
+
+    // เงื่อนไขเดียวกับ /lots แต่ไม่กรอง process และคืนวันผลิต (out_time ลบ 8 ชม.) ไว้ให้ frontend แยกกลุ่ม
+    const lotSql = `
+      SELECT
+        lot,
+        wo,
+        cat,
+        prd_name AS product_name,
+        TRIM(proc_disp) AS process_name,
+        TO_CHAR((TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') - INTERVAL '8 hours')::date, 'YYYY-MM-DD') AS prod_date,
+        TO_CHAR(plan_date, 'YYYY-MM-DD') AS plan_date,
+        in_time,
+        out_time,
+        input_qty,
+        factory_desc,
+        prbm_problem_name
+      FROM smart.smart_fpc_output_by_lot
+      WHERE REPLACE(TRIM(prd_name), '-', '') = $1
+        AND TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') >= $2::timestamp
+        AND TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') <  $3::timestamp
+      ORDER BY TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') ASC, lot ASC
+    `;
+    const lotResult = await query(lotSql, [productCode, shiftStart, shiftEnd]);
+
+    const data = { lots: lotResult.rows };
+    setCache(cacheKey, data, getLotCacheTtl(endDate));
+    res.setHeader("X-Cache", "MISS");
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("[OutputByProduct] Error fetching lots-by-product:", error.message);
     res.status(500).json({ error: "Cannot fetch lot data" });
   }
 });
