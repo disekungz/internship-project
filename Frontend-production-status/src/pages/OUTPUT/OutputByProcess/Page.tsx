@@ -661,16 +661,27 @@ const Page: React.FC = () => {
 
   // Lot drill-down (Process Output Details): lots per process, production day cut at 08:00 -> 08:00
   const [expandedLotProcesses, setExpandedLotProcesses] = useState<string[]>([]);
+  const [expandedMcLines, setExpandedMcLines] = useState<string[]>([]);
   const [lotCache, setLotCache] = useState<Record<string, LotCacheEntry>>({});
 
   useEffect(() => {
     setExpandedLotProcesses([]);
+    setExpandedMcLines([]);
     setLotCache({});
   }, [selectedChartDate, granularity, viewMode]);
 
+  useEffect(() => {
+    setExpandedMcLines([]);
+  }, [selectedProcess]);
+
   // Date range of the selected period, clamped to the page date filter
   const lotRange = useMemo(() => {
-    if (!selectedChartDate) return null;
+    if (!selectedChartDate) {
+      if (startDate && endDate) {
+        return { start: startDate, end: endDate };
+      }
+      return null;
+    }
     if (/^\d{4}-\d{2}-\d{2}$/.test(selectedChartDate)) {
       return { start: selectedChartDate, end: selectedChartDate };
     }
@@ -794,6 +805,69 @@ const Page: React.FC = () => {
     } catch (error) {
       console.error("Failed to fetch line lot detail", error);
       setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
+    }
+  };
+
+  // MC Line Details: คู่ product + process ของ MC Line ที่เลือกภายใต้ selectedProcess
+  const getMcLineLotPairs = (processName: string, mcLine: string) => {
+    const targetProc = processName.trim();
+    const targetMc = mcLine.trim();
+    const pairKeys = new Set<string>();
+    const pairs: { product: string; process: string }[] = [];
+
+    chartFilteredProductRows.forEach(row => {
+      const proc = (row.process_name || "").trim();
+      const mc = (row.mc_line || "").trim() || "Unknown";
+      const product = (row.product_name || "").trim();
+      if (!product || proc !== targetProc || mc !== targetMc) return;
+      const key = `${product}|${proc}`;
+      if (!pairKeys.has(key)) {
+        pairKeys.add(key);
+        pairs.push({ product, process: proc });
+      }
+    });
+    return pairs;
+  };
+
+  const loadMcLineLots = async (processName: string, mcLine: string, force = false) => {
+    if (!lotRange) return;
+    const cacheKey = getLotCacheKey(`mcline:${processName}|${mcLine}`);
+    if (!force && lotCache[cacheKey] && lotCache[cacheKey].status !== "error") return;
+
+    const pairs = getMcLineLotPairs(processName, mcLine);
+    if (pairs.length === 0) {
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: [] } }));
+      return;
+    }
+
+    setLotCache(prev => ({ ...prev, [cacheKey]: { status: "loading", rows: [] } }));
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/outputbyprocess/line-lots`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startDate: lotRange.start,
+          endDate: lotRange.end,
+          pairs,
+          ...(force ? { _t: Date.now() } : {})
+        }),
+        signal: AbortSignal.timeout(60_000)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: LotDetail[] = await res.json();
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: Array.isArray(data) ? data : [] } }));
+    } catch (error) {
+      console.error("Failed to fetch MC line lot detail", error);
+      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
+    }
+  };
+
+  const toggleMcLineLot = (mcLine: string) => {
+    if (!selectedProcess) return;
+    const isOpen = expandedMcLines.includes(mcLine);
+    setExpandedMcLines(prev => (isOpen ? prev.filter(item => item !== mcLine) : [...prev, mcLine]));
+    if (!isOpen) {
+      loadMcLineLots(selectedProcess, mcLine);
     }
   };
 
@@ -935,6 +1009,43 @@ const Page: React.FC = () => {
               </p>
             </div>
           </div>
+        ) : (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-base-content/45 mr-1">
+              Lot No. ({lotRows.length.toLocaleString()})
+            </span>
+            {lotRows.map(renderLotBadge)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderMcLineLotPanel = (processName: string, mcLine: string, summaryLot: number) => {
+    const entry = lotCache[getLotCacheKey(`mcline:${processName}|${mcLine}`)];
+    const lotRows = entry?.rows || [];
+    const status = renderLotPanelStatus(entry, () => loadMcLineLots(processName, mcLine, true));
+
+    return (
+      <div className="px-4 py-3 bg-base-200/25 border-t border-base-200">
+        {status ? status : lotRows.length === 0 ? (
+          summaryLot > 0 ? (
+            <div className="flex items-start gap-3 rounded-lg border border-primary/25 bg-primary/5 px-4 py-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                <ScanLine className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-sm font-semibold text-base-content/85">ไม่มี Process Scan</span>
+                <p className="mt-0.5 text-xs text-base-content/60">
+                  ยอด {summaryLot.toLocaleString()} lot มาจากข้อมูลสรุป (batch) — {processName} ({mcLine}) ไม่ได้ scan จึงไม่มีรายการ Lot No.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="py-1 text-xs text-base-content/50">
+              No lot records for {mcLine} on {lotRangeLabel} (08:00–08:00).
+            </div>
+          )
         ) : (
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[10px] uppercase font-bold tracking-wider text-base-content/45 mr-1">
@@ -2961,45 +3072,71 @@ const Page: React.FC = () => {
               ) : selectedProcess ? (
                 <div className="flex flex-col gap-2 p-2 overflow-y-auto h-full scrollbar-thin">
                   {sortedMcLineData.length > 0 ? (
-                    sortedMcLineData.map((row) => {
-                      const color = getProcessColor(selectedProcess);
-                      const units = [
-                        { key: "Sheet", label: "SHEET", value: row.sum_sht },
-                        { key: "Piece", label: "PIECE", value: row.sum_pcs },
-                        { key: "Lot", label: "LOT", value: row.sum_lot }
-                      ];
-                      const activeUnit = units.find(u => u.key === unitMode) || units[0];
-                      const otherUnits = units.filter(u => u.key !== unitMode);
+                    <>
+                      {sortedMcLineData.map((row) => {
+                        const color = getProcessColor(selectedProcess);
+                        const units = [
+                          { key: "Sheet", label: "SHEET", value: row.sum_sht },
+                          { key: "Piece", label: "PIECE", value: row.sum_pcs },
+                          { key: "Lot", label: "LOT", value: row.sum_lot }
+                        ];
+                        const activeUnit = units.find(u => u.key === unitMode) || units[0];
+                        const otherUnits = units.filter(u => u.key !== unitMode);
+                        const isLotOpen = expandedMcLines.includes(row.mc_line);
 
-                      return (
-                        <div
-                          key={row.mc_line}
-                          className="flex items-center justify-between p-3 rounded-lg border border-base-200 bg-base-100/50 hover:bg-base-200 hover:border-primary/30 transition-all text-left shadow-sm group"
-                        >
-                          <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
-                            <div className="w-2.5 h-8 rounded-full shrink-0" style={{ backgroundColor: color }}></div>
-                            <div className="flex flex-col min-w-0">
-                              <span className="font-bold text-sm text-base-content/90 truncate">{row.mc_line}</span>
-                              <span className="text-[10px] text-base-content/50 uppercase font-medium">MC Line</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 mt-1">
-                            {otherUnits.map(u => (
-                              <div key={u.key} className="flex flex-col items-center min-w-[3.5rem]">
-                                <span className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider">{u.label}</span>
-                                <span className="text-xs font-mono font-semibold text-base-content/80">{u.value.toLocaleString()}</span>
+                        return (
+                          <div
+                            key={row.mc_line}
+                            className={`rounded-lg border transition-all text-left shadow-sm overflow-hidden ${isLotOpen ? "border-primary/40 bg-base-100" : "border-base-200 bg-base-100/50 hover:border-primary/30"}`}
+                          >
+                            <div
+                              className={`flex items-center justify-between p-3 cursor-pointer hover:bg-base-200/70 transition-colors group ${isLotOpen ? "bg-base-200/40" : ""}`}
+                              onClick={() => toggleMcLineLot(row.mc_line)}
+                              onKeyDown={(e: React.KeyboardEvent) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  toggleMcLineLot(row.mc_line);
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
+                              aria-expanded={isLotOpen}
+                              title={isLotOpen ? "Click to hide lot numbers" : "Click to show lot numbers"}
+                            >
+                              <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
+                                {isLotOpen
+                                  ? <ChevronDown className="w-4 h-4 text-base-content/50 shrink-0" />
+                                  : <ChevronRight className="w-4 h-4 text-base-content/50 shrink-0" />}
+                                <div className="w-2.5 h-8 rounded-full shrink-0" style={{ backgroundColor: color }}></div>
+                                <div className="flex flex-col min-w-0">
+                                  <span className="font-bold text-sm text-base-content/90 truncate">{row.mc_line}</span>
+                                  <span className="text-[10px] text-base-content/50 uppercase font-medium">MC Line</span>
+                                </div>
                               </div>
-                            ))}
+                              <div className="flex items-center gap-4 mt-1">
+                                {otherUnits.map(u => (
+                                  <div key={u.key} className="flex flex-col items-center min-w-[3.5rem]">
+                                    <span className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider">{u.label}</span>
+                                    <span className="text-xs font-mono font-semibold text-base-content/80">{u.value.toLocaleString()}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex flex-col items-end shrink-0 w-24 pl-3 border-l border-base-300 ml-4">
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-primary/70">{activeUnit.label}</span>
+                                <span className="font-mono font-bold text-sm text-primary">
+                                  {activeUnit.value.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                            {isLotOpen && renderMcLineLotPanel(selectedProcess, row.mc_line, row.sum_lot)}
                           </div>
-                          <div className="flex flex-col items-end shrink-0 w-24 pl-3 border-l border-base-300 ml-4">
-                            <span className="text-[9px] uppercase font-bold tracking-wider text-primary/70">{activeUnit.label}</span>
-                            <span className="font-mono font-bold text-sm text-primary">
-                              {activeUnit.value.toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })
+                        );
+                      })}
+                      <div className="flex items-center gap-1.5 px-2 pt-1 pb-2 text-[11px] text-base-content/50">
+                        <Sparkles className="w-3 h-3 text-primary/70" />
+                        Click an MC Line row to see lot numbers (08:00–08:00 cutoff).
+                      </div>
+                    </>
                   ) : (
                     <div className="text-center py-8 text-base-content/50">
                       No machine lines found for {selectedProcess}
