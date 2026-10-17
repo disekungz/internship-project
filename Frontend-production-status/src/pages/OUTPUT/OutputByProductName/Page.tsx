@@ -1065,24 +1065,9 @@ const Page: React.FC = () => {
             : <ChevronRight className="w-3.5 h-3.5 text-base-content/50" />}
           <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }}></span>
         </div>
-        <div className="flex items-center gap-1.5 min-w-0">
-          <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-sm truncate text-base-content/90">{row.product_name}</span>
-            <span className="text-[11px] text-base-content/50 truncate">{getCustomerGroup(row.product_name)}</span>
-          </div>
-          <button
-            type="button"
-            title={isSel ? "Clear product focus" : "Focus this product in chart"}
-            aria-label={isSel ? "Clear product focus" : "Focus this product in chart"}
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedProduct(isSel ? null : row.product_name);
-            }}
-            onKeyDown={(e) => e.stopPropagation()}
-            className={`btn btn-ghost btn-xs btn-square shrink-0 ${isSel ? "text-primary" : "text-base-content/40 hover:text-primary"}`}
-          >
-            <Crosshair className="w-3.5 h-3.5" />
-          </button>
+        <div className="flex flex-col min-w-0">
+          <span className="font-semibold text-sm truncate text-base-content/90">{row.product_name}</span>
+          <span className="text-[11px] text-base-content/50 truncate">{getCustomerGroup(row.product_name)}</span>
         </div>
         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${pType === "SMT" ? "bg-rose-500/15 text-rose-600 border-rose-500/20" : "bg-sky-500/15 text-sky-600 border-sky-500/20"
           }`}>
@@ -1706,6 +1691,19 @@ const Page: React.FC = () => {
                               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${group.processType === "SMT" ? "bg-rose-500/15 text-rose-600 border-rose-500/20" : "bg-sky-500/15 text-sky-600 border-sky-500/20"}`}>
                                 {group.processType}
                               </span>
+                              <button
+                                type="button"
+                                title={isSel ? "Clear product focus" : "Focus this product in chart"}
+                                aria-label={isSel ? "Clear product focus" : "Focus this product in chart"}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedProduct(isSel ? null : group.product_name);
+                                }}
+                                onKeyDown={(e) => e.stopPropagation()}
+                                className={`btn btn-ghost btn-xs btn-square shrink-0 ${isSel ? "text-primary" : "text-base-content/40 hover:text-primary"}`}
+                              >
+                                <Crosshair className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                             <span className="text-[11px] text-base-content/55 truncate">
                               {group.customerGroup} · {group.entries.length} entries · {group.processCount} processes
