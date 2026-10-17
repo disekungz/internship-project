@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import ReactECharts from "echarts-for-react";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { getProcessColor } from "./processColors";
 
 interface DataItem {
@@ -15,6 +15,7 @@ interface TopOutputChartProps {
   unit?: string;
   selectedProcess?: string;
   onProcessSelect?: (processName: string) => void;
+  onProcessFilterChange?: (processes: string[]) => void;
   backButtonNode?: React.ReactNode;
 }
 
@@ -45,30 +46,29 @@ const TopOutputChart: React.FC<TopOutputChartProps> = ({
   unit = "",
   selectedProcess = "",
   onProcessSelect,
+  onProcessFilterChange,
   backButtonNode
 }) => {
   const chartRef = useRef<any>(null);
-  const [internalSearchQuery, setInternalSearchQuery] = useState("");
-  const searchQuery = selectedProcess || internalSearchQuery;
-
-  const handleSetSearchQuery = (val: string) => {
-    if (onProcessSelect) onProcessSelect(val);
-    else setInternalSearchQuery(val);
-  };
-
   const [legendPage, setLegendPage] = useState(0);
-
-  // Autocomplete UI States
-  const [localSearch, setLocalSearch] = useState("");
-  const [tempSelectedProcesses, setTempSelectedProcesses] = useState<string[]>([]);
-  const [confirmedProcesses, setConfirmedProcesses] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestionRef = useRef<HTMLDivElement>(null);
 
   const allProcessNames = useMemo(() => {
     if (!data) return [];
     return Array.from(new Set(data.map(d => d.process_name))).sort();
   }, [data]);
+
+  // Autocomplete UI States
+  const [localSearch, setLocalSearch] = useState("");
+  const [tempSelectedProcesses, setTempSelectedProcesses] = useState<string[]>(allProcessNames);
+  const [confirmedProcesses, setConfirmedProcesses] = useState<string[]>(allProcessNames);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setConfirmedProcesses(allProcessNames);
+    setTempSelectedProcesses(allProcessNames);
+    setLocalSearch("");
+  }, [allProcessNames]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -81,14 +81,11 @@ const TopOutputChart: React.FC<TopOutputChartProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [confirmedProcesses]);
 
-  const getMatchingProcesses = () => {
-    if (!localSearch) return allProcessNames;
-    return allProcessNames.filter(name =>
-      name.toLowerCase().includes(localSearch.toLowerCase())
-    );
-  };
-
-  const matches = getMatchingProcesses();
+  const matches = useMemo(() => {
+    if (!localSearch.trim()) return allProcessNames;
+    const q = localSearch.trim().toLowerCase();
+    return allProcessNames.filter(name => name.toLowerCase().includes(q));
+  }, [allProcessNames, localSearch]);
 
   const selectAllMatches = () => {
     setTempSelectedProcesses(prev => {
@@ -104,19 +101,15 @@ const TopOutputChart: React.FC<TopOutputChartProps> = ({
 
   const handleConfirm = () => {
     setConfirmedProcesses(tempSelectedProcesses);
+    onProcessFilterChange?.(tempSelectedProcesses);
     setShowSuggestions(false);
+    setLegendPage(0);
+    if (tempSelectedProcesses.length === 1) {
+      setLocalSearch(tempSelectedProcesses[0]);
+    } else if (tempSelectedProcesses.length === allProcessNames.length) {
+      setLocalSearch("");
+    }
   };
-
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      handleSetSearchQuery(localSearch);
-    }, 400);
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, [localSearch]);
 
   const unitLabel = useMemo(() => {
     if (!unit) return "";
@@ -136,12 +129,12 @@ const TopOutputChart: React.FC<TopOutputChartProps> = ({
       if (exactMatch) return [exactMatch];
     }
 
-    if (confirmedProcesses.length > 0) {
+    if (confirmedProcesses.length > 0 && confirmedProcesses.length < allProcessNames.length) {
       return sortedData.filter(item => confirmedProcesses.includes(item.process_name));
     }
 
     return sortedData;
-  }, [data, selectedProcess, confirmedProcesses]);
+  }, [data, selectedProcess, confirmedProcesses, allProcessNames.length]);
 
   const dynamicBarSize = useMemo(() => {
     if (chartData.length === 1) return 80;
@@ -339,7 +332,7 @@ const TopOutputChart: React.FC<TopOutputChartProps> = ({
             <input
               type="text"
               placeholder="Search Process..."
-              className="input input-sm input-bordered w-full pl-8 bg-base-100 shadow-none focus:outline-none focus:ring-0 focus:border-primary"
+              className="input input-sm input-bordered w-full pl-8 pr-7 bg-base-100 shadow-none focus:outline-none focus:ring-0 focus:border-primary"
               value={localSearch}
               onChange={(e) => {
                 setLocalSearch(e.target.value);
@@ -350,10 +343,41 @@ const TopOutputChart: React.FC<TopOutputChartProps> = ({
                 setTempSelectedProcesses(confirmedProcesses);
               }}
               onKeyDown={(e) => {
-                if (e.key === "Escape") setShowSuggestions(false);
+                if (e.key === "Escape") {
+                  setShowSuggestions(false);
+                }
+                if (e.key === "Enter") {
+                  const q = localSearch.trim().toLowerCase();
+                  if (q) {
+                    const exactMatch = matches.find(m => m.toLowerCase() === q);
+                    const selected = exactMatch ? [exactMatch] : (matches.length > 0 ? matches : allProcessNames);
+                    setTempSelectedProcesses(selected);
+                    setConfirmedProcesses(selected);
+                    onProcessFilterChange?.(selected);
+                    if (selected.length === 1) {
+                      setLocalSearch(selected[0]);
+                    }
+                  }
+                  setShowSuggestions(false);
+                }
               }}
             />
-            <Search className="w-4 h-4 absolute left-2.5 top-2 text-base-content/50" />
+            <Search className="w-4 h-4 absolute left-2.5 top-2 text-base-content/50 pointer-events-none" />
+            {(localSearch || (confirmedProcesses.length > 0 && confirmedProcesses.length < allProcessNames.length)) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLocalSearch("");
+                  setTempSelectedProcesses(allProcessNames);
+                  setConfirmedProcesses(allProcessNames);
+                  onProcessFilterChange?.(allProcessNames);
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content text-xs p-0.5"
+                title="Clear Search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
 
             {showSuggestions && (
               <div className="absolute left-0 right-0 top-full mt-1 z-50 flex flex-col rounded-lg border border-base-300 bg-base-100 shadow-xl overflow-hidden">
