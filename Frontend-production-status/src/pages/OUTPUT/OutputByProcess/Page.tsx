@@ -2832,6 +2832,7 @@ const Page: React.FC = () => {
                       setSelectedChartDate(null);
                       setSelectedProcess("");
                       setProcessFamilyFilter("All");
+                      setDailyProcessFilter([]);
                     }}
                     title="Clear date filter"
                   >
@@ -2883,11 +2884,12 @@ const Page: React.FC = () => {
                 onBarClick={(rawDate, _procName) => {
                   setSelectedChartDate(prev => (prev === rawDate ? null : rawDate));
                   setProcessFamilyFilter("All");
+                  setDailyProcessFilter([]);
                 }}
               />
             ) : (
               <TopOutputChart
-                data={summaryData.map(item => ({
+                data={baseSummaryData.map(item => ({
                   process_name: item.process_name,
                   output_qty: item.output_value || 0,
                   color: getProcessColor(item.process_name),
@@ -2896,6 +2898,7 @@ const Page: React.FC = () => {
                 unit={unitMode}
                 selectedProcess={selectedProcess}
                 onProcessSelect={setSelectedProcess}
+                onProcessFilterChange={setDailyProcessFilter}
                 backButtonNode={
                   (selectedChartDate || selectedProcess) ? (
                     <button
@@ -2905,6 +2908,7 @@ const Page: React.FC = () => {
                         } else {
                           setSelectedChartDate(null);
                           setProcessFamilyFilter("All");
+                          setDailyProcessFilter([]);
                         }
                       }}
                       className="btn btn-sm btn-primary shadow-sm hover:scale-105 transition-transform font-bold"
