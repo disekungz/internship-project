@@ -829,17 +829,76 @@ const Page: React.FC = () => {
     return seqA - seqB || (a.process_name || "").localeCompare(b.process_name || "");
   });
 
-  const toggleExpandedDetailProduct = (productName: string) => {
+  const toggleExpandedDetailProduct = (group: ProductDetailGroup) => {
+    const isOpen = expandedDetailProducts.includes(group.product_name);
     setExpandedDetailProducts(prev =>
-      prev.includes(productName)
-        ? prev.filter(item => item !== productName)
-        : [...prev, productName]
+      isOpen
+        ? prev.filter(item => item !== group.product_name)
+        : [...prev, group.product_name]
     );
+    if (!isOpen) prefetchProductLots(group);
   };
 
   // Lot drill-down: lots are keyed by date + product + process (the lot table has no mc_line)
   const getLotCacheKey = (row: ProductOutput) => `${row.output_date || ""}|${row.product_name}|${row.process_name || ""}`;
   const getLotEntryKey = (row: ProductOutput) => `${getLotCacheKey(row)}|${row.mc_line || ""}`;
+
+  // Load lots of every process in a product group with one request (/lots-by-product)
+  // so clicking a process row shows its lots without waiting
+  const prefetchProductLots = async (group: ProductDetailGroup) => {
+    const pending = group.entries.filter(row =>
+      row.output_date && row.process_name &&
+      (!lotCache[getLotCacheKey(row)] || lotCache[getLotCacheKey(row)].status === "error")
+    );
+    if (pending.length === 0) return;
+
+    const pendingKeys = Array.from(new Set(pending.map(getLotCacheKey)));
+    const dates = pending.map(row => row.output_date as string).sort();
+    setLotCache(prev => {
+      const next = { ...prev };
+      pendingKeys.forEach(key => { next[key] = { status: "loading", rows: [] }; });
+      return next;
+    });
+
+    // Only fill keys still waiting on this request (a manual retry may have finished first)
+    const fillPending = (getEntry: (row: ProductOutput) => LotCacheEntry) => {
+      setLotCache(prev => {
+        const next = { ...prev };
+        pending.forEach(row => {
+          const key = getLotCacheKey(row);
+          if (next[key]?.status === "loading") next[key] = getEntry(row);
+        });
+        return next;
+      });
+    };
+
+    try {
+      const params = new URLSearchParams({
+        startDate: dates[0],
+        endDate: dates[dates.length - 1],
+        product: group.product_name
+      });
+      const res = await fetch(`${getApiBaseUrl()}/outputbyproduct/lots-by-product?${params.toString()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: { lots?: (LotDetail & { prod_date: string; process_name: string })[] } = await res.json();
+
+      const lotsByDayProcess = new Map<string, LotDetail[]>();
+      (data.lots || []).forEach(lot => {
+        const key = `${lot.prod_date}|${(lot.process_name || "").trim()}`;
+        const list = lotsByDayProcess.get(key);
+        if (list) list.push(lot);
+        else lotsByDayProcess.set(key, [lot]);
+      });
+
+      fillPending(row => {
+        const rows = lotsByDayProcess.get(`${row.output_date}|${(row.process_name || "").trim()}`) || [];
+        return { status: "ok", rows };
+      });
+    } catch (error) {
+      console.error("Failed to prefetch product lots", error);
+      fillPending(() => ({ status: "error", rows: [] }));
+    }
+  };
 
   const loadLots = async (row: ProductOutput, force = false) => {
     const cacheKey = getLotCacheKey(row);
@@ -1632,11 +1691,11 @@ const Page: React.FC = () => {
                         className={`rounded-lg border overflow-hidden ${isSel ? "border-primary/40 bg-primary/5" : "border-base-200 bg-base-200/20"}`}
                       >
                         <div
-                          onClick={() => toggleExpandedDetailProduct(group.product_name)}
+                          onClick={() => toggleExpandedDetailProduct(group)}
                           role="button"
                           tabIndex={0}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") toggleExpandedDetailProduct(group.product_name);
+                            if (e.key === "Enter" || e.key === " ") toggleExpandedDetailProduct(group);
                           }}
                           className="w-full min-h-[64px] cursor-pointer text-left grid grid-cols-[auto_minmax(220px,1.5fr)_minmax(220px,1fr)_96px] items-center gap-3 px-3 py-3 hover:bg-base-200/60 transition-colors"
                         >
