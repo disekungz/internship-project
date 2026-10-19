@@ -389,7 +389,7 @@ const LINE_SOURCE_LABELS: Record<string, string> = {
   same_line_group: "ทุก MC Line ที่เป็นไปได้อยู่ใน line นี้",
 };
 
-const getLotBadgeTitle = (lot: LotDetail) => {
+const getLotBadgeTitle = (lot: Pick<LotDetail, "product_name" | "out_time" | "input_qty" | "line_source" | "mc_line" | "candidate_lines">) => {
   const base = `${lot.product_name || "-"} | Out: ${lot.out_time || "-"} | Qty: ${lot.input_qty ?? "-"}`;
   const sourceLabel = lot.line_source ? LINE_SOURCE_LABELS[lot.line_source] || lot.line_source : "";
   if (lot.mc_line) return `${base} | MC Line: ${lot.mc_line}${sourceLabel ? ` (${sourceLabel})` : ""}`;
@@ -404,11 +404,18 @@ interface LotCacheEntry {
   rows: LotDetail[];
 }
 
-// ผลค้นหา Lot No. จาก /outputbyprocess/lot-search (rows เรียงตาม lot แล้ว out_time)
+// แถวจาก /outputbyprocess/lot-index — เฉพาะคอลัมน์ที่ช่องค้นหา Lot No. ใช้
+type LotIndexRow = Pick<LotDetail, "lot" | "product_name" | "process_name" | "out_time" | "input_qty">;
+
+interface LotIndexState {
+  status: "loading" | "ok" | "error";
+  rows: LotIndexRow[];
+}
+
+// ผลค้นหา Lot No. (rows เรียงตาม lot แล้ว out_time)
 interface LotSearchResult {
   status: "loading" | "ok" | "error";
-  rows: LotDetail[];
-  truncated: boolean;
+  rows: LotIndexRow[];
 }
 
 // จำนวน lot ที่แสดงในผลค้นหา — คำค้นสั้นอาจตรงกับหลาย lot
@@ -744,99 +751,93 @@ const Page: React.FC = () => {
     : (selectedChartDate || "");
 
   // ค้นหา Lot No. (Process Output Details): lot นี้ออกจาก gate process ไหนบ้างในงวดที่เลือก
-  // ค้นใหม่อัตโนมัติเมื่อเปลี่ยนวัน/สัปดาห์ หรือกด Refresh
+  // โหลด lot ทั้งงวดครั้งเดียว (/lot-index) เมื่อเริ่มใช้ช่องค้นหา แล้วค้นและแนะนำ lot ในเบราว์เซอร์ทันทีระหว่างพิมพ์
+  // โหลดใหม่เมื่อเปลี่ยนวัน/สัปดาห์ หรือกด Refresh
   const [lotSearchInput, setLotSearchInput] = useState("");
   const [lotSearchTerm, setLotSearchTerm] = useState("");
-  const [lotSearchRetry, setLotSearchRetry] = useState(0);
-  const [lotSearchResult, setLotSearchResult] = useState<LotSearchResult | null>(null);
+  const [lotIndexWanted, setLotIndexWanted] = useState(false);
+  const [lotIndexRetry, setLotIndexRetry] = useState(0);
+  const [lotIndex, setLotIndex] = useState<LotIndexState | null>(null);
   const [scrollToProcess, setScrollToProcess] = useState<string | null>(null);
+  // refreshTrigger ที่ใช้โหลดครั้งล่าสุด — กด Refresh แล้วให้ข้าม cache ฝั่ง backend
+  const lotIndexRefreshRef = useRef(refreshTrigger);
 
   useEffect(() => {
-    if (!lotSearchTerm || !lotRangeStart || !lotRangeEnd) {
-      setLotSearchResult(null);
+    if (!lotIndexWanted) return;
+    if (!lotRangeStart || !lotRangeEnd) {
+      // ไม่มีงวดที่เลือก — ล้างรายการ lot ของงวดก่อน ไม่ให้แนะนำ lot ผิดช่วง
+      setLotIndex(null);
       return;
     }
-    let cancelled = false;
-    setLotSearchResult({ status: "loading", rows: [], truncated: false });
-    const params = new URLSearchParams({ lot: lotSearchTerm, startDate: lotRangeStart, endDate: lotRangeEnd });
-    fetch(`${getApiBaseUrl()}/outputbyprocess/lot-search?${params.toString()}`, {
-      signal: AbortSignal.timeout(60_000)
-    })
+    // ยกเลิก request ที่ค้างเมื่อเปลี่ยนงวด/ออกจากหน้า หรือเกิน 60 วินาที
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60_000);
+    let disposed = false;
+
+    setLotIndex({ status: "loading", rows: [] });
+    const params = new URLSearchParams({ startDate: lotRangeStart, endDate: lotRangeEnd });
+    if (lotIndexRefreshRef.current !== refreshTrigger) {
+      lotIndexRefreshRef.current = refreshTrigger;
+      params.append("_t", String(Date.now()));
+    }
+    fetch(`${getApiBaseUrl()}/outputbyprocess/lot-index?${params.toString()}`, { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((data: { lots?: LotDetail[]; truncated?: boolean }) => {
-        if (cancelled) return;
-        setLotSearchResult({
-          status: "ok",
-          rows: Array.isArray(data?.lots) ? data.lots : [],
-          truncated: Boolean(data?.truncated)
-        });
+      .then((data: { lots?: LotIndexRow[] }) => {
+        if (disposed) return;
+        setLotIndex({ status: "ok", rows: Array.isArray(data?.lots) ? data.lots : [] });
       })
       .catch(error => {
-        if (cancelled) return;
-        console.error("Failed to search lot", error);
-        setLotSearchResult({ status: "error", rows: [], truncated: false });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [lotSearchTerm, lotRangeStart, lotRangeEnd, lotSearchRetry, refreshTrigger]);
+        if (disposed) return;
+        console.error("Failed to load lot index", error);
+        setLotIndex({ status: "error", rows: [] });
+      })
+      .finally(() => clearTimeout(timeout));
 
-  // รายการแนะนำ Lot No. ระหว่างพิมพ์ (เช่น พิมพ์ 2604 → 2604xxxx1, 2604xxxx2) — รอหยุดพิมพ์ 300ms แล้วค่อยค้น
-  const [lotSuggestions, setLotSuggestions] = useState<{ lot: string; product: string; latestProcess: string; outTime: string }[]>([]);
+    return () => {
+      disposed = true;
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [lotIndexWanted, lotRangeStart, lotRangeEnd, lotIndexRetry, refreshTrigger]);
+
+  // lot ที่มีคำค้นอยู่ในเลข lot (ไม่สนตัวพิมพ์) — เรียงตาม lot, ภายใน lot เรียงตาม out_time (sort แบบ stable)
+  const lotSearchResult = useMemo<LotSearchResult | null>(() => {
+    if (!lotSearchTerm || !lotIndex) return null;
+    if (lotIndex.status !== "ok") return { status: lotIndex.status, rows: [] };
+    const upper = lotSearchTerm.toUpperCase();
+    const rows = lotIndex.rows
+      .filter(row => (row.lot || "").toUpperCase().includes(upper))
+      .sort((a, b) => (a.lot || "").localeCompare(b.lot || ""));
+    return { status: "ok", rows };
+  }, [lotSearchTerm, lotIndex]);
+
+  // รายการแนะนำ Lot No. ระหว่างพิมพ์ (เช่น พิมพ์ 2604 → 2604xxxx1, 2604xxxx2)
   const [lotSuggestOpen, setLotSuggestOpen] = useState(false);
-  const [lotSuggestLoading, setLotSuggestLoading] = useState(false);
   const [lotSuggestIndex, setLotSuggestIndex] = useState(-1);
 
-  useEffect(() => {
-    const term = lotSearchInput.trim();
-    if (term.length < 3 || !lotRangeStart || !lotRangeEnd) {
-      setLotSuggestions([]);
-      setLotSuggestLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setLotSuggestLoading(true);
-    const timer = setTimeout(() => {
-      const params = new URLSearchParams({ lot: term, startDate: lotRangeStart, endDate: lotRangeEnd });
-      fetch(`${getApiBaseUrl()}/outputbyprocess/lot-search?${params.toString()}`, { signal: AbortSignal.timeout(30_000) })
-        .then(res => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json();
-        })
-        .then((data: { lots?: LotDetail[] }) => {
-          if (cancelled) return;
-          // rows เรียงตาม lot แล้ว out_time — แถวสุดท้ายของแต่ละ lot คือ process ล่าสุด
-          const byLot = new Map<string, LotDetail>();
-          (Array.isArray(data?.lots) ? data.lots : []).forEach(row => byLot.set((row.lot || "").trim(), row));
-          const upper = term.toUpperCase();
-          const list = Array.from(byLot, ([lot, row]) => ({
-            lot,
-            product: row.product_name || "-",
-            latestProcess: (row.process_name || "").trim(),
-            outTime: row.out_time || ""
-          }))
-            // lot ที่ขึ้นต้นด้วยคำค้นแสดงก่อน
-            .sort((a, b) => Number(!a.lot.toUpperCase().startsWith(upper)) - Number(!b.lot.toUpperCase().startsWith(upper)) || a.lot.localeCompare(b.lot));
-          setLotSuggestions(list);
-          setLotSuggestIndex(-1);
-        })
-        .catch(error => {
-          if (cancelled) return;
-          console.error("Failed to load lot suggestions", error);
-          setLotSuggestions([]);
-        })
-        .finally(() => {
-          if (!cancelled) setLotSuggestLoading(false);
-        });
-    }, 300);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [lotSearchInput, lotRangeStart, lotRangeEnd]);
+  const lotSuggestions = useMemo(() => {
+    const term = lotSearchInput.trim().toUpperCase();
+    if (term.length < 3 || lotIndex?.status !== "ok") return [];
+    // แถวเรียงตาม out_time — แถวหลังสุดของแต่ละ lot คือ process ล่าสุด
+    const byLot = new Map<string, LotIndexRow>();
+    lotIndex.rows.forEach(row => {
+      const lot = (row.lot || "").trim();
+      if (lot.toUpperCase().includes(term)) byLot.set(lot, row);
+    });
+    return Array.from(byLot, ([lot, row]) => ({
+      lot,
+      product: row.product_name || "-",
+      latestProcess: (row.process_name || "").trim(),
+      outTime: row.out_time || ""
+    }))
+      // lot ที่ขึ้นต้นด้วยคำค้นแสดงก่อน
+      .sort((a, b) => Number(!a.lot.toUpperCase().startsWith(term)) - Number(!b.lot.toUpperCase().startsWith(term)) || a.lot.localeCompare(b.lot));
+  }, [lotSearchInput, lotIndex]);
+
+  const lotSuggestLoading = lotIndex?.status === "loading" && lotSearchInput.trim().length >= 3;
 
   const pickLotSuggestion = (lot: string) => {
     setLotSearchInput(lot);
@@ -872,8 +873,9 @@ const Page: React.FC = () => {
     e.preventDefault();
     const term = lotSearchInput.trim();
     if (term.length < 3) return;
-    if (term === lotSearchTerm) setLotSearchRetry(n => n + 1);
-    else setLotSearchTerm(term);
+    setLotIndexWanted(true);
+    setLotSearchTerm(term);
+    if (lotIndex?.status === "error") setLotIndexRetry(n => n + 1);
     setLotSuggestOpen(false);
   };
 
@@ -2742,7 +2744,7 @@ const Page: React.FC = () => {
       ? rows.filter(lot => allowedPairs.has(pairKey(lot.product_name, lot.process_name)))
       : rows;
 
-    const groupMap = new Map<string, LotDetail[]>();
+    const groupMap = new Map<string, LotIndexRow[]>();
     const hitCountByProcess = new Map<string, number>();
     visibleRows.forEach(lot => {
       const lotNo = (lot.lot || "").trim();
@@ -2797,8 +2799,8 @@ const Page: React.FC = () => {
     } else if (lotSearchResult.status === "error") {
       content = (
         <span className="flex items-center gap-2 text-xs text-error">
-          Cannot search lot data.
-          <button type="button" className="btn btn-xs btn-ghost" onClick={() => setLotSearchRetry(n => n + 1)}>
+          Cannot load lot data.
+          <button type="button" className="btn btn-xs btn-ghost" onClick={() => setLotIndexRetry(n => n + 1)}>
             Retry
           </button>
         </span>
@@ -2848,11 +2850,9 @@ const Page: React.FC = () => {
               })}
             </div>
           ))}
-          {(groups.length > LOT_SEARCH_MAX_GROUPS || lotSearchResult.truncated) && (
+          {groups.length > LOT_SEARCH_MAX_GROUPS && (
             <span className="text-[11px] text-base-content/55">
-              {groups.length > LOT_SEARCH_MAX_GROUPS && `แสดง ${LOT_SEARCH_MAX_GROUPS} lot แรก จาก ${groups.length.toLocaleString()} lot`}
-              {lotSearchResult.truncated && " (ผลลัพธ์ถูกตัดที่ 200 รายการ)"}
-              {" — พิมพ์เลข lot ให้ยาวขึ้นเพื่อจำกัดผล"}
+              แสดง {LOT_SEARCH_MAX_GROUPS} lot แรก จาก {groups.length.toLocaleString()} lot — พิมพ์เลข lot ให้ยาวขึ้นเพื่อจำกัดผล
             </span>
           )}
           {hiddenCount > 0 && (
@@ -3454,15 +3454,20 @@ const Page: React.FC = () => {
                       <input
                         type="text"
                         className="grow min-w-0 font-mono text-xs"
-                        placeholder="Search Lot No. + Enter"
+                        placeholder="Search Lot No."
                         aria-label="Search Lot No."
-                        title="พิมพ์ Lot No. อย่างน้อย 3 ตัวอักษร แล้วกด Enter"
+                        title="พิมพ์ Lot No. อย่างน้อย 3 ตัวอักษร แล้วเลือกจากรายการ หรือกด Enter เพื่อดูทุก lot ที่ตรงกัน"
                         value={lotSearchInput}
                         onChange={(e) => {
                           setLotSearchInput(e.target.value);
                           setLotSuggestOpen(true);
+                          setLotSuggestIndex(-1);
                         }}
-                        onFocus={() => setLotSuggestOpen(true)}
+                        // โหลดรายการ lot ของงวดตั้งแต่กดที่ช่อง — พิมพ์เสร็จก็พร้อมแนะนำทันที
+                        onFocus={() => {
+                          setLotIndexWanted(true);
+                          setLotSuggestOpen(true);
+                        }}
                         onBlur={() => setLotSuggestOpen(false)}
                         onKeyDown={handleLotSearchKeyDown}
                         autoComplete="off"
@@ -3482,7 +3487,7 @@ const Page: React.FC = () => {
                         </button>
                       )}
                     </label>
-                    {lotSuggestOpen && lotSearchInput.trim().length >= 3 && !lotSuggestLoading && (
+                    {lotSuggestOpen && lotSearchInput.trim().length >= 3 && lotIndex && lotIndex.status !== "loading" && (
                       <ul
                         id="lot-suggest-list"
                         role="listbox"
@@ -3490,7 +3495,9 @@ const Page: React.FC = () => {
                       >
                         {lotSuggestions.length === 0 ? (
                           <li className="px-3 py-2 text-xs text-base-content/50">
-                            {lotRange ? `ไม่พบ Lot No. ที่มี "${lotSearchInput.trim()}" ช่วง ${lotRangeLabel}` : "Select a day to search lot numbers."}
+                            {lotIndex.status === "error"
+                              ? "Cannot load lot data — กด Enter เพื่อลองใหม่"
+                              : `ไม่พบ Lot No. ที่มี "${lotSearchInput.trim()}" ช่วง ${lotRangeLabel}`}
                           </li>
                         ) : (
                           <>
