@@ -40,6 +40,21 @@ interface LotCacheEntry {
   nonGate?: boolean; // routing gate_proc = 'N' (only set when no lots were found)
 }
 
+// Lot numbers matching the daily-detail search (via /outputbyproduct/lot-search),
+// keyed by getLotMatchKey(date, product, process)
+interface DetailLotSearch {
+  term: string;
+  status: "idle" | "loading" | "ok" | "error";
+  lotsByEntry: Record<string, string[]>;
+}
+
+const EMPTY_DETAIL_LOT_SEARCH: DetailLotSearch = { term: "", status: "idle", lotsByEntry: {} };
+const LOT_SEARCH_MIN_LENGTH = 3;
+
+// The lot table stores prd_name with or without '-', so compare products without '-'
+const getLotMatchKey = (date: string | undefined, product: string | undefined, process: string | undefined) =>
+  `${date || ""}|${(product || "").trim().replace(/-/g, "")}|${(process || "").trim()}`;
+
 type UnitMode = "Piece" | "Sheet" | "Lot";
 type DetailViewMode = "Grouped" | "Entries";
 type DetailTypeFilter = "All" | "FPC" | "SMT";
@@ -185,6 +200,7 @@ const Page: React.FC = () => {
   const [detailPage, setDetailPage] = useState(1);
   const [expandedLotEntries, setExpandedLotEntries] = useState<string[]>([]);
   const [lotCache, setLotCache] = useState<Record<string, LotCacheEntry>>({});
+  const [detailLotSearch, setDetailLotSearch] = useState<DetailLotSearch>(EMPTY_DETAIL_LOT_SEARCH);
 
   // Defer chart rendering to prevent page stutter on load
   useEffect(() => {
@@ -936,6 +952,70 @@ const Page: React.FC = () => {
     if (!isOpen) loadLots(row);
   };
 
+  // First and last output date inside the selected chart period (one day, or a week in weekly mode)
+  const detailPeriodDates = useMemo(() => {
+    if (!selectedChartDate) return null;
+    const dates = chartFilteredData
+      .map(item => item.output_date || "")
+      .filter(d => d && isDateInPeriod(d, selectedChartDate, granularity))
+      .sort();
+    if (dates.length === 0) return null;
+    return { start: dates[0], end: dates[dates.length - 1] };
+  }, [selectedChartDate, chartFilteredData, granularity]);
+  // Keep the same object while start/end are unchanged so the lot search below does not re-run
+  // every time chartFilteredData is recomputed (focus product, unit change, ...)
+  const detailPeriodStart = detailPeriodDates?.start;
+  const detailPeriodEnd = detailPeriodDates?.end;
+  const detailPeriodRange = useMemo(
+    () => (detailPeriodStart && detailPeriodEnd ? { start: detailPeriodStart, end: detailPeriodEnd } : null),
+    [detailPeriodStart, detailPeriodEnd]
+  );
+
+  // The daily-detail search also matches lot numbers: look the term up in the lot table
+  // (debounced) and remember which date + product + process rows contain a matching lot
+  useEffect(() => {
+    const term = detailSearchQuery.trim();
+    if (term.length < LOT_SEARCH_MIN_LENGTH || !detailPeriodRange) {
+      setDetailLotSearch(EMPTY_DETAIL_LOT_SEARCH);
+      return;
+    }
+
+    let cancelled = false;
+    setDetailLotSearch(prev => ({ ...prev, status: "loading" }));
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({
+          lot: term,
+          startDate: detailPeriodRange.start,
+          endDate: detailPeriodRange.end
+        });
+        const res = await fetch(`${getApiBaseUrl()}/outputbyproduct/lot-search?${params.toString()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data: { lots?: (LotDetail & { product_name: string; process_name: string; prod_date: string })[] } = await res.json();
+
+        const lotsByEntry: Record<string, string[]> = {};
+        (data.lots || []).forEach(lot => {
+          const key = getLotMatchKey(lot.prod_date, lot.product_name, lot.process_name);
+          const list = lotsByEntry[key] || (lotsByEntry[key] = []);
+          if (!list.includes(lot.lot)) list.push(lot.lot);
+        });
+        if (!cancelled) setDetailLotSearch({ term, status: "ok", lotsByEntry });
+      } catch (error) {
+        console.error("Failed to search lot numbers", error);
+        if (!cancelled) setDetailLotSearch({ term, status: "error", lotsByEntry: {} });
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [detailSearchQuery, detailPeriodRange]);
+
+  const lotHighlightKeyword = detailSearchQuery.trim().length >= LOT_SEARCH_MIN_LENGTH
+    ? detailSearchQuery.trim().toLowerCase()
+    : "";
+
   // Breakdown of every product produced on the selected day (process + qty + share)
   const selectedDayDetail = useMemo(() => {
     if (!selectedChartDate) return null;
@@ -950,6 +1030,7 @@ const Page: React.FC = () => {
     const processOptions = Array.from(new Set(baseRows.map(row => row.process_name).filter(Boolean))).sort() as string[];
     const customerOptions = Array.from(new Set(baseRows.map(row => getCustomerGroup(row.product_name)).filter(Boolean))).sort();
 
+    const lotResultIsCurrent = detailLotSearch.term === detailSearchQuery.trim();
     let rows = baseRows.filter(row => {
       const query = detailSearchQuery.trim().toLowerCase();
       const productName = row.product_name || "";
@@ -958,7 +1039,9 @@ const Page: React.FC = () => {
       const customerGroup = getCustomerGroup(productName);
       const processType = getProcessType(processName);
 
-      if (query && !`${productName} ${processName} ${mcLine} ${customerGroup}`.toLowerCase().includes(query)) return false;
+      const hasLotMatch = lotResultIsCurrent &&
+        !!detailLotSearch.lotsByEntry[getLotMatchKey(row.output_date, productName, processName)];
+      if (query && !hasLotMatch && !`${productName} ${processName} ${mcLine} ${customerGroup}`.toLowerCase().includes(query)) return false;
       if (detailProcessFilter !== "All Processes" && processName !== detailProcessFilter) return false;
       if (detailCustomerFilter !== "All Customers" && customerGroup !== detailCustomerFilter) return false;
       if (detailTypeFilter !== "All" && processType !== detailTypeFilter) return false;
@@ -1032,7 +1115,7 @@ const Page: React.FC = () => {
       fpcTotal,
       smtTotal
     };
-  }, [selectedChartDate, chartFilteredData, filterProcess, detailSearchQuery, detailProcessFilter, detailCustomerFilter, detailTypeFilter, detailSortMode, granularity, getProductType]);
+  }, [selectedChartDate, chartFilteredData, filterProcess, detailSearchQuery, detailLotSearch, detailProcessFilter, detailCustomerFilter, detailTypeFilter, detailSortMode, granularity, getProductType]);
 
   const renderDetailEntry = (row: ProductOutput, total: number, compact = false, index = 0) => {
     const color = getProductColor(row.product_name);
@@ -1080,8 +1163,7 @@ const Page: React.FC = () => {
           {pType}
         </span>
         <div className="text-xs font-medium text-base-content/70 truncate hidden sm:flex flex-col justify-center">
-          <span className="truncate">{row.process_name}</span>
-        </div>
+          <span className="truncate">{row.process_name}</span>        </div>
         <div className="flex-1 flex items-center justify-end gap-4 min-w-0 pr-2">
           {unitMode !== "Lot" && (
             <div className="flex-col items-end hidden sm:flex">
@@ -1149,7 +1231,9 @@ const Page: React.FC = () => {
             {lots.map((lot, i) => (
               <span
                 key={`${lot.lot}_${lot.out_time}_${i}`}
-                className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-primary/25 bg-primary/10 text-primary"
+                className={`font-mono text-xs font-semibold px-2 py-0.5 rounded-md border ${lotHighlightKeyword && String(lot.lot).toLowerCase().includes(lotHighlightKeyword)
+                  ? "border-warning/60 bg-warning/15 text-base-content"
+                  : "border-primary/25 bg-primary/10 text-primary"}`}
               >
                 {lot.lot}
               </span>
@@ -1624,10 +1708,16 @@ const Page: React.FC = () => {
                 <input
                   type="text"
                   className="grow"
-                  placeholder="Search product, process, customer..."
+                  placeholder="Search product, process, customer, lot no..."
                   value={detailSearchQuery}
                   onChange={(e) => setDetailSearchQuery(e.target.value)}
                 />
+                {detailLotSearch.status === "loading" && (
+                  <span className="loading loading-spinner loading-xs text-base-content/45" title="Searching lot numbers..."></span>
+                )}
+                {detailLotSearch.status === "error" && (
+                  <span className="text-[10px] text-error whitespace-nowrap">Lot search failed</span>
+                )}
               </label>
               <select
                 className="select select-sm select-bordered w-full lg:w-44"
@@ -1675,8 +1765,7 @@ const Page: React.FC = () => {
                   {pagedDetailGroups.map((group) => {
                     const color = getProductColor(group.product_name);
                     const isSel = selectedProduct === group.product_name;
-                    const isExpanded = expandedDetailProducts.includes(group.product_name);
-                    return (
+                    const isExpanded = expandedDetailProducts.includes(group.product_name);                    return (
                       <div
                         key={group.product_name}
                         className={`rounded-lg border overflow-hidden ${isSel ? "border-primary/40 bg-primary/5" : "border-base-200 bg-base-200/20"}`}
@@ -1701,8 +1790,7 @@ const Page: React.FC = () => {
                             </div>
                             <span className="text-[11px] text-base-content/55 truncate">
                               {group.customerGroup} · {group.entries.length} entries · {group.processCount} processes
-                            </span>
-                          </div>
+                            </span>                          </div>
                           <div className="hidden md:flex items-center gap-5 text-right">
                             <div>
                               <div className="text-[9px] uppercase font-bold text-base-content/40">Lot</div>
