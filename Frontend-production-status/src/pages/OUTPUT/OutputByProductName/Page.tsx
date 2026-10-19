@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { getCustomerGroup, getProductProcessType, getProcessType, CHART_COLORS } from "./components/utils";
+import { FocusProductButton } from "./components/FocusProductButton";
 import ProductNameChart from "./ProductNameChart";
 import * as XLSX from "xlsx";
 import { ExportModal } from "../../../components/ExportModal";
 import { getApiBaseUrl } from "../../../utils/apiConfig";
 import { getGranularityDateInfo, isDateInPeriod, OutputGranularity } from "../utils/outputDateUtils";
-import { CalendarDays, RefreshCcw, Download, Layers, Package, Award, Building2, BarChart3, MousePointerClick, ArrowLeft, X, Search, Sparkles, TrendingUp, TrendingDown, Minus, ChevronDown, ChevronRight, Crosshair } from "lucide-react";
+import { CalendarDays, RefreshCcw, Download, Layers, Package, Award, Building2, BarChart3, MousePointerClick, ArrowLeft, X, Search, Sparkles, TrendingUp, TrendingDown, Minus, ChevronDown, ChevronRight } from "lucide-react";
 
 interface ProductOutput {
   product_name: string;
@@ -1071,19 +1072,7 @@ const Page: React.FC = () => {
             <span className="text-[11px] text-base-content/50 truncate">{getCustomerGroup(row.product_name)}</span>
           </div>
           {!compact && (
-            <button
-              type="button"
-              title={isSel ? "Clear product focus" : "Focus this product in chart"}
-              aria-label={isSel ? "Clear product focus" : "Focus this product in chart"}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedProduct(isSel ? null : row.product_name);
-              }}
-              onKeyDown={(e) => e.stopPropagation()}
-              className={`btn btn-ghost btn-xs btn-square shrink-0 ${isSel ? "text-primary" : "text-base-content/40 hover:text-primary"}`}
-            >
-              <Crosshair className="w-3.5 h-3.5" />
-            </button>
+            <FocusProductButton productName={row.product_name} isSelected={isSel} setSelectedProduct={setSelectedProduct} />
           )}
         </div>
         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${pType === "SMT" ? "bg-rose-500/15 text-rose-600 border-rose-500/20" : "bg-sky-500/15 text-sky-600 border-sky-500/20"
@@ -1708,19 +1697,7 @@ const Page: React.FC = () => {
                               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${group.processType === "SMT" ? "bg-rose-500/15 text-rose-600 border-rose-500/20" : "bg-sky-500/15 text-sky-600 border-sky-500/20"}`}>
                                 {group.processType}
                               </span>
-                              <button
-                                type="button"
-                                title={isSel ? "Clear product focus" : "Focus this product in chart"}
-                                aria-label={isSel ? "Clear product focus" : "Focus this product in chart"}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedProduct(isSel ? null : group.product_name);
-                                }}
-                                onKeyDown={(e) => e.stopPropagation()}
-                                className={`btn btn-ghost btn-xs btn-square shrink-0 ${isSel ? "text-primary" : "text-base-content/40 hover:text-primary"}`}
-                              >
-                                <Crosshair className="w-3.5 h-3.5" />
-                              </button>
+                              <FocusProductButton productName={group.product_name} isSelected={isSel} setSelectedProduct={setSelectedProduct} />
                             </div>
                             <span className="text-[11px] text-base-content/55 truncate">
                               {group.customerGroup} · {group.entries.length} entries · {group.processCount} processes
