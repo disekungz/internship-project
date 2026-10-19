@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Filter, RefreshCcw, Layers, Cpu, Award, BarChart3, Sparkles, ChevronUp, ChevronDown, ChevronRight, Package, CalendarDays, ArrowLeft, MousePointerClick, Download, Target, TrendingUp, Scale, Gauge, ScanLine } from "lucide-react";
+import { Filter, RefreshCcw, Layers, Cpu, Award, BarChart3, Sparkles, ChevronUp, ChevronDown, ChevronRight, Package, CalendarDays, ArrowLeft, MousePointerClick, Download, Target, TrendingUp, Scale, Gauge, ScanLine, Search, X } from "lucide-react";
 import TopOutputChart from "./TopOutputChart";
 import ProcessDateChart from "./ProcessDateChart";
 import LineDateChart from "./LineDateChart";
@@ -404,6 +404,16 @@ interface LotCacheEntry {
   rows: LotDetail[];
 }
 
+// ผลค้นหา Lot No. จาก /outputbyprocess/lot-search (rows เรียงตาม lot แล้ว out_time)
+interface LotSearchResult {
+  status: "loading" | "ok" | "error";
+  rows: LotDetail[];
+  truncated: boolean;
+}
+
+// จำนวน lot ที่แสดงในผลค้นหา — คำค้นสั้นอาจตรงกับหลาย lot
+const LOT_SEARCH_MAX_GROUPS = 20;
+
 type ExportRow = {
   Date: string;
   Process: string;
@@ -733,6 +743,146 @@ const Page: React.FC = () => {
     ? (lotRange.start === lotRange.end ? lotRange.start : `${lotRange.start} – ${lotRange.end}`)
     : (selectedChartDate || "");
 
+  // ค้นหา Lot No. (Process Output Details): lot นี้ออกจาก gate process ไหนบ้างในงวดที่เลือก
+  // ค้นใหม่อัตโนมัติเมื่อเปลี่ยนวัน/สัปดาห์ หรือกด Refresh
+  const [lotSearchInput, setLotSearchInput] = useState("");
+  const [lotSearchTerm, setLotSearchTerm] = useState("");
+  const [lotSearchRetry, setLotSearchRetry] = useState(0);
+  const [lotSearchResult, setLotSearchResult] = useState<LotSearchResult | null>(null);
+  const [scrollToProcess, setScrollToProcess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!lotSearchTerm || !lotRangeStart || !lotRangeEnd) {
+      setLotSearchResult(null);
+      return;
+    }
+    let cancelled = false;
+    setLotSearchResult({ status: "loading", rows: [], truncated: false });
+    const params = new URLSearchParams({ lot: lotSearchTerm, startDate: lotRangeStart, endDate: lotRangeEnd });
+    fetch(`${getApiBaseUrl()}/outputbyprocess/lot-search?${params.toString()}`, {
+      signal: AbortSignal.timeout(60_000)
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data: { lots?: LotDetail[]; truncated?: boolean }) => {
+        if (cancelled) return;
+        setLotSearchResult({
+          status: "ok",
+          rows: Array.isArray(data?.lots) ? data.lots : [],
+          truncated: Boolean(data?.truncated)
+        });
+      })
+      .catch(error => {
+        if (cancelled) return;
+        console.error("Failed to search lot", error);
+        setLotSearchResult({ status: "error", rows: [], truncated: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lotSearchTerm, lotRangeStart, lotRangeEnd, lotSearchRetry, refreshTrigger]);
+
+  // รายการแนะนำ Lot No. ระหว่างพิมพ์ (เช่น พิมพ์ 2604 → 2604xxxx1, 2604xxxx2) — รอหยุดพิมพ์ 300ms แล้วค่อยค้น
+  const [lotSuggestions, setLotSuggestions] = useState<{ lot: string; product: string; latestProcess: string; outTime: string }[]>([]);
+  const [lotSuggestOpen, setLotSuggestOpen] = useState(false);
+  const [lotSuggestLoading, setLotSuggestLoading] = useState(false);
+  const [lotSuggestIndex, setLotSuggestIndex] = useState(-1);
+
+  useEffect(() => {
+    const term = lotSearchInput.trim();
+    if (term.length < 3 || !lotRangeStart || !lotRangeEnd) {
+      setLotSuggestions([]);
+      setLotSuggestLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLotSuggestLoading(true);
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams({ lot: term, startDate: lotRangeStart, endDate: lotRangeEnd });
+      fetch(`${getApiBaseUrl()}/outputbyprocess/lot-search?${params.toString()}`, { signal: AbortSignal.timeout(30_000) })
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then((data: { lots?: LotDetail[] }) => {
+          if (cancelled) return;
+          // rows เรียงตาม lot แล้ว out_time — แถวสุดท้ายของแต่ละ lot คือ process ล่าสุด
+          const byLot = new Map<string, LotDetail>();
+          (Array.isArray(data?.lots) ? data.lots : []).forEach(row => byLot.set((row.lot || "").trim(), row));
+          const upper = term.toUpperCase();
+          const list = Array.from(byLot, ([lot, row]) => ({
+            lot,
+            product: row.product_name || "-",
+            latestProcess: (row.process_name || "").trim(),
+            outTime: row.out_time || ""
+          }))
+            // lot ที่ขึ้นต้นด้วยคำค้นแสดงก่อน
+            .sort((a, b) => Number(!a.lot.toUpperCase().startsWith(upper)) - Number(!b.lot.toUpperCase().startsWith(upper)) || a.lot.localeCompare(b.lot));
+          setLotSuggestions(list);
+          setLotSuggestIndex(-1);
+        })
+        .catch(error => {
+          if (cancelled) return;
+          console.error("Failed to load lot suggestions", error);
+          setLotSuggestions([]);
+        })
+        .finally(() => {
+          if (!cancelled) setLotSuggestLoading(false);
+        });
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [lotSearchInput, lotRangeStart, lotRangeEnd]);
+
+  const pickLotSuggestion = (lot: string) => {
+    setLotSearchInput(lot);
+    setLotSearchTerm(lot);
+    setLotSuggestOpen(false);
+    setLotSuggestIndex(-1);
+  };
+
+  const handleLotSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const count = Math.min(lotSuggestions.length, 10);
+    if (e.key === "Escape") {
+      setLotSuggestOpen(false);
+    } else if (e.key === "ArrowDown" && count > 0) {
+      e.preventDefault();
+      setLotSuggestOpen(true);
+      setLotSuggestIndex(i => (i + 1) % count);
+    } else if (e.key === "ArrowUp" && count > 0) {
+      e.preventDefault();
+      setLotSuggestIndex(i => (i <= 0 ? count - 1 : i - 1));
+    } else if (e.key === "Enter" && lotSuggestOpen && lotSuggestIndex >= 0 && lotSuggestIndex < count) {
+      e.preventDefault();
+      pickLotSuggestion(lotSuggestions[lotSuggestIndex].lot);
+    }
+  };
+
+  // Lot No. ที่ตรงกับคำค้น — ใช้เน้นป้าย Lot No. ในรายการของแต่ละแถว
+  const lotSearchHits = useMemo(
+    () => new Set((lotSearchResult?.status === "ok" ? lotSearchResult.rows : []).map(lot => (lot.lot || "").trim())),
+    [lotSearchResult]
+  );
+
+  const submitLotSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const term = lotSearchInput.trim();
+    if (term.length < 3) return;
+    if (term === lotSearchTerm) setLotSearchRetry(n => n + 1);
+    else setLotSearchTerm(term);
+    setLotSuggestOpen(false);
+  };
+
+  const clearLotSearch = () => {
+    setLotSearchInput("");
+    setLotSearchTerm("");
+    setLotSuggestOpen(false);
+  };
+
   // เปลี่ยน Daily/Weekly: ล้างงวดที่เลือกไว้ เพราะ key ของวัน (2026-10-14) กับสัปดาห์ (2026-WK42) ใช้แทนกันไม่ได้
   const changeGranularity = (next: OutputGranularity) => {
     if (next === granularity) return;
@@ -954,11 +1104,14 @@ const Page: React.FC = () => {
     return null;
   };
 
+  // ป้ายของ lot ที่ตรงกับคำค้น Lot No. — สีเข้มให้เห็นชัด
+  const lotSearchHitClass = "border-primary bg-primary text-primary-content ring-2 ring-primary/30";
+
   const renderLotBadge = (lot: LotDetail, i: number) => (
     <span
       key={`${lot.lot}_${lot.out_time}_${i}`}
       title={getLotBadgeTitle(lot)}
-      className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-primary/25 bg-primary/10 text-primary"
+      className={`font-mono text-xs font-semibold px-2 py-0.5 rounded-md border ${lotSearchHits.has((lot.lot || "").trim()) ? lotSearchHitClass : "border-primary/25 bg-primary/10 text-primary"}`}
     >
       {lot.lot}
     </span>
@@ -969,7 +1122,7 @@ const Page: React.FC = () => {
     <span
       key={`${lot.lot}_${lot.out_time}_${i}`}
       title={getLotBadgeTitle(lot)}
-      className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-dashed border-base-content/30 bg-base-200/60 text-base-content/60"
+      className={`font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-dashed ${lotSearchHits.has((lot.lot || "").trim()) ? lotSearchHitClass : "border-base-content/30 bg-base-200/60 text-base-content/60"}`}
     >
       {lot.lot}
     </span>
@@ -2576,6 +2729,144 @@ const Page: React.FC = () => {
     return listCopy;
   }, [viewMode, lineSummaryData, summaryData, sortField, sortDirection]);
 
+  // ผลค้นหา Lot No. จัดกลุ่มตาม lot (process เรียงตาม out_time — ตัวสุดท้ายคือ process ล่าสุดในงวด)
+  // ตัวกรอง FPC/SMT หรือ Group Line: เก็บเฉพาะคู่ product + process ที่อยู่ในตัวกรอง เหมือนรายการ Lot No. ของแต่ละแถว
+  const lotSearchView = useMemo(() => {
+    const rows = lotSearchResult?.status === "ok" ? lotSearchResult.rows : [];
+    const pairKey = (product?: string | null, process?: string | null) =>
+      `${(product || "").trim().replace(/-/g, "")}|${(process || "").trim()}`;
+    const allowedPairs = (processFamilyFilter === "All" && selectedLineGroup === "All")
+      ? null
+      : new Set(chartFilteredProductRows.map(row => pairKey(row.product_name, row.process_name)));
+    const visibleRows = allowedPairs
+      ? rows.filter(lot => allowedPairs.has(pairKey(lot.product_name, lot.process_name)))
+      : rows;
+
+    const groupMap = new Map<string, LotDetail[]>();
+    const hitCountByProcess = new Map<string, number>();
+    visibleRows.forEach(lot => {
+      const lotNo = (lot.lot || "").trim();
+      if (!groupMap.has(lotNo)) groupMap.set(lotNo, []);
+      groupMap.get(lotNo)!.push(lot);
+      const proc = (lot.process_name || "").trim();
+      hitCountByProcess.set(proc, (hitCountByProcess.get(proc) || 0) + 1);
+    });
+
+    return {
+      groups: Array.from(groupMap, ([lot, lotRows]) => ({ lot, rows: lotRows })),
+      hitCountByProcess,
+      hiddenCount: rows.length - visibleRows.length
+    };
+  }, [lotSearchResult, processFamilyFilter, selectedLineGroup, chartFilteredProductRows]);
+
+  // กดชื่อ process ในผลค้นหา: ไปหน้าที่มีแถวนั้น เปิดรายการ Lot No. แล้วเลื่อนไปที่แถว
+  const jumpToLotProcess = (processName: string) => {
+    const index = sortedSummaryData.findIndex(item => item.process_name === processName);
+    if (index < 0) return;
+    setDetailsCurrentPage(Math.floor(index / detailsItemsPerPage) + 1);
+    if (!expandedLotProcesses.includes(processName)) toggleLotProcess(processName);
+    setScrollToProcess(processName);
+  };
+
+  useEffect(() => {
+    if (!scrollToProcess) return;
+    document
+      .querySelector(`[data-process-row="${CSS.escape(scrollToProcess)}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setScrollToProcess(null);
+  }, [scrollToProcess]);
+
+  const formatLotOutTime = (outTime?: string | null) =>
+    (outTime || "-").trim().replace(/^(\d{2}\/\d{2})\/\d{4}/, "$1");
+
+  const renderLotSearchPanel = () => {
+    if (!lotSearchTerm) return null;
+    const { groups, hiddenCount } = lotSearchView;
+    const tableProcesses = new Set(sortedSummaryData.map(item => item.process_name));
+    let content: React.ReactNode;
+
+    if (!lotRange) {
+      content = <span className="text-xs text-base-content/50">Select a day to search lot numbers.</span>;
+    } else if (!lotSearchResult || lotSearchResult.status === "loading") {
+      content = (
+        <span className="flex items-center gap-2 text-xs text-base-content/60">
+          <span className="loading loading-spinner loading-xs"></span>
+          Searching Lot No. "{lotSearchTerm}"...
+        </span>
+      );
+    } else if (lotSearchResult.status === "error") {
+      content = (
+        <span className="flex items-center gap-2 text-xs text-error">
+          Cannot search lot data.
+          <button type="button" className="btn btn-xs btn-ghost" onClick={() => setLotSearchRetry(n => n + 1)}>
+            Retry
+          </button>
+        </span>
+      );
+    } else if (groups.length === 0) {
+      content = (
+        <span className="text-xs text-base-content/60">
+          ไม่พบ Lot No. "{lotSearchTerm}" ใน output ของ gate process ช่วง {lotRangeLabel} (08:00–08:00)
+          {hiddenCount > 0 && ` — พบ ${hiddenCount.toLocaleString()} รายการแต่ไม่อยู่ในตัวกรอง FPC/SMT หรือ Group Line`}
+        </span>
+      );
+    } else {
+      content = (
+        <div className="flex flex-col gap-2">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-base-content/45">
+            Lot search · {groups.length.toLocaleString()} lot · {lotRangeLabel} (08:00–08:00)
+          </span>
+          {groups.slice(0, LOT_SEARCH_MAX_GROUPS).map(({ lot, rows }) => (
+            <div key={lot} className="flex flex-wrap items-center gap-1.5">
+              <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded-md border ${lotSearchHitClass}`}>{lot}</span>
+              <span className="text-xs text-base-content/55 mr-1">{rows[0].product_name || "-"}</span>
+              {rows.map((row, i) => {
+                const proc = (row.process_name || "").trim();
+                const inTable = tableProcesses.has(proc);
+                const isLatest = i === rows.length - 1;
+                return (
+                  <React.Fragment key={`${proc}_${row.out_time}_${i}`}>
+                    {i > 0 && <ChevronRight className="w-3 h-3 text-base-content/30 shrink-0" />}
+                    <button
+                      type="button"
+                      disabled={!inTable}
+                      onClick={() => jumpToLotProcess(proc)}
+                      title={inTable
+                        ? `${getLotBadgeTitle(row)} — กดเพื่อไปที่แถว ${proc}`
+                        : `${getLotBadgeTitle(row)} — ${proc} ไม่อยู่ในตาราง (ยอด lot จากข้อมูลสรุปเป็น 0)`}
+                      className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs transition-colors ${isLatest ? "border-primary/50 bg-primary/10" : "border-base-300 bg-base-100"} ${inTable ? "hover:border-primary hover:bg-primary/15 cursor-pointer" : "opacity-60 cursor-not-allowed"}`}
+                    >
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getProcessColor(proc) }}></span>
+                      <span className="font-semibold text-base-content/85">{proc || "-"}</span>
+                      <span className="font-mono text-base-content/50">{formatLotOutTime(row.out_time)}</span>
+                      {isLatest && (
+                        <span className="rounded bg-primary px-1 text-[9px] font-bold uppercase text-primary-content">ล่าสุด</span>
+                      )}
+                    </button>
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          ))}
+          {(groups.length > LOT_SEARCH_MAX_GROUPS || lotSearchResult.truncated) && (
+            <span className="text-[11px] text-base-content/55">
+              {groups.length > LOT_SEARCH_MAX_GROUPS && `แสดง ${LOT_SEARCH_MAX_GROUPS} lot แรก จาก ${groups.length.toLocaleString()} lot`}
+              {lotSearchResult.truncated && " (ผลลัพธ์ถูกตัดที่ 200 รายการ)"}
+              {" — พิมพ์เลข lot ให้ยาวขึ้นเพื่อจำกัดผล"}
+            </span>
+          )}
+          {hiddenCount > 0 && (
+            <span className="text-[11px] text-base-content/55">
+              ซ่อน {hiddenCount.toLocaleString()} รายการที่ไม่อยู่ในตัวกรอง FPC/SMT หรือ Group Line
+            </span>
+          )}
+        </div>
+      );
+    }
+
+    return <div className="px-4 py-3 border-b border-base-300 bg-primary/5">{content}</div>;
+  };
+
   const exportProcessOptions = useMemo(() => {
     const names = new Set<string>();
     PROCESS_SEQUENCE.forEach(name => names.add(name));
@@ -3148,14 +3439,96 @@ const Page: React.FC = () => {
         {/* Table Content - Only shown when a specific date or process is selected */}
         {(selectedChartDate || selectedProcess) && (
           <div className="bg-base-100 rounded-xl shadow-sm border border-base-300 overflow-hidden flex-1 relative min-h-[350px]">
-            <div className="p-4 border-b border-base-300 flex justify-between items-center bg-base-200/20">
+            <div className="p-4 border-b border-base-300 flex flex-wrap justify-between items-center gap-3 bg-base-200/20">
               <h3 className="text-base font-bold text-base-content/90 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" />
                 {selectedProcess
                   ? `MC Line Details - ${selectedProcess}`
                   : (viewMode === "line" ? "Line Output Details" : "Process Output Details")}
               </h3>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                {!selectedProcess && viewMode === "process" && (
+                  <form onSubmit={submitLotSearch} role="search" className="relative flex items-center gap-1.5">
+                    <label className="input input-sm input-bordered flex items-center gap-2 w-64 bg-base-100">
+                      <Search className="w-3.5 h-3.5 text-base-content/50 shrink-0" />
+                      <input
+                        type="text"
+                        className="grow min-w-0 font-mono text-xs"
+                        placeholder="Search Lot No. + Enter"
+                        aria-label="Search Lot No."
+                        title="พิมพ์ Lot No. อย่างน้อย 3 ตัวอักษร แล้วกด Enter"
+                        value={lotSearchInput}
+                        onChange={(e) => {
+                          setLotSearchInput(e.target.value);
+                          setLotSuggestOpen(true);
+                        }}
+                        onFocus={() => setLotSuggestOpen(true)}
+                        onBlur={() => setLotSuggestOpen(false)}
+                        onKeyDown={handleLotSearchKeyDown}
+                        autoComplete="off"
+                        role="combobox"
+                        aria-expanded={lotSuggestOpen}
+                        aria-controls="lot-suggest-list"
+                      />
+                      {lotSuggestLoading && <span className="loading loading-spinner loading-xs text-base-content/40 shrink-0"></span>}
+                      {(lotSearchInput || lotSearchTerm) && (
+                        <button
+                          type="button"
+                          onClick={clearLotSearch}
+                          className="text-base-content/40 hover:text-base-content shrink-0"
+                          aria-label="Clear lot search"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </label>
+                    {lotSuggestOpen && lotSearchInput.trim().length >= 3 && !lotSuggestLoading && (
+                      <ul
+                        id="lot-suggest-list"
+                        role="listbox"
+                        className="absolute right-0 top-full mt-1 z-30 w-80 max-h-72 overflow-y-auto scrollbar-thin rounded-lg border border-base-300 bg-base-100 shadow-lg py-1"
+                      >
+                        {lotSuggestions.length === 0 ? (
+                          <li className="px-3 py-2 text-xs text-base-content/50">
+                            {lotRange ? `ไม่พบ Lot No. ที่มี "${lotSearchInput.trim()}" ช่วง ${lotRangeLabel}` : "Select a day to search lot numbers."}
+                          </li>
+                        ) : (
+                          <>
+                            {lotSuggestions.slice(0, 10).map((s, i) => (
+                              <li
+                                key={s.lot}
+                                role="option"
+                                aria-selected={i === lotSuggestIndex}
+                                // onMouseDown: เลือกก่อน input blur ปิดรายการ
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  pickLotSuggestion(s.lot);
+                                }}
+                                onMouseEnter={() => setLotSuggestIndex(i)}
+                                className={`flex items-center justify-between gap-3 px-3 py-1.5 cursor-pointer ${i === lotSuggestIndex ? "bg-primary/10" : "hover:bg-base-200"}`}
+                              >
+                                <div className="flex flex-col min-w-0">
+                                  <span className="font-mono text-xs font-semibold text-base-content/90">{s.lot}</span>
+                                  <span className="text-[10px] text-base-content/50 truncate">{s.product}</span>
+                                </div>
+                                <span className="inline-flex items-center gap-1 shrink-0 text-[10px] text-base-content/60" title="Process ล่าสุดในช่วงวันที่เลือก">
+                                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: getProcessColor(s.latestProcess) }}></span>
+                                  <span className="font-semibold">{s.latestProcess || "-"}</span>
+                                  <span className="font-mono text-base-content/40">{formatLotOutTime(s.outTime)}</span>
+                                </span>
+                              </li>
+                            ))}
+                            {lotSuggestions.length > 10 && (
+                              <li className="px-3 py-1.5 text-[10px] text-base-content/45 border-t border-base-200">
+                                +{(lotSuggestions.length - 10).toLocaleString()} lot — พิมพ์เพิ่มเพื่อจำกัดผล หรือกด Enter เพื่อดูทั้งหมด
+                              </li>
+                            )}
+                          </>
+                        )}
+                      </ul>
+                    )}
+                  </form>
+                )}
                 <span className="text-xs text-base-content/60 font-medium bg-base-200 px-2 py-1 rounded">
                   {selectedProcess
                     ? `Total MC Lines: ${mcLineData.length}`
@@ -3173,6 +3546,7 @@ const Page: React.FC = () => {
                 )}
               </div>
             </div>
+            {!selectedProcess && viewMode === "process" && renderLotSearchPanel()}
             <div className="overflow-x-auto h-[calc(100%-60px)]">
               {isLoading || isMcLineLoading ? (
                 <ListSkeleton />
@@ -3301,11 +3675,14 @@ const Page: React.FC = () => {
                           const color = getProcessColor(row.process_name);
                           // ทั้ง By Process และ By Line กดแถวเพื่อดู Lot No. ได้ (By Line: row.process_name คือชื่อ line)
                           const isLotOpen = expandedLotProcesses.includes(row.process_name);
+                          // By Process: จำนวนรายการที่ตรงกับคำค้น Lot No. ใน process นี้
+                          const lotHitCount = viewMode === "process" ? (lotSearchView.hitCountByProcess.get(row.process_name) || 0) : 0;
 
                           return (
                             <React.Fragment key={row.process_name}>
                               <tr
-                                className={`hover:bg-base-200/50 transition-colors border-b border-base-300 cursor-pointer ${isLotOpen ? "bg-base-200/40" : ""}`}
+                                data-process-row={row.process_name}
+                                className={`hover:bg-base-200/50 transition-colors border-b border-base-300 cursor-pointer ${lotHitCount > 0 ? "bg-primary/5 shadow-[inset_3px_0_0_0_var(--color-primary)]" : isLotOpen ? "bg-base-200/40" : ""}`}
                                 onClick={() => toggleLotProcess(row.process_name)}
                                 onKeyDown={(e: React.KeyboardEvent) => {
                                   if (e.key === "Enter" || e.key === " ") {
@@ -3328,6 +3705,15 @@ const Page: React.FC = () => {
                                       style={{ backgroundColor: color }}
                                     ></span>
                                     <span className="font-semibold text-sm">{row.process_name}</span>
+                                    {lotHitCount > 0 && (
+                                      <span
+                                        className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary"
+                                        title={`พบ Lot No. "${lotSearchTerm}" ใน process นี้`}
+                                      >
+                                        <Search className="w-3 h-3" />
+                                        {lotHitCount.toLocaleString()} lot
+                                      </span>
+                                    )}
                                   </div>
                                 </td>
                                 <td className={`px-4 py-3.5 text-right font-mono text-sm ${unitMode === "Lot" ? "font-bold text-primary" : "text-base-content/70"}`}>

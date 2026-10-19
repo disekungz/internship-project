@@ -863,6 +863,97 @@ router.get("/process-lots", async (req, res) => {
 });
 
 // ----------------------------------------------------------------------------
+// GET /lot-search?lot=ABC123&startDate=YYYY-MM-DD[&endDate=YYYY-MM-DD]
+// ค้นหา Lot No. ว่าออกจาก gate process ไหนบ้างในช่วงวันผลิต — สำหรับช่องค้นหาใน Process Output Details
+// เงื่อนไขเดียวกับ /process-lots (gate เท่านั้น, out_time startDate 08:00 -> (endDate + 1 วัน) 08:00)
+// ค้นแบบมีคำค้นอยู่ในเลข lot (ไม่สนตัวพิมพ์), อย่างน้อย 3 ตัวอักษร, คืนไม่เกิน LOT_SEARCH_LIMIT แถว
+// คืนค่า { lots, truncated } — Cached for 60 seconds
+// ----------------------------------------------------------------------------
+const LOT_SEARCH_LIMIT = 200;
+const LOT_SEARCH_MAX_DAYS = 62;
+
+router.get("/lot-search", async (req, res) => {
+  try {
+    const { startDate, _t } = req.query;
+    const endDate = req.query.endDate || startDate;
+    const isDate = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+    const term = typeof req.query.lot === "string" ? req.query.lot.trim() : "";
+
+    if (term.length < 3 || !isDate(startDate) || !isDate(endDate) || endDate < startDate) {
+      return res.status(400).json({ error: "lot (at least 3 characters) and startDate (YYYY-MM-DD) are required; endDate must be >= startDate" });
+    }
+
+    // วันที่ทุกวันตั้งแต่ startDate ถึง endDate + 1 วัน — ใช้กรอง LEFT(TRIM(out_time), 10) ก่อนแปลงเป็น timestamp
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const startMs = new Date(`${startDate}T00:00:00Z`).getTime();
+    const endPlusOneMs = new Date(`${endDate}T00:00:00Z`).getTime() + DAY_MS;
+    if ((endPlusOneMs - startMs) / DAY_MS > LOT_SEARCH_MAX_DAYS) {
+      return res.status(400).json({ error: `date range must not exceed ${LOT_SEARCH_MAX_DAYS} days` });
+    }
+    const datePrefixes = [];
+    for (let t = startMs; t <= endPlusOneMs; t += DAY_MS) {
+      datePrefixes.push(toDdMmYyyy(new Date(t).toISOString().split("T")[0]));
+    }
+    const endPlusOne = new Date(endPlusOneMs).toISOString().split("T")[0];
+
+    const cacheKey = `lotsearch:${term.toUpperCase()}:${startDate}:${endDate}`;
+    if (!_t) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        res.setHeader("X-Cache", "HIT");
+        return res.status(200).json(cached);
+      }
+    }
+
+    // escape อักขระพิเศษของ LIKE ในคำค้น
+    const likePattern = `%${term.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+    const result = await query(`
+      WITH ${GATE_PAIRS_CTE},
+      parsed AS (
+        SELECT
+          TRIM(lot) AS lot, wo, cat, prd_name, TRIM(proc_disp) AS proc_disp, plan_date, in_time, out_time,
+          input_qty, factory_desc, prbm_problem_name,
+          CASE WHEN TRIM(out_time) ~ '^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}'
+               THEN TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI')
+          END AS out_ts
+        FROM smart.smart_fpc_output_by_lot
+        WHERE TRIM(lot) ILIKE $1
+          AND LEFT(TRIM(out_time), 10) = ANY($4::text[])
+          AND ${gateExists()}
+      )
+      SELECT
+        lot,
+        wo,
+        cat,
+        prd_name AS product_name,
+        proc_disp AS process_name,
+        TO_CHAR(plan_date, 'YYYY-MM-DD') AS plan_date,
+        in_time,
+        out_time,
+        input_qty,
+        factory_desc,
+        prbm_problem_name
+      FROM parsed
+      WHERE out_ts >= $2::timestamp
+        AND out_ts < $3::timestamp
+      ORDER BY lot ASC, out_ts ASC
+      LIMIT ${LOT_SEARCH_LIMIT + 1}
+    `, [likePattern, `${startDate} 08:00`, `${endPlusOne} 08:00`, datePrefixes]);
+
+    const payload = {
+      lots: result.rows.slice(0, LOT_SEARCH_LIMIT),
+      truncated: result.rows.length > LOT_SEARCH_LIMIT,
+    };
+    setCache(cacheKey, payload, 60_000);
+    res.setHeader("X-Cache", "MISS");
+    res.status(200).json(payload);
+  } catch (error) {
+    console.error("[OutputByProcess] Error searching lot:", error.message);
+    res.status(500).json({ error: "Cannot search lot data" });
+  }
+});
+
+// ----------------------------------------------------------------------------
 // ตารางที่เก็บเลข lot คู่กับ line / เครื่อง — ใช้ระบุ MC Line ของ lot ใน assignLotMcLines
 // แต่ละ query คืน lot, proc (process ของแถวนั้น), line, machine
 // ----------------------------------------------------------------------------
