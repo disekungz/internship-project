@@ -1057,7 +1057,17 @@ const Page: React.FC = () => {
 
   const renderLotPanel = (processName: string, summaryLot: number) => {
     const entry = lotCache[getLotCacheKey(processName)];
-    const lotRows = entry?.rows || [];
+    const rawLotRows = entry?.rows || [];
+    const allowedProducts = (processFamilyFilter === "All" && selectedLineGroup === "All")
+      ? null
+      : new Set(
+        chartFilteredProductRows
+          .filter(row => (row.process_name || "").trim() === processName.trim())
+          .map(row => (row.product_name || "").trim().replace(/-/g, ""))
+      );
+    const lotRows = allowedProducts
+      ? rawLotRows.filter(lot => allowedProducts.has((lot.product_name || "").trim().replace(/-/g, "")))
+      : rawLotRows;
     const status = renderLotPanelStatus(entry, () => loadLots(processName, true));
 
     return (
@@ -1092,8 +1102,8 @@ const Page: React.FC = () => {
     const status = renderLotPanelStatus(entry, () => loadMcLineLots(processName, true));
     const targetMc = mcLine.trim();
 
-    // ตัวกรอง FPC/SMT: แถว MC Line คิดจากเฉพาะ product ในตัวกรอง — lot จึงกรองด้วย product ชุดเดียวกัน
-    const allowedProducts = processFamilyFilter === "All"
+    // ตัวกรอง FPC/SMT หรือ Group Line: แถว MC Line คิดจากเฉพาะ product ในตัวกรอง — lot จึงกรองด้วย product ชุดเดียวกัน
+    const allowedProducts = (processFamilyFilter === "All" && selectedLineGroup === "All")
       ? null
       : new Set(
         chartFilteredProductRows
@@ -2421,13 +2431,13 @@ const Page: React.FC = () => {
       return;
     }
 
-    if (processFamilyFilter !== "All") {
+    if (processFamilyFilter !== "All" || selectedLineGroup !== "All") {
       const lineMap: Record<string, { mc_line: string; output_value: number; sum_pcs: number; sum_sht: number; sum_lot: number }> = {};
 
       chartFilteredProductRows
         .filter(row => row.process_name === selectedProcess)
         .forEach(row => {
-          const line = row.mc_line || "Unknown";
+          const line = (row.mc_line || "").trim() || "Unknown";
           if (!lineMap[line]) {
             lineMap[line] = {
               mc_line: line,
@@ -2496,7 +2506,7 @@ const Page: React.FC = () => {
     };
 
     fetchMcLineData();
-  }, [selectedProcess, startDate, endDate, selectedChartDate, lotRangeStart, lotRangeEnd, unitMode, processFamilyFilter, chartFilteredProductRows]);
+  }, [selectedProcess, startDate, endDate, selectedChartDate, lotRangeStart, lotRangeEnd, unitMode, processFamilyFilter, selectedLineGroup, chartFilteredProductRows]);
 
   const mcLineTotal = useMemo(() => mcLineData.reduce((sum, item) => sum + item.output_value, 0), [mcLineData]);
 

@@ -85,43 +85,202 @@ function getCurrentProductionDate() {
 }
 
 // ----------------------------------------------------------------------------
-// จำนวน lot ต่อ process ของวันผลิตหนึ่งวัน จาก smart.smart_fpc_output_by_lot
-// ใช้เงื่อนไขเดียวกับ /process-lots (gate เท่านั้น, out_time 08:00 -> 08:00 วันถัดไป, นับทุกแถว)
-// เพื่อให้จำนวน lot ในตารางตรงกับจำนวน Lot No. ที่กดขยายดู
-// คืนค่า Map: process_name (TRIM) -> จำนวน lot
+// ชุดของ process ที่มีการสแกนลง smart_fpc_output_by_lot และชุดของ process ในตารางสรุป
+// แคชไว้ 10 นาที เพื่อแยก process ที่มี scan (ใช้อ้างอิงยอดวันปัจจุบันจาก output_by_lot)
+// ออกจาก process ที่ไม่มี scan เลย เช่น MELT1, MINT1, MFLD1 (ยังคงใช้ยอดจากตารางสรุป)
 // ----------------------------------------------------------------------------
-async function getScanLotCounts(prodDate) {
+let scanProcessMetaCache = null;
+let scanProcessMetaLastFetch = 0;
+
+async function getScanProcessMeta() {
+  const now = Date.now();
+  if (scanProcessMetaCache && now - scanProcessMetaLastFetch < 10 * 60_000) {
+    return scanProcessMetaCache;
+  }
+  const [scanRes, detailRes] = await Promise.all([
+    query(`
+      SELECT DISTINCT TRIM(proc_disp) AS proc
+      FROM smart.smart_fpc_output_by_lot
+      WHERE proc_disp IS NOT NULL
+    `),
+    query(`
+      SELECT DISTINCT TRIM(proc_disp) AS proc
+      FROM smart.smart_fpc_process_output_detail
+      WHERE proc_disp IS NOT NULL
+    `),
+  ]);
+  scanProcessMetaCache = {
+    scanProcessSet: new Set(scanRes.rows.map((r) => r.proc).filter(Boolean)),
+    detailProcessSet: new Set(detailRes.rows.map((r) => r.proc).filter(Boolean)),
+  };
+  scanProcessMetaLastFetch = now;
+  return scanProcessMetaCache;
+}
+
+// แปลง YYYY-MM-DD เป็น DD/MM/YYYY สำหรับกรอง LEFT(TRIM(out_time), 10) ก่อนแปลงเป็น timestamp
+function toDdMmYyyy(isoDate) {
+  const [y, m, d] = String(isoDate).split("-");
+  return `${d}/${m}/${y}`;
+}
+
+// ----------------------------------------------------------------------------
+// ข้อมูลจำนวน lot ของวันผลิตหนึ่งวัน จาก smart.smart_fpc_output_by_lot
+// ใช้เงื่อนไขเวลาเดียวกับ /process-lots (out_time 08:00 -> 08:00 วันถัดไป, นับทุกแถว)
+// คืนค่า:
+//   - gateByProcess: Map<proc, lot_count> (เฉพาะคู่ product + process ที่เป็น gate)
+//   - allByProcess:  Map<proc, lot_count> (ทุกแถว)
+//   - byPair:        Map<`${prd_key}|${proc}`, { prd_key, product_name, proc, is_gate, lot_count }>
+// ----------------------------------------------------------------------------
+async function getScanLotDataForDate(prodDate) {
+  const cacheKey = `scan-lot-data:${prodDate}`;
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+
   const nextDay = new Date(new Date(`${prodDate}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000)
     .toISOString().split("T")[0];
+  const datePrefixes = [toDdMmYyyy(prodDate), toDdMmYyyy(nextDay)];
+
   const sqlStatement = `
     WITH ${GATE_PAIRS_CTE},
     parsed AS (
       SELECT
+        REPLACE(TRIM(prd_name), '-', '') AS prd_key,
+        TRIM(prd_name) AS prd_name,
         TRIM(proc_disp) AS proc,
+        ${gateExists("prd_name", "proc_disp")} AS is_gate,
         CASE WHEN TRIM(out_time) ~ '^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}'
              THEN TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI')
         END AS out_ts
       FROM smart.smart_fpc_output_by_lot
-      WHERE ${gateExists()}
+      WHERE LEFT(TRIM(out_time), 10) = ANY($3::text[])
     )
-    SELECT proc, COUNT(*) AS lot_count
+    SELECT
+      prd_key,
+      MAX(prd_name) AS product_name,
+      proc,
+      BOOL_OR(is_gate) AS is_gate,
+      COUNT(*) AS lot_count
     FROM parsed
     WHERE out_ts >= $1::timestamp
       AND out_ts < $2::timestamp
-    GROUP BY proc
+    GROUP BY prd_key, proc
   `;
-  const result = await query(sqlStatement, [`${prodDate} 08:00`, `${nextDay} 08:00`]);
-  return new Map(result.rows.map((row) => [row.proc, Number(row.lot_count || 0)]));
+  const result = await query(sqlStatement, [`${prodDate} 08:00`, `${nextDay} 08:00`, datePrefixes]);
+
+  const gateByProcess = new Map();
+  const allByProcess = new Map();
+  const byPair = new Map();
+
+  result.rows.forEach((row) => {
+    const proc = row.proc;
+    const count = Number(row.lot_count || 0);
+    if (!proc || count <= 0) return;
+
+    allByProcess.set(proc, (allByProcess.get(proc) || 0) + count);
+    if (row.is_gate) {
+      gateByProcess.set(proc, (gateByProcess.get(proc) || 0) + count);
+    }
+    byPair.set(`${row.prd_key}|${proc}`, {
+      prd_key: row.prd_key,
+      product_name: row.product_name,
+      proc,
+      is_gate: Boolean(row.is_gate),
+      lot_count: count,
+    });
+  });
+
+  const data = { gateByProcess, allByProcess, byPair };
+  setCache(cacheKey, data, 30_000);
+  return data;
+}
+
+// ----------------------------------------------------------------------------
+// ปรับยอด lot_qty ของแถวระดับ (product, process, mc_line) ในวันผลิตปัจจุบันให้ตรงกับ smart_fpc_output_by_lot
+// - เฉพาะ process ที่มีการสแกนลง output_by_lot (scanProcessSet) เท่านั้นที่จะใช้ยอดจาก output_by_lot
+// - process ที่ไม่มีการสแกนลง output_by_lot (เช่น MELT1, MINT1, MFLD1) ยังคงใช้ยอดจากตารางสรุปตามเดิม
+// ----------------------------------------------------------------------------
+function applyTodayScanLotsToProductRows(rows, today, scanData, scanMeta, options = {}) {
+  const { scanProcessSet, detailProcessSet } = scanMeta;
+  const { byPair } = scanData;
+  const { allowedProcesses = null, includeMissingPairs = true, gateOnly = false } = options;
+
+  // จัดกลุ่มแถวของวันนี้ตาม `${prd_key}|${proc}`
+  const groupsByPair = new Map();
+  rows.forEach((row) => {
+    if (row.output_date !== today) return;
+    const proc = String(row.process_name || "").trim();
+    const prdKey = String(row.product_name || "").trim().replace(/-/g, "");
+    if (!proc || !prdKey) return;
+    const key = `${prdKey}|${proc}`;
+    if (!groupsByPair.has(key)) groupsByPair.set(key, []);
+    groupsByPair.get(key).push(row);
+  });
+
+  // ปรับยอดของคู่ที่มีอยู่ในตารางสรุปวันนี้
+  groupsByPair.forEach((groupRows, pairKey) => {
+    const proc = String(groupRows[0].process_name || "").trim();
+    if (!scanProcessSet.has(proc)) return; // process ที่ไม่มี scan (เช่น MELT1, MINT1) ใช้ยอดจากตารางสรุปเดิม
+
+    const scanLots = byPair.get(pairKey)?.lot_count || 0;
+    if (groupRows.length === 1) {
+      groupRows[0].actual_lot_qty = scanLots;
+      return;
+    }
+
+    const detailSum = groupRows.reduce((sum, r) => sum + Number(r.actual_lot_qty || 0), 0);
+    if (detailSum === scanLots) return;
+    if (scanLots === 0) {
+      groupRows.forEach((r) => {
+        r.actual_lot_qty = 0;
+      });
+      return;
+    }
+
+    // กรณีคู่เดียวผลิตหลาย mc_line และยอดรวมยังไม่ตรงกับ output_by_lot: ปรับตามสัดส่วนให้ผลรวมเท่ากับ scanLots พอดี
+    let remaining = scanLots;
+    groupRows.forEach((r, idx) => {
+      if (idx === groupRows.length - 1) {
+        r.actual_lot_qty = Math.max(0, remaining);
+      } else if (detailSum > 0) {
+        const share = Math.min(remaining, Math.round((Number(r.actual_lot_qty || 0) / detailSum) * scanLots));
+        r.actual_lot_qty = share;
+        remaining -= share;
+      } else {
+        r.actual_lot_qty = 0;
+      }
+    });
+  });
+
+  // เพิ่มแถวสำหรับคู่ (product, process) ที่มี scan ใน output_by_lot วันนี้แล้ว แต่ตารางสรุปยังไม่มีแถว
+  if (includeMissingPairs) {
+    byPair.forEach((pairInfo, pairKey) => {
+      if (groupsByPair.has(pairKey)) return;
+      if (!detailProcessSet.has(pairInfo.proc)) return;
+      if (gateOnly && !pairInfo.is_gate) return;
+      if (allowedProcesses && !allowedProcesses.has(pairInfo.proc)) return;
+
+      rows.push({
+        output_date: today,
+        product_name: pairInfo.product_name,
+        process_name: pairInfo.proc,
+        mc_line: null,
+        is_gate: pairInfo.is_gate,
+        actual_pcs_qty: 0,
+        actual_sht_qty: 0,
+        actual_lot_qty: pairInfo.lot_count,
+      });
+    });
+  }
 }
 
 // ----------------------------------------------------------------------------
 // GET /dashboard-lots
 // Fetch aggregated output data grouped by date and process, for Process Dashboard chart
 // Supports: startDate+endDate, date, or month query params
-// วันผลิตปัจจุบัน: actual_lot_qty = ค่าที่มากกว่าระหว่างตารางสรุป กับ smart_fpc_output_by_lot (real-time)
-//   - process ที่ batch สรุปยังตามไม่ทัน จะได้ยอดตรงกับรายการ Lot No.
+// วันผลิตปัจจุบัน:
+//   - process ที่มีใน smart_fpc_output_by_lot ใช้ยอด lot จาก smart_fpc_output_by_lot โดยตรง
 //   - process ที่ไม่มี process scan ใน output_by_lot (เช่น MELT1, MINT1) ยังใช้ยอดจากตารางสรุป
-// วันในอดีต: ใช้ตารางสรุปตามเดิม (ตรวจแล้วตรงกับ output_by_lot ทุก process ที่มีข้อมูลทั้งสองฝั่ง)
+// วันในอดีต: ใช้ตารางสรุปตามเดิม
 // ----------------------------------------------------------------------------
 router.get("/dashboard-lots", async (req, res) => {
   try {
@@ -129,10 +288,12 @@ router.get("/dashboard-lots", async (req, res) => {
     const gateOnly = req.query.gateOnly === "1";
     const cacheKey = `dashboard-lots:${startDate}:${endDate}:${date}:${month}:${line}:${gateOnly ? "gate" : "all"}`;
 
-    const cached = getCached(cacheKey);
-    if (cached) {
-      res.setHeader("X-Cache", "HIT");
-      return res.status(200).json(cached);
+    if (!_t) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        res.setHeader("X-Cache", "HIT");
+        return res.status(200).json(cached);
+      }
     }
 
     const values = [];
@@ -186,20 +347,47 @@ router.get("/dashboard-lots", async (req, res) => {
     `;
     const result = await query(sqlStatement, values);
 
-    // วันผลิตปัจจุบัน: ใช้ยอด lot ที่มากกว่าระหว่างตารางสรุปกับ output_by_lot
-    // ทำเฉพาะ gateOnly และไม่ได้กรอง line เพราะ output_by_lot ไม่มี mc_line และ /process-lots กรองเฉพาะ gate
+    // วันผลิตปัจจุบัน: ดึงยอด lot จาก smart_fpc_output_by_lot สำหรับทุก process ที่มีการสแกนลง output_by_lot
+    // ส่วน process ที่ไม่มีการสแกนลง output_by_lot (เช่น MELT1, MINT1) ยังคงใช้ยอดจากตารางสรุป
     const today = getCurrentProductionDate();
     const includesToday =
       (startDate && endDate && startDate <= today && today <= endDate) ||
       (!startDate && date === today) ||
       (!startDate && !date && month === today.slice(0, 7));
-    if (gateOnly && (!line || line === "All Lines") && includesToday) {
+    if ((!line || line === "All Lines") && includesToday) {
       try {
-        const scanCounts = await getScanLotCounts(today);
+        const [scanData, scanMeta] = await Promise.all([
+          getScanLotDataForDate(today),
+          getScanProcessMeta(),
+        ]);
+        const scanCounts = gateOnly ? scanData.gateByProcess : scanData.allByProcess;
+        const { scanProcessSet, detailProcessSet } = scanMeta;
+        const seenTodayProcs = new Set();
+
         result.rows.forEach((row) => {
           if (row.output_date !== today) return;
-          const scanLots = scanCounts.get((row.process_name || "").trim()) || 0;
-          row.actual_lot_qty = Math.max(Number(row.actual_lot_qty || 0), scanLots);
+          const proc = (row.process_name || "").trim();
+          seenTodayProcs.add(proc);
+          if (scanProcessSet.has(proc)) {
+            row.actual_lot_qty = scanCounts.get(proc) || 0;
+          }
+        });
+
+        // กรณีวันนี้มี lot สแกนใน output_by_lot แล้ว แต่ตารางสรุปยังไม่มีแถวของ process นั้นในวันนี้
+        const activeProductsCount = result.rows[0]?.active_products_count || 0;
+        scanCounts.forEach((lotCount, proc) => {
+          if (lotCount <= 0 || seenTodayProcs.has(proc)) return;
+          if (!detailProcessSet.has(proc)) return;
+          result.rows.push({
+            output_date: today,
+            process_name: proc,
+            mcline_count: 0,
+            mc_lines: null,
+            actual_pcs_qty: 0,
+            actual_sht_qty: 0,
+            actual_lot_qty: lotCount,
+            active_products_count: activeProductsCount,
+          });
         });
       } catch (scanError) {
         // ถ้าดึงยอดจาก output_by_lot ไม่ได้ ใช้ยอดจากตารางสรุปตามเดิม
@@ -219,6 +407,8 @@ router.get("/dashboard-lots", async (req, res) => {
 // ----------------------------------------------------------------------------
 // GET /dashboard-mcline
 // Fetch output aggregated by MC Line for the selected process (drill-down)
+// วันผลิตปัจจุบัน: ยอด lot ของแต่ละ MC Line คำนวณจาก smart_fpc_output_by_lot (ผ่าน assignLotMcLines)
+// ให้ตรงกับรายการ Lot No. ใน /mcline-lots
 // ----------------------------------------------------------------------------
 router.get("/dashboard-mcline", async (req, res) => {
   try {
@@ -253,21 +443,67 @@ router.get("/dashboard-mcline", async (req, res) => {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+    const today = getCurrentProductionDate();
+    const includesToday =
+      (startDate && endDate && startDate <= today && today <= endDate) ||
+      (!startDate && date === today) ||
+      (!startDate && !date && month === today.slice(0, 7));
+
     // TRIM + NULLIF: ชื่อ line ที่ต่างกันแค่ช่องว่าง หรือเป็นค่าว่าง จะไม่แยกเป็นคนละแถว (ตรงกับ /mcline-lots)
     const sqlStatement = `
       ${gateOnly ? `WITH ${GATE_PAIRS_CTE}` : ""}
       SELECT
+        TO_CHAR(output_date, 'YYYY-MM-DD') AS output_date,
+        prd_name AS product_name,
+        proc_disp AS process_name,
         NULLIF(TRIM(mc_line), '') AS mc_line,
         SUM(COALESCE(pcs_qty, 0)) AS actual_pcs_qty,
         SUM(COALESCE(sht_qty, 0)) AS actual_sht_qty,
         SUM(COALESCE(lot_qty, 0)) AS actual_lot_qty
       FROM smart.smart_fpc_process_output_detail
       ${whereClause}
-      GROUP BY NULLIF(TRIM(mc_line), '')
-      ORDER BY mc_line ASC
+      GROUP BY TO_CHAR(output_date, 'YYYY-MM-DD'), prd_name, proc_disp, NULLIF(TRIM(mc_line), '')
     `;
     const result = await query(sqlStatement, values);
-    res.status(200).json(result.rows);
+
+    if (includesToday) {
+      try {
+        const [scanData, scanMeta] = await Promise.all([
+          getScanLotDataForDate(today),
+          getScanProcessMeta(),
+        ]);
+        const allowedProcesses = process ? new Set([String(process).trim()]) : null;
+        applyTodayScanLotsToProductRows(result.rows, today, scanData, scanMeta, {
+          allowedProcesses,
+          includeMissingPairs: Boolean(process),
+          gateOnly,
+        });
+      } catch (scanError) {
+        console.error("[OutputByProcess] Error applying today scan lots in dashboard-mcline:", scanError.message);
+      }
+    }
+
+    const byMcLine = new Map();
+    result.rows.forEach((row) => {
+      const key = row.mc_line || null;
+      if (!byMcLine.has(key)) {
+        byMcLine.set(key, {
+          mc_line: key,
+          actual_pcs_qty: 0,
+          actual_sht_qty: 0,
+          actual_lot_qty: 0,
+        });
+      }
+      const agg = byMcLine.get(key);
+      agg.actual_pcs_qty += Number(row.actual_pcs_qty || 0);
+      agg.actual_sht_qty += Number(row.actual_sht_qty || 0);
+      agg.actual_lot_qty += Number(row.actual_lot_qty || 0);
+    });
+
+    const rows = Array.from(byMcLine.values()).sort((a, b) =>
+      String(a.mc_line || "").localeCompare(String(b.mc_line || ""))
+    );
+    res.status(200).json(rows);
   } catch (error) {
     console.error("[OutputByProcess] Error fetching dashboard-mcline:", error.message);
     res.status(500).json({ error: "Cannot fetch MC Line data" });
@@ -1146,6 +1382,27 @@ router.get("/process-products", async (req, res) => {
       ORDER BY output_date ASC
     `;
     const result = await query(sqlStatement, values);
+
+    // วันผลิตปัจจุบัน: ดึงยอด lot จาก smart_fpc_output_by_lot สำหรับ process ที่มีระบบสแกน
+    const today = getCurrentProductionDate();
+    if (startDate <= today && today <= endDate) {
+      try {
+        const [scanData, scanMeta] = await Promise.all([
+          getScanLotDataForDate(today),
+          getScanProcessMeta(),
+        ]);
+        const allowedProcesses =
+          process && process !== "All processes"
+            ? new Set(String(process).split(",").map((p) => p.trim()).filter(Boolean))
+            : null;
+        applyTodayScanLotsToProductRows(result.rows, today, scanData, scanMeta, {
+          allowedProcesses,
+          includeMissingPairs: true,
+        });
+      } catch (scanError) {
+        console.error("[OutputByProcess] Error applying today scan lots in process-products:", scanError.message);
+      }
+    }
 
     setCache(cacheKey, result.rows, 60_000);
     res.setHeader("X-Cache", "MISS");
