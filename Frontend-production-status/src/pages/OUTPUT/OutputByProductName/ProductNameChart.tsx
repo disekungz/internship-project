@@ -34,6 +34,7 @@ interface ProductNameChartProps {
   filterCustomerGroup?: string[];
   setFilterCustomerGroup?: (cg: string[]) => void;
   customerGroupList?: string[];
+  lotSearchSlot?: React.ReactNode; // rendered right after the product search box
 }
 
 const CHART_COLORS = [
@@ -784,7 +785,8 @@ const ProductNameChart: React.FC<ProductNameChartProps> = ({
   selectedDate = null,
   filterCustomerGroup,
   setFilterCustomerGroup,
-  customerGroupList = []
+  customerGroupList = [],
+  lotSearchSlot
 }) => {
   const [localSearch, setLocalSearch] = React.useState(productSearchQuery);
   const [legendPage, setLegendPage] = React.useState(0);
@@ -931,7 +933,10 @@ const ProductNameChart: React.FC<ProductNameChartProps> = ({
               </div>
             )}
           </div>
-          
+
+          {/* Lot No. Search */}
+          {lotSearchSlot}
+
           {/* Process Dropdown (Multi-Select) */}
           <MultiSelectDropdown 
             value={filterProcess}

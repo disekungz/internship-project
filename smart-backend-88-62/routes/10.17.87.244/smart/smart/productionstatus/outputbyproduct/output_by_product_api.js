@@ -413,4 +413,85 @@ router.get("/lots-by-product", async (req, res) => {
   }
 });
 
+// ----------------------------------------------------------------------------
+// GET /lot-search
+// Search lot numbers (partial match, case-insensitive) over production days
+// startDate..endDate (inclusive, each day 08:00 to 08:00 of the next day, based on out_time)
+// Returns every process the matched lots passed through, so the page can show the lot's route
+// Response: { lots: [{ ...lot, prod_date, process_name }], truncated } — at most LOT_SEARCH_LIMIT rows
+// Cached for 60 seconds when the range includes the current production day, otherwise 1 hour
+// ----------------------------------------------------------------------------
+const LOT_SEARCH_LIMIT = 500;
+
+router.get("/lot-search", async (req, res) => {
+  try {
+    const { lot, startDate, endDate, _t } = req.query;
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    const keyword = String(lot || "").trim();
+
+    if (keyword.length < 3 || keyword.length > 50) {
+      return res.status(400).json({ error: "lot must be 3-50 characters" });
+    }
+    if (!startDate || !endDate || !datePattern.test(startDate) || !datePattern.test(endDate)) {
+      return res.status(400).json({ error: "startDate and endDate (YYYY-MM-DD) are required" });
+    }
+    const rangeDays = (new Date(`${endDate}T00:00:00Z`) - new Date(`${startDate}T00:00:00Z`)) / 86_400_000;
+    if (!(rangeDays >= 0 && rangeDays <= 366)) {
+      return res.status(400).json({ error: "date range must be 0-366 days" });
+    }
+
+    const cacheKey = `productname:lot-search:${startDate}:${endDate}:${keyword.toUpperCase()}`;
+    if (!_t) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        res.setHeader("X-Cache", "HIT");
+        return res.status(200).json(cached);
+      }
+    }
+
+    const nextDate = new Date(new Date(`${endDate}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000)
+      .toISOString().split("T")[0];
+    const shiftStart = `${startDate} 08:00`;
+    const shiftEnd = `${nextDate} 08:00`;
+    // escape ตัวอักษรพิเศษของ LIKE (\ % _) เพื่อให้ค้นหาแบบตรงตัวอักษร
+    const likePattern = `%${keyword.replace(/[\\%_]/g, "\\$&")}%`;
+
+    // เงื่อนไขวันผลิตเดียวกับ /lots-by-product — เรียงตามเลข lot แล้วตามเวลา out เพื่อให้เห็นเส้นทาง process ของ lot
+    const lotSql = `
+      SELECT
+        TRIM(lot::text) AS lot,
+        wo,
+        cat,
+        prd_name AS product_name,
+        TRIM(proc_disp) AS process_name,
+        TO_CHAR((TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') - INTERVAL '8 hours')::date, 'YYYY-MM-DD') AS prod_date,
+        TO_CHAR(plan_date, 'YYYY-MM-DD') AS plan_date,
+        in_time,
+        out_time,
+        input_qty,
+        factory_desc,
+        prbm_problem_name
+      FROM smart.smart_fpc_output_by_lot
+      WHERE TRIM(lot::text) ILIKE $1
+        AND out_time IS NOT NULL
+        AND TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') >= $2::timestamp
+        AND TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') <  $3::timestamp
+      ORDER BY TRIM(lot::text) ASC, TO_TIMESTAMP(TRIM(out_time), 'DD/MM/YYYY HH24:MI') ASC
+      LIMIT ${LOT_SEARCH_LIMIT + 1}
+    `;
+    const lotResult = await query(lotSql, [likePattern, shiftStart, shiftEnd]);
+
+    const data = {
+      lots: lotResult.rows.slice(0, LOT_SEARCH_LIMIT),
+      truncated: lotResult.rows.length > LOT_SEARCH_LIMIT,
+    };
+    setCache(cacheKey, data, getLotCacheTtl(endDate));
+    res.setHeader("X-Cache", "MISS");
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("[OutputByProduct] Error searching lots:", error.message);
+    res.status(500).json({ error: "Cannot search lot data" });
+  }
+});
+
 module.exports = router;
