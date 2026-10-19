@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { getCustomerGroup, getProductProcessType, getProcessType, CHART_COLORS } from "./components/utils";
 import { FocusProductButton } from "./components/FocusProductButton";
+import { LotSearchBox, LotSearchHit } from "./components/LotSearchBox";
 import ProductNameChart from "./ProductNameChart";
 import * as XLSX from "xlsx";
 import { ExportModal } from "../../../components/ExportModal";
@@ -201,6 +202,9 @@ const Page: React.FC = () => {
   const [expandedLotEntries, setExpandedLotEntries] = useState<string[]>([]);
   const [lotCache, setLotCache] = useState<Record<string, LotCacheEntry>>({});
   const [detailLotSearch, setDetailLotSearch] = useState<DetailLotSearch>(EMPTY_DETAIL_LOT_SEARCH);
+  // Lot picked in the chart's Lot No. search; applied after its day's detail panel resets
+  const pendingLotFocusRef = useRef<LotSearchHit | null>(null);
+  const detailPanelRef = useRef<HTMLDivElement>(null);
 
   // Defer chart rendering to prevent page stutter on load
   useEffect(() => {
@@ -223,6 +227,7 @@ const Page: React.FC = () => {
     setDetailPage(1);
     setExpandedLotEntries([]);
     setLotCache({});
+    applyPendingLotFocus();
   }, [selectedChartDate]);
 
   useEffect(() => {
@@ -952,6 +957,54 @@ const Page: React.FC = () => {
     if (!isOpen) loadLots(row);
   };
 
+  // Lot picked in the chart's Lot No. search (does not focus the product): put the lot number in the daily-detail search
+  // and expand the processes it passed through (called once that day's detail panel is open)
+  const applyPendingLotFocus = () => {
+    const hit = pendingLotFocusRef.current;
+    pendingLotFocusRef.current = null;
+    if (!hit) return;
+
+    // lot table stores prd_name with or without '-', so compare without '-'
+    const productCode = (hit.product_name || "").trim().replace(/-/g, "");
+    const processSet = new Set(hit.processes.map(p => (p || "").trim()));
+    const rows = productsData.filter(row =>
+      row.output_date === hit.prod_date &&
+      (row.product_name || "").trim().replace(/-/g, "") === productCode &&
+      processSet.has((row.process_name || "").trim())
+    );
+
+    setDetailSearchQuery(hit.lot);
+    setDetailProcessFilter("All Processes");
+    setDetailCustomerFilter("All Customers");
+    setDetailTypeFilter("All");
+    setDetailPage(1);
+    if (rows.length > 0) {
+      setExpandedDetailProducts([rows[0].product_name]);
+      setExpandedLotEntries(rows.map(getLotEntryKey));
+      prefetchProductLots({ product_name: rows[0].product_name, entries: rows } as ProductDetailGroup);
+    }
+    setTimeout(() => detailPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
+  };
+
+  const handleLotSelect = (hit: LotSearchHit) => {
+    const productCode = (hit.product_name || "").trim().replace(/-/g, "");
+    const productName = productsData.find(row => (row.product_name || "").trim().replace(/-/g, "") === productCode)?.product_name
+      || hit.product_name;
+
+    // Drop filters that would hide this product
+    const searchText = productSearchQuery.trim().toLowerCase();
+    if (searchText && !productName.toLowerCase().includes(searchText)) setProductSearchQuery("");
+    if (filterCustomerGroup !== "All Customers" && getCustomerGroup(productName) !== filterCustomerGroup) {
+      setFilterCustomerGroup("All Customers");
+    }
+    if (selectedProduct && selectedProduct !== productName) setSelectedProduct(null);
+
+    pendingLotFocusRef.current = hit;
+    const dateKey = getGranularityDateInfo(hit.prod_date, granularity).key;
+    if (dateKey === selectedChartDate) applyPendingLotFocus();
+    else setSelectedChartDate(dateKey);
+  };
+
   // First and last output date inside the selected chart period (one day, or a week in weekly mode)
   const detailPeriodDates = useMemo(() => {
     if (!selectedChartDate) return null;
@@ -1621,6 +1674,7 @@ const Page: React.FC = () => {
               filterCustomerGroup={filterCustomerGroup}
               setFilterCustomerGroup={setFilterCustomerGroup}
               customerGroupList={customerGroupList}
+              lotSearchSlot={<LotSearchBox startDate={startDate} endDate={endDate} onSelect={handleLotSelect} />}
             />
           ) : (
             <div className="w-full min-h-[400px] flex items-center justify-center text-base-content/50">
@@ -1631,7 +1685,7 @@ const Page: React.FC = () => {
 
         {/* Daily Product Detail Panel — opens when a chart bar is clicked */}
         {selectedDayDetail && (
-          <div className="bg-base-100 rounded-xl shadow-sm border border-primary/30 ring-1 ring-primary/10 p-4 shrink-0 w-full max-w-full overflow-hidden">
+          <div ref={detailPanelRef} className="scroll-mt-4 bg-base-100 rounded-xl shadow-sm border border-primary/30 ring-1 ring-primary/10 p-4 shrink-0 w-full max-w-full overflow-hidden">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-primary/10 p-2 shrink-0">
