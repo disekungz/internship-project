@@ -8,9 +8,12 @@ export interface LotSearchHit {
   product_name: string;
   prod_date: string;
   processes: string[];
+  // Every searched row whose lot contains this lot number (lets Daily Detail skip searching again);
+  // null when the search result was truncated, so Daily Detail must search by itself
+  relatedRows: LotSearchRow[] | null;
 }
 
-interface LotSearchRow {
+export interface LotSearchRow {
   lot: string;
   product_name: string;
   process_name: string;
@@ -67,7 +70,7 @@ export const LotSearchBox: React.FC<LotSearchBoxProps> = ({ startDate, endDate, 
         console.error("Failed to search lot numbers", error);
         if (!cancelled) setStatus("error");
       }
-    }, 400);
+    }, 250);
 
     return () => {
       cancelled = true;
@@ -92,11 +95,18 @@ export const LotSearchBox: React.FC<LotSearchBoxProps> = ({ startDate, endDate, 
       if (hit) {
         if (!hit.processes.includes(row.process_name)) hit.processes.push(row.process_name);
       } else {
-        map.set(key, { lot: row.lot, product_name: row.product_name, prod_date: row.prod_date, processes: [row.process_name] });
+        map.set(key, { lot: row.lot, product_name: row.product_name, prod_date: row.prod_date, processes: [row.process_name], relatedRows: null });
       }
     });
+    // The search term is part of every lot found, so these rows already hold every lot containing
+    // the picked lot number (unless the result was truncated)
+    map.forEach(hit => {
+      if (truncated) return;
+      const lotLower = hit.lot.toLowerCase();
+      hit.relatedRows = rows.filter(row => String(row.lot).toLowerCase().includes(lotLower));
+    });
     return Array.from(map.values());
-  }, [rows]);
+  }, [rows, truncated]);
 
   const isActive = input.trim().length >= MIN_LENGTH;
 
