@@ -38,6 +38,10 @@ export interface LineDateChartProps {
   onLineFilterChange?: (lines: string[]) => void;
   selectedFactory?: "EFPC" | "SMT";
   onFactoryChange?: (factory: "EFPC" | "SMT") => void;
+  // วางต่อจากช่อง Search Line (เช่น ช่องค้นหา Lot No. ของหน้า)
+  searchAddonNode?: React.ReactNode;
+  // แสดงใต้แถวเครื่องมือ (เช่น ผลค้นหา Lot No.)
+  toolbarPanelNode?: React.ReactNode;
 }
 
 const EFPC_TARGET_LINES = new Set([
@@ -804,6 +808,8 @@ const LineDateChart: React.FC<LineDateChartProps> = ({
   onLineFilterChange,
   selectedFactory = "EFPC",
   onFactoryChange,
+  searchAddonNode,
+  toolbarPanelNode,
 }) => {
   const [legendPage, setLegendPage] = useState(0);
   const [activeUnitTab, setActiveUnitTab] = useState<"ALL" | "Piece" | "Sheet" | "Lot">("ALL");
@@ -1882,6 +1888,8 @@ const LineDateChart: React.FC<LineDateChartProps> = ({
             )}
           </div>
 
+          {searchAddonNode}
+
           {/* Factory Switcher Toggle Group: EFPC vs SMT */}
           {onFactoryChange && (
             <div className="join border border-base-300 rounded-lg p-0.5 bg-base-200/50 shadow-xs">
@@ -1955,6 +1963,8 @@ const LineDateChart: React.FC<LineDateChartProps> = ({
           )}
         </div>
       </div>
+
+      {toolbarPanelNode}
 
       {/* Multi-Unit Charts */}
       {multiUnitPreparedData ? (
