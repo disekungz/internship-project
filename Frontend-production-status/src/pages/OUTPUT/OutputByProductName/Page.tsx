@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { getCustomerGroup, getProductProcessType, getProcessType, CHART_COLORS } from "./components/utils";
 import { FocusProductButton } from "./components/FocusProductButton";
-import { LotSearchBox, LotSearchHit } from "./components/LotSearchBox";
+import { LotSearchBox, LotSearchHit, LotSearchRow } from "./components/LotSearchBox";
 import ProductNameChart from "./ProductNameChart";
 import * as XLSX from "xlsx";
 import { ExportModal } from "../../../components/ExportModal";
@@ -55,6 +55,17 @@ const LOT_SEARCH_MIN_LENGTH = 3;
 // The lot table stores prd_name with or without '-', so compare products without '-'
 const getLotMatchKey = (date: string | undefined, product: string | undefined, process: string | undefined) =>
   `${date || ""}|${(product || "").trim().replace(/-/g, "")}|${(process || "").trim()}`;
+
+// Lot numbers of /lot-search rows grouped by getLotMatchKey
+const groupLotsByEntry = (rows: LotSearchRow[]) => {
+  const lotsByEntry: Record<string, string[]> = {};
+  rows.forEach(lot => {
+    const key = getLotMatchKey(lot.prod_date, lot.product_name, lot.process_name);
+    const list = lotsByEntry[key] || (lotsByEntry[key] = []);
+    if (!list.includes(lot.lot)) list.push(lot.lot);
+  });
+  return lotsByEntry;
+};
 
 type UnitMode = "Piece" | "Sheet" | "Lot";
 type DetailViewMode = "Grouped" | "Entries";
@@ -204,6 +215,8 @@ const Page: React.FC = () => {
   const [detailLotSearch, setDetailLotSearch] = useState<DetailLotSearch>(EMPTY_DETAIL_LOT_SEARCH);
   // Lot picked in the chart's Lot No. search; applied after its day's detail panel resets
   const pendingLotFocusRef = useRef<LotSearchHit | null>(null);
+  // Lot-search result handed over from the chart's Lot No. search for the daily-detail search
+  const seededDetailLotSearchRef = useRef<{ term: string; lotsByEntry: Record<string, string[]> } | null>(null);
   const detailPanelRef = useRef<HTMLDivElement>(null);
 
   // Defer chart rendering to prevent page stutter on load
@@ -973,6 +986,15 @@ const Page: React.FC = () => {
       processSet.has((row.process_name || "").trim())
     );
 
+    // Rows of the chart search already cover this lot number; keep only those in the opened period
+    const periodKey = getGranularityDateInfo(hit.prod_date, granularity).key;
+    seededDetailLotSearchRef.current = hit.relatedRows
+      ? {
+        term: hit.lot,
+        lotsByEntry: groupLotsByEntry(hit.relatedRows.filter(row => isDateInPeriod(row.prod_date, periodKey, granularity)))
+      }
+      : null;
+
     setDetailSearchQuery(hit.lot);
     setDetailProcessFilter("All Processes");
     setDetailCustomerFilter("All Customers");
@@ -1033,6 +1055,14 @@ const Page: React.FC = () => {
       return;
     }
 
+    // Lot picked in the chart's Lot No. search: reuse its result instead of searching again
+    const seeded = seededDetailLotSearchRef.current;
+    if (seeded && seeded.term === term) {
+      seededDetailLotSearchRef.current = null;
+      setDetailLotSearch({ term, status: "ok", lotsByEntry: seeded.lotsByEntry });
+      return;
+    }
+
     let cancelled = false;
     setDetailLotSearch(prev => ({ ...prev, status: "loading" }));
     const timer = setTimeout(async () => {
@@ -1044,20 +1074,13 @@ const Page: React.FC = () => {
         });
         const res = await fetch(`${getApiBaseUrl()}/outputbyproduct/lot-search?${params.toString()}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: { lots?: (LotDetail & { product_name: string; process_name: string; prod_date: string })[] } = await res.json();
-
-        const lotsByEntry: Record<string, string[]> = {};
-        (data.lots || []).forEach(lot => {
-          const key = getLotMatchKey(lot.prod_date, lot.product_name, lot.process_name);
-          const list = lotsByEntry[key] || (lotsByEntry[key] = []);
-          if (!list.includes(lot.lot)) list.push(lot.lot);
-        });
-        if (!cancelled) setDetailLotSearch({ term, status: "ok", lotsByEntry });
+        const data: { lots?: LotSearchRow[] } = await res.json();
+        if (!cancelled) setDetailLotSearch({ term, status: "ok", lotsByEntry: groupLotsByEntry(data.lots || []) });
       } catch (error) {
         console.error("Failed to search lot numbers", error);
         if (!cancelled) setDetailLotSearch({ term, status: "error", lotsByEntry: {} });
       }
-    }, 400);
+    }, 250);
 
     return () => {
       cancelled = true;
