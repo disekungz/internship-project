@@ -25,6 +25,10 @@ interface ProcessDateChartProps {
   onBarClick?: (rawDate: string, processName: string) => void;
   selectedDate?: string | null;
   onProcessFilterChange?: (processes: string[]) => void;
+  // วางต่อจากช่อง Search Process (เช่น ช่องค้นหา Lot No. ของหน้า)
+  searchAddonNode?: React.ReactNode;
+  // แสดงใต้แถวเครื่องมือ (เช่น ผลค้นหา Lot No.)
+  toolbarPanelNode?: React.ReactNode;
 }
 
 const ITEMS_PER_PAGE = 25;
@@ -574,7 +578,9 @@ const ProcessDateChart: React.FC<ProcessDateChartProps> = ({
   activeProcesses,
   onBarClick,
   selectedDate,
-  onProcessFilterChange
+  onProcessFilterChange,
+  searchAddonNode,
+  toolbarPanelNode
 }) => {
   const [activeUnitTab, setActiveUnitTab] = useState<"ALL" | "Piece" | "Sheet" | "Lot">("ALL");
 
@@ -851,6 +857,8 @@ const ProcessDateChart: React.FC<ProcessDateChartProps> = ({
             )}
           </div>
 
+          {searchAddonNode}
+
           {/* Unit Toggle Tabs */}
           {multiUnitData && (
             <div className="join border border-base-300 bg-base-100 p-0.5 rounded-lg">
@@ -942,6 +950,8 @@ const ProcessDateChart: React.FC<ProcessDateChartProps> = ({
           </div>
         </div>
       </div>
+
+      {toolbarPanelNode}
 
       {/* Multi-Unit Charts or Single Unit Chart */}
       {multiUnitPreparedData ? (
