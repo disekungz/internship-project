@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Filter, RefreshCcw, Layers, Cpu, Award, BarChart3, Sparkles, ChevronUp, ChevronDown, ChevronRight, Package, CalendarDays, ArrowLeft, MousePointerClick, Download, Target, TrendingUp, Scale, Gauge, ScanLine } from "lucide-react";
+import { Filter, RefreshCcw, Layers, Cpu, Award, BarChart3, Sparkles, ChevronUp, ChevronDown, ChevronRight, Package, CalendarDays, ArrowLeft, MousePointerClick, Download, Target, TrendingUp, Scale, Gauge, ScanLine, Search, Clock } from "lucide-react";
 import TopOutputChart from "./TopOutputChart";
 import ProcessDateChart from "./ProcessDateChart";
 import LineDateChart from "./LineDateChart";
+import LotSearchBox from "./LotSearchBox";
+import { useLotSearch, groupLotRows, formatLotOutTime, getLotProductionDate, LOT_INDEX_MAX_DAYS, type LotIndexRow } from "./useLotSearch";
+import { useStableStringArray } from "./useStableStringArray";
 
 
 
@@ -389,7 +392,7 @@ const LINE_SOURCE_LABELS: Record<string, string> = {
   same_line_group: "ทุก MC Line ที่เป็นไปได้อยู่ใน line นี้",
 };
 
-const getLotBadgeTitle = (lot: LotDetail) => {
+const getLotBadgeTitle = (lot: Pick<LotDetail, "product_name" | "out_time" | "input_qty" | "line_source" | "mc_line" | "candidate_lines">) => {
   const base = `${lot.product_name || "-"} | Out: ${lot.out_time || "-"} | Qty: ${lot.input_qty ?? "-"}`;
   const sourceLabel = lot.line_source ? LINE_SOURCE_LABELS[lot.line_source] || lot.line_source : "";
   if (lot.mc_line) return `${base} | MC Line: ${lot.mc_line}${sourceLabel ? ` (${sourceLabel})` : ""}`;
@@ -403,6 +406,31 @@ interface LotCacheEntry {
   status: "loading" | "ok" | "error";
   rows: LotDetail[];
 }
+
+// จำนวน lot ที่แสดงในผลค้นหา — คำค้นสั้นอาจตรงกับหลาย lot
+const LOT_SEARCH_MAX_GROUPS = 20;
+
+// Auto refresh (นาที, 0 = ปิด) — จำค่าที่เลือกไว้ใน localStorage ของเครื่องนั้น (เช่น จอที่เปิดค้างในไลน์ผลิต)
+const AUTO_REFRESH_OPTIONS = [0, 1, 5, 15];
+const AUTO_REFRESH_DEFAULT_MINUTES = 5;
+const AUTO_REFRESH_STORAGE_KEY = "outputByProcess.autoRefreshMinutes";
+
+const loadAutoRefreshMinutes = () => {
+  try {
+    const saved = localStorage.getItem(AUTO_REFRESH_STORAGE_KEY);
+    const minutes = Number(saved);
+    return saved !== null && AUTO_REFRESH_OPTIONS.includes(minutes) ? minutes : AUTO_REFRESH_DEFAULT_MINUTES;
+  } catch {
+    return AUTO_REFRESH_DEFAULT_MINUTES;
+  }
+};
+
+// เวลาอัปเดตล่าสุด HH:MM:SS — ถ้าไม่ใช่วันนี้ใส่วันที่ DD/MM ด้วย (เช่น จอที่เปิดค้างข้ามคืนแต่ปิด auto refresh)
+const formatUpdatedTime = (date: Date) => {
+  const time = date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  if (date.toDateString() === new Date().toDateString()) return time;
+  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")} ${time}`;
+};
 
 type ExportRow = {
   Date: string;
@@ -664,6 +692,14 @@ const Page: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  // Auto refresh: โหลดข้อมูลใหม่ตามรอบโดยคงมุมมองเดิม (ช่วงวันที่ / วันที่ที่เลือก / ตัวกรอง / แถวที่เปิดอยู่)
+  const [autoRefreshMinutes, setAutoRefreshMinutes] = useState(loadAutoRefreshMinutes);
+  const [autoRefreshTick, setAutoRefreshTick] = useState(0);
+  // เวลาที่โหลดข้อมูลหลักสำเร็จล่าสุด และการโหลดครั้งล่าสุดล้มเหลวหรือไม่
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [lastUpdateFailed, setLastUpdateFailed] = useState(false);
+  // เวลาที่การโหลดครั้งล่าสุดจบ (สำเร็จหรือไม่ก็ตาม) — ใช้นับรอบ auto refresh ถัดไป
+  const lastFetchDoneRef = useRef(Date.now());
   const [selectedProcess, setSelectedProcess] = useState<string>("");
   const [dailyProcessFilter, setDailyProcessFilter] = useState<string[]>([]);
   const [dailyLineFilter, setDailyLineFilter] = useState<string[]>([]);
@@ -733,6 +769,24 @@ const Page: React.FC = () => {
     ? (lotRange.start === lotRange.end ? lotRange.start : `${lotRange.start} – ${lotRange.end}`)
     : (selectedChartDate || "");
 
+  // ค้นหา Lot No. ทั้งช่วง From–To (useLotSearch โหลด lot ของช่วงครั้งเดียว แล้วค้น/แนะนำในเบราว์เซอร์)
+  // ช่องค้นหาอยู่ต่อจาก Search Process/Line ของกราฟ — ตาราง Process Output Details ใช้ผลเดียวกันเน้นแถวและป้าย lot
+  const globalLotSearch = useLotSearch(startDate, endDate, refreshTrigger, autoRefreshTick);
+  const lotSearchTerm = globalLotSearch.term;
+  // ผลค้นหาเฉพาะแถวที่วันผลิตอยู่ในวัน/สัปดาห์ที่เลือก
+  const lotSearchRows = useMemo<LotIndexRow[]>(() => {
+    const result = globalLotSearch.result;
+    if (result?.status !== "ok" || !lotRangeStart || !lotRangeEnd) return [];
+    return result.rows.filter(row => {
+      const prodDate = getLotProductionDate(row.out_time);
+      return prodDate !== null && prodDate >= lotRangeStart && prodDate <= lotRangeEnd;
+    });
+  }, [globalLotSearch.result, lotRangeStart, lotRangeEnd]);
+  const lotSearchHits = useMemo(() => new Set(lotSearchRows.map(row => (row.lot || "").trim())), [lotSearchRows]);
+  const [scrollToProcess, setScrollToProcess] = useState<string | null>(null);
+  // process ที่ต้องไปหลังเปิดวันจากผลค้นหาช่องบน — รอให้ตารางของวันนั้น render ก่อน
+  const [pendingLotJump, setPendingLotJump] = useState<string | null>(null);
+
   // เปลี่ยน Daily/Weekly: ล้างงวดที่เลือกไว้ เพราะ key ของวัน (2026-10-14) กับสัปดาห์ (2026-WK42) ใช้แทนกันไม่ได้
   const changeGranularity = (next: OutputGranularity) => {
     if (next === granularity) return;
@@ -746,13 +800,14 @@ const Page: React.FC = () => {
 
   const getLotCacheKey = (processName: string) => `${lotRange?.start || ""}|${lotRange?.end || ""}|${processName}`;
 
-  const loadLots = async (processName: string, force = false) => {
+  // background: โหลดซ้ำหลังข้อมูลหลักอัปเดต (auto refresh) — เก็บรายการเดิมไว้ระหว่างโหลด และถ้าโหลดไม่สำเร็จก็ใช้รายการเดิมต่อ
+  const loadLots = async (processName: string, force = false, background = false) => {
     // ต้องเลือกวัน/สัปดาห์ก่อน — renderLotPanel จะแสดงข้อความให้เลือกวันแทน
     if (!lotRange) return;
     const cacheKey = getLotCacheKey(processName);
-    if (!force && lotCache[cacheKey] && lotCache[cacheKey].status !== "error") return;
+    if (!force && !background && lotCache[cacheKey] && lotCache[cacheKey].status !== "error") return;
 
-    setLotCache(prev => ({ ...prev, [cacheKey]: { status: "loading", rows: [] } }));
+    if (!background) setLotCache(prev => ({ ...prev, [cacheKey]: { status: "loading", rows: [] } }));
     try {
       const params = new URLSearchParams({
         process: processName,
@@ -769,7 +824,7 @@ const Page: React.FC = () => {
       setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: Array.isArray(data) ? data : [] } }));
     } catch (error) {
       console.error("Failed to fetch process lot detail", error);
-      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
+      if (!background) setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
     }
   };
 
@@ -839,10 +894,10 @@ const Page: React.FC = () => {
     return { pairs, summaryLotByProcess, classifyLot };
   };
 
-  const loadLineLots = async (lineName: string, force = false) => {
+  const loadLineLots = async (lineName: string, force = false, background = false) => {
     if (!lotRange) return;
     const cacheKey = getLotCacheKey(`line:${lineName}`);
-    if (!force && lotCache[cacheKey] && lotCache[cacheKey].status !== "error") return;
+    if (!force && !background && lotCache[cacheKey] && lotCache[cacheKey].status !== "error") return;
 
     const { pairs } = getLineLotGroups(lineName);
     if (pairs.length === 0) {
@@ -850,7 +905,7 @@ const Page: React.FC = () => {
       return;
     }
 
-    setLotCache(prev => ({ ...prev, [cacheKey]: { status: "loading", rows: [] } }));
+    if (!background) setLotCache(prev => ({ ...prev, [cacheKey]: { status: "loading", rows: [] } }));
     try {
       const res = await fetch(`${getApiBaseUrl()}/outputbyprocess/line-lots`, {
         method: "POST",
@@ -868,18 +923,18 @@ const Page: React.FC = () => {
       setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: Array.isArray(data?.lots) ? data.lots : [] } }));
     } catch (error) {
       console.error("Failed to fetch line lot detail", error);
-      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
+      if (!background) setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
     }
   };
 
   // MC Line Details: โหลด lot ของทุก MC Line ใน process ครั้งเดียว — backend ระบุ mc_line ของแต่ละ lot ให้แล้ว
   // (output_by_lot ไม่มี mc_line — ถ้าค้นตามคู่ product + process แบบ By Line, product ที่ผลิตหลาย line จะถูกนับซ้ำทุก line)
-  const loadMcLineLots = async (processName: string, force = false) => {
+  const loadMcLineLots = async (processName: string, force = false, background = false) => {
     if (!lotRange) return;
     const cacheKey = getLotCacheKey(`mcline:${processName}`);
-    if (!force && lotCache[cacheKey] && lotCache[cacheKey].status !== "error") return;
+    if (!force && !background && lotCache[cacheKey] && lotCache[cacheKey].status !== "error") return;
 
-    setLotCache(prev => ({ ...prev, [cacheKey]: { status: "loading", rows: [] } }));
+    if (!background) setLotCache(prev => ({ ...prev, [cacheKey]: { status: "loading", rows: [] } }));
     try {
       const params = new URLSearchParams({
         process: processName,
@@ -895,7 +950,7 @@ const Page: React.FC = () => {
       setLotCache(prev => ({ ...prev, [cacheKey]: { status: "ok", rows: Array.isArray(data?.lots) ? data.lots : [] } }));
     } catch (error) {
       console.error("Failed to fetch MC line lot detail", error);
-      setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
+      if (!background) setLotCache(prev => ({ ...prev, [cacheKey]: { status: "error", rows: [] } }));
     }
   };
 
@@ -916,6 +971,19 @@ const Page: React.FC = () => {
       else loadLots(processName);
     }
   };
+
+  // ข้อมูลหลักโหลดใหม่แล้ว (เช่น auto refresh) — โหลด Lot No. ของแถวที่เปิดอยู่ใหม่แบบเงียบ ให้ตรงกับยอดในตาราง
+  // (เปลี่ยนช่วง/วัน/โหมดจะล้างแถวที่เปิดอยู่ก่อนแล้ว จึงไม่โหลดของช่วงเก่า)
+  useEffect(() => {
+    if (!lastUpdated) return;
+    expandedLotProcesses.forEach(name => {
+      if (viewMode === "line") loadLineLots(name, false, true);
+      else loadLots(name, false, true);
+    });
+    if (selectedProcess && expandedMcLines.length > 0) loadMcLineLots(selectedProcess, false, true);
+    // เรียกเมื่อ lastUpdated เปลี่ยนเท่านั้น — ฟังก์ชันโหลดเปลี่ยนทุก render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastUpdated]);
 
   // สถานะร่วมของแถบ Lot No. (ยังไม่เลือกวัน / กำลังโหลด / error) — คืน null เมื่อโหลดเสร็จแล้ว
   const renderLotPanelStatus = (entry: LotCacheEntry | undefined, onRetry: () => void) => {
@@ -954,11 +1022,14 @@ const Page: React.FC = () => {
     return null;
   };
 
+  // ป้ายของ lot ที่ตรงกับคำค้น Lot No. — สีเข้มให้เห็นชัด
+  const lotSearchHitClass = "border-primary bg-primary text-primary-content ring-2 ring-primary/30";
+
   const renderLotBadge = (lot: LotDetail, i: number) => (
     <span
       key={`${lot.lot}_${lot.out_time}_${i}`}
       title={getLotBadgeTitle(lot)}
-      className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-primary/25 bg-primary/10 text-primary"
+      className={`font-mono text-xs font-semibold px-2 py-0.5 rounded-md border ${lotSearchHits.has((lot.lot || "").trim()) ? lotSearchHitClass : "border-primary/25 bg-primary/10 text-primary"}`}
     >
       {lot.lot}
     </span>
@@ -969,7 +1040,7 @@ const Page: React.FC = () => {
     <span
       key={`${lot.lot}_${lot.out_time}_${i}`}
       title={getLotBadgeTitle(lot)}
-      className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-dashed border-base-content/30 bg-base-200/60 text-base-content/60"
+      className={`font-mono text-xs font-semibold px-2 py-0.5 rounded-md border border-dashed ${lotSearchHits.has((lot.lot || "").trim()) ? lotSearchHitClass : "border-base-content/30 bg-base-200/60 text-base-content/60"}`}
     >
       {lot.lot}
     </span>
@@ -1057,7 +1128,17 @@ const Page: React.FC = () => {
 
   const renderLotPanel = (processName: string, summaryLot: number) => {
     const entry = lotCache[getLotCacheKey(processName)];
-    const lotRows = entry?.rows || [];
+    const rawLotRows = entry?.rows || [];
+    const allowedProducts = (processFamilyFilter === "All" && selectedLineGroup === "All")
+      ? null
+      : new Set(
+        chartFilteredProductRows
+          .filter(row => (row.process_name || "").trim() === processName.trim())
+          .map(row => (row.product_name || "").trim().replace(/-/g, ""))
+      );
+    const lotRows = allowedProducts
+      ? rawLotRows.filter(lot => allowedProducts.has((lot.product_name || "").trim().replace(/-/g, "")))
+      : rawLotRows;
     const status = renderLotPanelStatus(entry, () => loadLots(processName, true));
 
     return (
@@ -1092,8 +1173,8 @@ const Page: React.FC = () => {
     const status = renderLotPanelStatus(entry, () => loadMcLineLots(processName, true));
     const targetMc = mcLine.trim();
 
-    // ตัวกรอง FPC/SMT: แถว MC Line คิดจากเฉพาะ product ในตัวกรอง — lot จึงกรองด้วย product ชุดเดียวกัน
-    const allowedProducts = processFamilyFilter === "All"
+    // ตัวกรอง FPC/SMT หรือ Group Line: แถว MC Line คิดจากเฉพาะ product ในตัวกรอง — lot จึงกรองด้วย product ชุดเดียวกัน
+    const allowedProducts = (processFamilyFilter === "All" && selectedLineGroup === "All")
       ? null
       : new Set(
         chartFilteredProductRows
@@ -1158,10 +1239,14 @@ const Page: React.FC = () => {
   // Removed fetchLines since Line filter is removed
 
   // Fetch lots and targets directly using the high-performance aggregated endpoint
+  // โหลดใหม่เมื่อเปลี่ยนช่วง, กด Refresh หรือถึงรอบ auto refresh (ไม่ส่ง _t — หลายจอใช้ cache 60 วินาทีฝั่ง backend ร่วมกันได้)
   useEffect(() => {
-    const fetchLots = async () => {
-      if (!startDate || !endDate) return;
+    if (!startDate || !endDate) return;
+    // ยกเลิก request รอบก่อนที่ยังค้าง — กัน response เก่าที่มาช้าทับข้อมูลใหม่ (auto refresh ทำให้ request ซ้อนกันได้)
+    const controller = new AbortController();
+    let cancelled = false;
 
+    const fetchLots = async () => {
       setIsLoading(true);
       try {
         const url = `${getApiBaseUrl()}/outputbyprocess/dashboard-lots?`;
@@ -1173,26 +1258,69 @@ const Page: React.FC = () => {
 
         // By Process แสดงเฉพาะ gate process: dashboard-lots กรองที่ backend, process-products ส่ง is_gate มาให้กรองฝั่งนี้
         const [resLots, resProducts, resTargets] = await Promise.all([
-          fetch(url + baseParams.toString() + "&gateOnly=1"),
-          fetch(productUrl + baseParams.toString()),
-          fetch(targetUrl)
+          fetch(url + baseParams.toString() + "&gateOnly=1", { signal: controller.signal }),
+          fetch(productUrl + baseParams.toString(), { signal: controller.signal }),
+          fetch(targetUrl, { signal: controller.signal })
         ]);
-        if (resLots.ok) setLots(await resLots.json());
-        if (resProducts.ok) setProductRows(await resProducts.json());
-        if (resTargets && resTargets.ok) {
-          setTargets(await resTargets.json());
-        } else {
-          setTargets([]);
-        }
+        const [lotsData, productsData, targetsData] = await Promise.all([
+          resLots.ok ? resLots.json() : null,
+          resProducts.ok ? resProducts.json() : null,
+          resTargets.ok ? resTargets.json() : []
+        ]);
+        if (cancelled) return;
+        if (lotsData) setLots(lotsData);
+        if (productsData) setProductRows(productsData);
+        setTargets(targetsData);
+        const ok = resLots.ok && resProducts.ok;
+        if (ok) setLastUpdated(new Date());
+        setLastUpdateFailed(!ok);
       } catch (error) {
+        if (cancelled) return;
         console.error("Failed to fetch lots or targets", error);
+        setLastUpdateFailed(true);
       } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
+        if (!cancelled) {
+          lastFetchDoneRef.current = Date.now();
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
       }
     };
     fetchLots();
-  }, [startDate, endDate, refreshTrigger]);
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [startDate, endDate, refreshTrigger, autoRefreshTick]);
+
+  // Auto refresh: ทุก autoRefreshMinutes นาทีนับจากการโหลดครั้งล่าสุด — ข้ามระหว่างกำลังโหลด และตอนแท็บถูกซ่อน
+  // (กลับมาเปิดแท็บแล้วถ้าเลยรอบไปแล้วจะโหลดทันที) — isRefreshing ทำให้กราฟ/ตารางไม่ขึ้น skeleton ระหว่างโหลด
+  useEffect(() => {
+    if (!autoRefreshMinutes || isLoading) return;
+    const intervalMs = autoRefreshMinutes * 60_000;
+    const refreshIfDue = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastFetchDoneRef.current < intervalMs) return;
+      setIsRefreshing(true);
+      setAutoRefreshTick(n => n + 1);
+    };
+    const timer = window.setInterval(refreshIfDue, 15_000);
+    document.addEventListener("visibilitychange", refreshIfDue);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshIfDue);
+    };
+  }, [autoRefreshMinutes, isLoading]);
+
+  const changeAutoRefresh = (minutes: number) => {
+    setAutoRefreshMinutes(minutes);
+    try {
+      localStorage.setItem(AUTO_REFRESH_STORAGE_KEY, String(minutes));
+    } catch {
+      // ใช้ storage ไม่ได้ (เช่น private mode) — ใช้ค่าที่เลือกเฉพาะหน้านี้
+    }
+  };
 
   // Fallback targets fetch if switching to line mode and targets are not yet cached
   useEffect(() => {
@@ -2111,6 +2239,10 @@ const Page: React.FC = () => {
     };
   }, [lots, chartFilteredProductRows, processFamilyFilter, selectedLineGroup, unitMode, granularity, targetMapByDate, viewMode, lineGroups, startDate, endDate, selectedFactory, targets]);
 
+  // รายชื่อ process/line ที่ส่งให้กราฟ — คง array เดิมเมื่อรายชื่อไม่เปลี่ยน (เช่น auto refresh หรือเปลี่ยนหน่วย)
+  // กราฟจะรีเซ็ตตัวกรอง Search Process/Line เมื่อรายชื่อเปลี่ยนจริงเท่านั้น
+  const chartActiveNames = useStableStringArray(chartDataAndProcs.activeProcesses);
+
   const lineStats = useMemo(() => {
     const totalLinesCount = lineSummaryData.length;
     const isLineFiltered = dailyLineFilter.length > 0 && dailyLineFilter.length < totalLinesCount;
@@ -2415,19 +2547,23 @@ const Page: React.FC = () => {
   }, [lots, chartFilteredProductRows, processFamilyFilter, selectedLineGroup, granularity, targetMapByDate, viewMode, lineGroups, startDate, endDate, selectedFactory]);
 
   // Fetch MC Line Data when a process is selected
+  // โหลดซ้ำของ process + ช่วง + หน่วยเดิม (เช่น หลัง auto refresh): เก็บตารางเดิมไว้ระหว่างโหลด ไม่ขึ้น skeleton
+  const mcLineLoadedKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (!selectedProcess) {
+      mcLineLoadedKeyRef.current = null;
       setMcLineData([]);
+      setIsMcLineLoading(false);
       return;
     }
 
-    if (processFamilyFilter !== "All") {
+    if (processFamilyFilter !== "All" || selectedLineGroup !== "All") {
       const lineMap: Record<string, { mc_line: string; output_value: number; sum_pcs: number; sum_sht: number; sum_lot: number }> = {};
 
       chartFilteredProductRows
         .filter(row => row.process_name === selectedProcess)
         .forEach(row => {
-          const line = row.mc_line || "Unknown";
+          const line = (row.mc_line || "").trim() || "Unknown";
           if (!lineMap[line]) {
             lineMap[line] = {
               mc_line: line,
@@ -2448,33 +2584,40 @@ const Page: React.FC = () => {
         output_value: unitMode === "Piece" ? item.sum_pcs : unitMode === "Sheet" ? item.sum_sht : item.sum_lot
       }));
 
+      mcLineLoadedKeyRef.current = null;
       setMcLineData(formatted);
       setIsMcLineLoading(false);
       return;
     }
 
+    // เลิกใช้ผลของรอบก่อนที่ยังค้าง — กันข้อมูลของ process/ช่วงเก่าทับของใหม่
+    let cancelled = false;
     const fetchMcLineData = async () => {
-      setIsMcLineLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (selectedChartDate) {
-          // selectedChartDate อาจเป็น week key (เช่น 2026-WK42) — ใช้ช่วงวันที่จริงจาก lotRange แทน
-          if (!lotRangeStart || !lotRangeEnd) {
-            setMcLineData([]);
-            return;
-          }
-          params.append("startDate", lotRangeStart);
-          params.append("endDate", lotRangeEnd);
-        } else if (startDate && endDate) {
-          params.append("startDate", startDate);
-          params.append("endDate", endDate);
+      const params = new URLSearchParams();
+      if (selectedChartDate) {
+        // selectedChartDate อาจเป็น week key (เช่น 2026-WK42) — ใช้ช่วงวันที่จริงจาก lotRange แทน
+        if (!lotRangeStart || !lotRangeEnd) {
+          mcLineLoadedKeyRef.current = null;
+          setMcLineData([]);
+          setIsMcLineLoading(false);
+          return;
         }
-        params.append("process", selectedProcess);
-        params.append("gateOnly", "1");
+        params.append("startDate", lotRangeStart);
+        params.append("endDate", lotRangeEnd);
+      } else if (startDate && endDate) {
+        params.append("startDate", startDate);
+        params.append("endDate", endDate);
+      }
+      params.append("process", selectedProcess);
+      params.append("gateOnly", "1");
+      const loadKey = `${params.toString()}|${unitMode}`;
+      if (mcLineLoadedKeyRef.current !== loadKey) setIsMcLineLoading(true);
 
+      try {
         const res = await fetch(`${getApiBaseUrl()}/outputbyprocess/dashboard-mcline?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to fetch MC Line data");
         const data = await res.json();
+        if (cancelled) return;
 
         const formatted = data.map((item: any) => {
           const val = unitMode === "Piece" ? Number(item.actual_pcs_qty || 0) : unitMode === "Sheet" ? Number(item.actual_sht_qty || 0) : Number(item.actual_lot_qty || 0);
@@ -2487,16 +2630,21 @@ const Page: React.FC = () => {
           };
         });
 
+        mcLineLoadedKeyRef.current = loadKey;
         setMcLineData(formatted);
       } catch (err) {
+        if (cancelled) return;
         console.error("Failed to fetch MC Line data", err);
       } finally {
-        setIsMcLineLoading(false);
+        if (!cancelled) setIsMcLineLoading(false);
       }
     };
 
     fetchMcLineData();
-  }, [selectedProcess, startDate, endDate, selectedChartDate, lotRangeStart, lotRangeEnd, unitMode, processFamilyFilter, chartFilteredProductRows]);
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProcess, startDate, endDate, selectedChartDate, lotRangeStart, lotRangeEnd, unitMode, processFamilyFilter, selectedLineGroup, chartFilteredProductRows]);
 
   const mcLineTotal = useMemo(() => mcLineData.reduce((sum, item) => sum + item.output_value, 0), [mcLineData]);
 
@@ -2566,6 +2714,155 @@ const Page: React.FC = () => {
     return listCopy;
   }, [viewMode, lineSummaryData, summaryData, sortField, sortDirection]);
 
+  // จำนวนรายการที่ตรงกับคำค้น Lot No. ต่อ process ในวัน/สัปดาห์ที่เลือก — ใช้เน้นแถวในตาราง
+  // ตัวกรอง FPC/SMT หรือ Group Line: นับเฉพาะคู่ product + process ที่อยู่ในตัวกรอง เหมือนรายการ Lot No. ของแต่ละแถว
+  const lotSearchView = useMemo(() => {
+    const rows = lotSearchRows;
+    const pairKey = (product?: string | null, process?: string | null) =>
+      `${(product || "").trim().replace(/-/g, "")}|${(process || "").trim()}`;
+    const allowedPairs = (processFamilyFilter === "All" && selectedLineGroup === "All")
+      ? null
+      : new Set(chartFilteredProductRows.map(row => pairKey(row.product_name, row.process_name)));
+    const visibleRows = allowedPairs
+      ? rows.filter(lot => allowedPairs.has(pairKey(lot.product_name, lot.process_name)))
+      : rows;
+
+    const hitCountByProcess = new Map<string, number>();
+    visibleRows.forEach(lot => {
+      const proc = (lot.process_name || "").trim();
+      hitCountByProcess.set(proc, (hitCountByProcess.get(proc) || 0) + 1);
+    });
+
+    return { hitCountByProcess };
+  }, [lotSearchRows, processFamilyFilter, selectedLineGroup, chartFilteredProductRows]);
+
+  // กดชื่อ process ในผลค้นหา: ไปหน้าที่มีแถวนั้น เปิดรายการ Lot No. แล้วเลื่อนไปที่แถว
+  // ใช้ functional update + loadLots ตรง ๆ — เรียกได้ใน commit เดียวกับที่ effect ล้าง expandedLotProcesses / lotCache ตอนเปลี่ยนวัน
+  const jumpToLotProcess = (processName: string) => {
+    const index = sortedSummaryData.findIndex(item => item.process_name === processName);
+    if (index < 0) return;
+    setDetailsCurrentPage(Math.floor(index / detailsItemsPerPage) + 1);
+    setExpandedLotProcesses(prev => (prev.includes(processName) ? prev : [...prev, processName]));
+    loadLots(processName);
+    setScrollToProcess(processName);
+  };
+
+  // ผลค้นหาช่องบน: รอให้ตารางของวันที่เปิด render แล้วค่อยไปที่แถว process
+  // (effect นี้อยู่หลัง effect ที่ล้างค่าตอนเปลี่ยนวัน จึงทำงานทีหลังในรอบเดียวกัน)
+  useEffect(() => {
+    if (!pendingLotJump || isLoading) return;
+    jumpToLotProcess(pendingLotJump);
+    setPendingLotJump(null);
+    // jumpToLotProcess เปลี่ยนทุก render — เรียกเมื่อมี pending และตารางของวันนั้นพร้อมเท่านั้น
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingLotJump, isLoading, sortedSummaryData]);
+
+  useEffect(() => {
+    if (!scrollToProcess) return;
+    document
+      .querySelector(`[data-process-row="${CSS.escape(scrollToProcess)}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setScrollToProcess(null);
+  }, [scrollToProcess]);
+
+  // ผลค้นหาช่องบน → เปิดวันผลิตของแถวนั้นในกราฟ/ตาราง, ส่ง lot ไปค้นต่อในช่องของตาราง แล้วไปที่แถว process
+  const openLotInTable = (lot: string, row: LotIndexRow) => {
+    const prodDate = getLotProductionDate(row.out_time);
+    const proc = (row.process_name || "").trim();
+    if (!prodDate || !proc) return;
+    // key ของงวดตาม granularity ที่เลือกอยู่ (เช่น 2026-10-14 หรือ 2026-WK42) — เหมือนกดแท่งในกราฟ
+    setViewMode("process");
+    setSelectedProcess("");
+    setSelectedChartDate(getGranularityDateInfo(prodDate, granularity).key);
+    setProcessFamilyFilter("All");
+    setDailyProcessFilter([]);
+    setPendingLotJump(proc);
+  };
+
+  const renderGlobalLotSearchPanel = () => {
+    const { term, result, rangeTooLong } = globalLotSearch;
+    if (!term) return null;
+    const rangeText = `${formatDate(startDate)} – ${formatDate(endDate)}`;
+    let content: React.ReactNode;
+
+    if (rangeTooLong) {
+      content = (
+        <span className="text-xs text-base-content/60">
+          ช่วงวันที่ยาวเกิน {LOT_INDEX_MAX_DAYS} วัน — เลือก From–To ให้สั้นลงเพื่อค้นหา Lot No.
+        </span>
+      );
+    } else if (!result || result.status === "loading") {
+      content = (
+        <span className="flex items-center gap-2 text-xs text-base-content/60">
+          <span className="loading loading-spinner loading-xs"></span>
+          Searching Lot No. "{term}"...
+        </span>
+      );
+    } else if (result.status === "error") {
+      content = (
+        <span className="flex items-center gap-2 text-xs text-error">
+          Cannot load lot data.
+          <button type="button" className="btn btn-xs btn-ghost" onClick={globalLotSearch.retry}>
+            Retry
+          </button>
+        </span>
+      );
+    } else {
+      const groups = groupLotRows(result.rows);
+      content = groups.length === 0 ? (
+        <span className="text-xs text-base-content/60">
+          ไม่พบ Lot No. "{term}" ใน output ของ gate process ช่วง {rangeText} (08:00–08:00)
+        </span>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-base-content/45">
+            Lot search · {groups.length.toLocaleString()} lot · {rangeText} · กดชื่อ process เพื่อเปิดวันนั้นในตาราง
+          </span>
+          {groups.slice(0, LOT_SEARCH_MAX_GROUPS).map(({ lot, rows }) => (
+            <div key={lot} className="flex flex-wrap items-center gap-1.5">
+              <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded-md border ${lotSearchHitClass}`}>{lot}</span>
+              <span className="text-xs text-base-content/55 mr-1">{rows[0].product_name || "-"}</span>
+              {rows.map((row, i) => {
+                const proc = (row.process_name || "").trim();
+                const prodDate = getLotProductionDate(row.out_time);
+                const isLatest = i === rows.length - 1;
+                // แถวนี้อยู่ในวัน/สัปดาห์ที่เปิดในตารางตอนนี้
+                const isOpenPeriod = Boolean(prodDate) && viewMode === "process" && !selectedProcess &&
+                  getGranularityDateInfo(prodDate!, granularity).key === selectedChartDate;
+                return (
+                  <React.Fragment key={`${proc}_${row.out_time}_${i}`}>
+                    {i > 0 && <ChevronRight className="w-3 h-3 text-base-content/30 shrink-0" />}
+                    <button
+                      type="button"
+                      disabled={!prodDate}
+                      onClick={() => openLotInTable(lot, row)}
+                      title={`${getLotBadgeTitle(row)} — กดเพื่อเปิดวันผลิต ${prodDate || "-"} ในตาราง`}
+                      className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs transition-colors ${isLatest ? "border-primary/50 bg-primary/10" : "border-base-300 bg-base-100"} ${isOpenPeriod ? "ring-2 ring-primary/30" : ""} ${prodDate ? "hover:border-primary hover:bg-primary/15 cursor-pointer" : "opacity-60 cursor-not-allowed"}`}
+                    >
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getProcessColor(proc) }}></span>
+                      <span className="font-semibold text-base-content/85">{proc || "-"}</span>
+                      <span className="font-mono text-base-content/50">{formatLotOutTime(row.out_time)}</span>
+                      {isLatest && (
+                        <span className="rounded bg-primary px-1 text-[9px] font-bold uppercase text-primary-content">ล่าสุด</span>
+                      )}
+                    </button>
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          ))}
+          {groups.length > LOT_SEARCH_MAX_GROUPS && (
+            <span className="text-[11px] text-base-content/55">
+              แสดง {LOT_SEARCH_MAX_GROUPS} lot แรก จาก {groups.length.toLocaleString()} lot — พิมพ์เลข lot ให้ยาวขึ้นเพื่อจำกัดผล
+            </span>
+          )}
+        </div>
+      );
+    }
+
+    return <div className="rounded-lg border border-primary/15 bg-primary/5 px-3 py-2.5">{content}</div>;
+  };
+
   const exportProcessOptions = useMemo(() => {
     const names = new Set<string>();
     PROCESS_SEQUENCE.forEach(name => names.add(name));
@@ -2584,6 +2881,27 @@ const Page: React.FC = () => {
       return bySequence !== 0 ? bySequence : a.localeCompare(b);
     });
   }, [processColors, summaryData, chartDataAndProcs.activeProcesses, selectedProcess]);
+
+  // ช่องค้นหา Lot No. ทั้งช่วง From–To — วางต่อจากช่อง Search Process/Line ของกราฟ ผลค้นหาแสดงใต้แถวเครื่องมือของกราฟ
+  const globalLotSearchRange = `${formatDate(startDate)} – ${formatDate(endDate)}`;
+  const globalLotSearchBox = (
+    <LotSearchBox
+      search={globalLotSearch}
+      rangeLabel={globalLotSearchRange}
+      getProcessColor={getProcessColor}
+      align="left"
+      title={`ค้นหาว่า Lot No. ออกจาก process ไหน ช่วง ${globalLotSearchRange} (gate process, 08:00–08:00) — พิมพ์อย่างน้อย 3 ตัวอักษร แล้วเลือกจากรายการ หรือกด Enter เพื่อดูทุก lot ที่ตรงกัน`}
+    />
+  );
+  const globalLotSearchPanel = renderGlobalLotSearchPanel();
+
+  // สถานะเวลาอัปเดตล่าสุดบน header
+  const lastUpdatedText = lastUpdated ? `Last updated ${formatUpdatedTime(lastUpdated)}` : "";
+  const updateStatusText = isLoading
+    ? (lastUpdated ? `Updating... · ${lastUpdatedText}` : "Loading...")
+    : lastUpdateFailed
+      ? (lastUpdated ? `Update failed · ${lastUpdatedText}` : "Update failed")
+      : lastUpdatedText;
 
   return (
     <>
@@ -2620,6 +2938,20 @@ const Page: React.FC = () => {
                     Group: {selectedLineGroup}
                   </span>
                 )}
+                {/* เวลาอัปเดตล่าสุดของข้อมูล */}
+                {updateStatusText && (
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-1 text-xs font-medium ${lastUpdateFailed && !isLoading ? "text-error" : "text-base-content/55"}`}
+                    title={autoRefreshMinutes > 0
+                      ? `Auto refresh ทุก ${autoRefreshMinutes} นาที (หยุดชั่วคราวเมื่อแท็บถูกซ่อน)`
+                      : "Auto refresh ปิดอยู่"}
+                  >
+                    {isLoading
+                      ? <RefreshCcw size={13} className="animate-spin opacity-70" />
+                      : <Clock size={13} className="opacity-70" />}
+                    {updateStatusText}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -2632,6 +2964,20 @@ const Page: React.FC = () => {
                 <RefreshCcw size={14} className={isRefreshing || isLoading ? "animate-spin" : ""} />
                 Refresh
               </button>
+
+              <select
+                className="select select-sm select-bordered w-auto bg-base-100 shadow-sm"
+                value={autoRefreshMinutes}
+                onChange={(e) => changeAutoRefresh(Number(e.target.value))}
+                aria-label="Auto refresh interval"
+                title="โหลดข้อมูลใหม่อัตโนมัติ โดยคงช่วงวันที่ วันที่ที่เลือก และตัวกรองไว้เหมือนเดิม"
+              >
+                {AUTO_REFRESH_OPTIONS.map(minutes => (
+                  <option key={minutes} value={minutes}>
+                    {minutes === 0 ? "Auto refresh: Off" : `Auto refresh: ${minutes} min`}
+                  </option>
+                ))}
+              </select>
 
               <div className="flex items-center bg-base-100 border border-base-300 rounded-lg shadow-sm h-8">
                 <div
@@ -3061,7 +3407,7 @@ const Page: React.FC = () => {
               unit={unitMode}
               setUnitMode={setUnitMode}
               multiUnitData={multiUnitData}
-              activeLines={chartDataAndProcs.activeProcesses}
+              activeLines={chartActiveNames}
               selectedDate={selectedChartDate}
               selectedFactory={selectedFactory}
               onFactoryChange={(f) => {
@@ -3078,6 +3424,8 @@ const Page: React.FC = () => {
                 setSelectedChartDate(prev => (prev === rawDate ? null : rawDate));
                 setProcessFamilyFilter("All");
               }}
+              searchAddonNode={globalLotSearchBox}
+              toolbarPanelNode={globalLotSearchPanel}
             />
           ) : ((Array.isArray(lots) && lots.length > 0) || chartFilteredProductRows.length > 0 || summaryData.length > 0) ? (
             startDate !== endDate && !selectedChartDate ? (
@@ -3086,7 +3434,7 @@ const Page: React.FC = () => {
                 unit={unitMode}
                 setUnitMode={setUnitMode}
                 multiUnitData={multiUnitData}
-                activeProcesses={chartDataAndProcs.activeProcesses}
+                activeProcesses={chartActiveNames}
                 selectedDate={selectedChartDate}
                 onProcessFilterChange={setDailyProcessFilter}
                 onBarClick={(rawDate, _procName) => {
@@ -3094,6 +3442,8 @@ const Page: React.FC = () => {
                   setProcessFamilyFilter("All");
                   setDailyProcessFilter([]);
                 }}
+                searchAddonNode={globalLotSearchBox}
+                toolbarPanelNode={globalLotSearchPanel}
               />
             ) : (
               <TopOutputChart
@@ -3126,6 +3476,8 @@ const Page: React.FC = () => {
                     </button>
                   ) : undefined
                 }
+                searchAddonNode={globalLotSearchBox}
+                toolbarPanelNode={globalLotSearchPanel}
               />
             )
           ) : (
@@ -3138,14 +3490,14 @@ const Page: React.FC = () => {
         {/* Table Content - Only shown when a specific date or process is selected */}
         {(selectedChartDate || selectedProcess) && (
           <div className="bg-base-100 rounded-xl shadow-sm border border-base-300 overflow-hidden flex-1 relative min-h-[350px]">
-            <div className="p-4 border-b border-base-300 flex justify-between items-center bg-base-200/20">
+            <div className="p-4 border-b border-base-300 flex flex-wrap justify-between items-center gap-3 bg-base-200/20">
               <h3 className="text-base font-bold text-base-content/90 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" />
                 {selectedProcess
                   ? `MC Line Details - ${selectedProcess}`
                   : (viewMode === "line" ? "Line Output Details" : "Process Output Details")}
               </h3>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="text-xs text-base-content/60 font-medium bg-base-200 px-2 py-1 rounded">
                   {selectedProcess
                     ? `Total MC Lines: ${mcLineData.length}`
@@ -3164,7 +3516,7 @@ const Page: React.FC = () => {
               </div>
             </div>
             <div className="overflow-x-auto h-[calc(100%-60px)]">
-              {isLoading || isMcLineLoading ? (
+              {(isLoading && !isRefreshing) || isMcLineLoading ? (
                 <ListSkeleton />
               ) : selectedProcess ? (
                 <div className="flex flex-col gap-2 p-2 overflow-y-auto h-full scrollbar-thin">
@@ -3291,11 +3643,14 @@ const Page: React.FC = () => {
                           const color = getProcessColor(row.process_name);
                           // ทั้ง By Process และ By Line กดแถวเพื่อดู Lot No. ได้ (By Line: row.process_name คือชื่อ line)
                           const isLotOpen = expandedLotProcesses.includes(row.process_name);
+                          // By Process: จำนวนรายการที่ตรงกับคำค้น Lot No. ใน process นี้
+                          const lotHitCount = viewMode === "process" ? (lotSearchView.hitCountByProcess.get(row.process_name) || 0) : 0;
 
                           return (
                             <React.Fragment key={row.process_name}>
                               <tr
-                                className={`hover:bg-base-200/50 transition-colors border-b border-base-300 cursor-pointer ${isLotOpen ? "bg-base-200/40" : ""}`}
+                                data-process-row={row.process_name}
+                                className={`hover:bg-base-200/50 transition-colors border-b border-base-300 cursor-pointer ${lotHitCount > 0 ? "bg-primary/5 shadow-[inset_3px_0_0_0_var(--color-primary)]" : isLotOpen ? "bg-base-200/40" : ""}`}
                                 onClick={() => toggleLotProcess(row.process_name)}
                                 onKeyDown={(e: React.KeyboardEvent) => {
                                   if (e.key === "Enter" || e.key === " ") {
@@ -3318,6 +3673,15 @@ const Page: React.FC = () => {
                                       style={{ backgroundColor: color }}
                                     ></span>
                                     <span className="font-semibold text-sm">{row.process_name}</span>
+                                    {lotHitCount > 0 && (
+                                      <span
+                                        className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary"
+                                        title={`พบ Lot No. "${lotSearchTerm}" ใน process นี้`}
+                                      >
+                                        <Search className="w-3 h-3" />
+                                        {lotHitCount.toLocaleString()} lot
+                                      </span>
+                                    )}
                                   </div>
                                 </td>
                                 <td className={`px-4 py-3.5 text-right font-mono text-sm ${unitMode === "Lot" ? "font-bold text-primary" : "text-base-content/70"}`}>

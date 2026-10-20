@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from "react"
 import ReactECharts from "echarts-for-react";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { getProcessColor } from "./processColors";
+import { useStableStringArray } from "./useStableStringArray";
 
 interface DataItem {
   process_name: string;
@@ -17,6 +18,10 @@ interface TopOutputChartProps {
   onProcessSelect?: (processName: string) => void;
   onProcessFilterChange?: (processes: string[]) => void;
   backButtonNode?: React.ReactNode;
+  // วางต่อจากช่อง Search Process (เช่น ช่องค้นหา Lot No. ของหน้า)
+  searchAddonNode?: React.ReactNode;
+  // แสดงใต้แถวเครื่องมือ (เช่น ผลค้นหา Lot No.)
+  toolbarPanelNode?: React.ReactNode;
 }
 
 const ITEMS_PER_PAGE = 12;
@@ -47,15 +52,20 @@ const TopOutputChart: React.FC<TopOutputChartProps> = ({
   selectedProcess = "",
   onProcessSelect,
   onProcessFilterChange,
-  backButtonNode
+  backButtonNode,
+  searchAddonNode,
+  toolbarPanelNode
 }) => {
   const chartRef = useRef<any>(null);
   const [legendPage, setLegendPage] = useState(0);
 
-  const allProcessNames = useMemo(() => {
+  const processNames = useMemo(() => {
     if (!data) return [];
     return Array.from(new Set(data.map(d => d.process_name))).sort();
   }, [data]);
+  // Page ส่ง data เป็น array ใหม่ทุก render — คง array เดิมเมื่อรายชื่อไม่เปลี่ยน
+  // effect ด้านล่างจึงรีเซ็ตตัวกรอง Search Process เฉพาะเมื่อรายชื่อ process เปลี่ยนจริง (เช่น เปลี่ยนวัน) ไม่ใช่ทุก render / auto refresh
+  const allProcessNames = useStableStringArray(processNames);
 
   // Autocomplete UI States
   const [localSearch, setLocalSearch] = useState("");
@@ -325,7 +335,7 @@ const TopOutputChart: React.FC<TopOutputChartProps> = ({
   return (
     <div className="w-full max-w-full overflow-hidden flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-2 w-full sm:w-auto z-50">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto z-50">
           {backButtonNode}
 
           <div className="relative w-full sm:w-52" ref={suggestionRef}>
@@ -428,6 +438,8 @@ const TopOutputChart: React.FC<TopOutputChartProps> = ({
               </div>
             )}
           </div>
+
+          {searchAddonNode}
         </div>
 
         <div className="flex flex-1 items-center justify-end min-w-0 max-w-full">
@@ -475,6 +487,8 @@ const TopOutputChart: React.FC<TopOutputChartProps> = ({
           </div>
         </div>
       </div>
+
+      {toolbarPanelNode}
 
       <div className="w-full h-[450px]">
         <ReactECharts
